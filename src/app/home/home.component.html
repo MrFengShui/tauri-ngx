@@ -1,0 +1,40 @@
+<p-toolbar [style]="{height: '5.5rem'}" [styleClass]="'border-noround'">
+    <ng-template pTemplate="start">
+        <a pButton severity="secondary" routerLink="/home" class="flex align-items-center no-underline gap-3"
+            [style.height]="'3rem'">
+            <img src="../assets/tauri.svg" height="100%" />
+            <span class="text-2xl font-bold">TauriNG</span>
+        </a>
+    </ng-template>
+    <ng-template pTemplate="end">
+        <div class="flex align-items-center gap-3">
+            <p-dropdown [options]="styleNameList" optionLabel="text" placeholder="请选择一种样式" [(ngModel)]="styleNameSelect" (onChange)="styleOnChange()"></p-dropdown>
+            <p-dropdown [options]="styleColorList" optionLabel="text" placeholder="请选择一种色彩" [(ngModel)]="styleColorSelect" (onChange)="styleOnChange()">
+                <ng-template pTemplate="item" let-color>
+                    <div class="flex align-items-center gap-3">
+                        <span class="color-show-panel" [style]="{'background-color': color.code}"></span>
+                        <span>{{color.text}}</span>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="selectedItem" *ngIf="styleColorSelect">
+                    <div class="flex align-items-center gap-3">
+                        <span class="color-show-panel" [style]="{'background-color': styleColorSelect.code}"></span>
+                        <span>{{styleColorSelect.text}}</span>
+                    </div>
+                </ng-template>
+            </p-dropdown>
+            <p-toggleButton [onLabel]="'夜晚'" [offLabel]="'白昼'" [onIcon]="'pi pi-moon'" [offIcon]="'pi pi-sun'" [(ngModel)]="styleThemeMode" (onChange)="styleOnChange()"/>
+            <p-button icon="pi pi-user" [rounded]="true" [raised]="true" [routerLink]="['/login']" [queryParams]="{ theme: styleThemeMode ? 'dark' : 'light' }"/>
+        </div>
+    </ng-template>
+</p-toolbar>
+<p-splitter [gutterSize]="8" [panelSizes]="[15, 85]" [style.height]="'calc(100% - 88px)'" styleClass="h-full">
+    <ng-template pTemplate>
+        <div class="col flex w-full" #treeContainer>
+            <p-tree [value]="navlist" [virtualScroll]="true" [virtualScrollItemSize]="48" selectionMode="single" [(selection)]="navlistSelect" (onNodeSelect)="onNodeSelect($event)" class="w-full h-full" styleClass="h-full p-0"/>
+        </div>
+    </ng-template>
+    <ng-template pTemplate>
+        <div class="col flex w-full overflow-x-hidden overflow-y-auto"><router-outlet></router-outlet></div>
+    </ng-template>
+</p-splitter>

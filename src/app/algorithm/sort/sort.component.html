@@ -1,0 +1,25 @@
+<div class="flex flex-auto" #container>
+    <canvas [style.background-color]="'var(--surface-300)'" #canvas></canvas>
+</div>
+<!-- <div class="flex-auto"></div> -->
+<div class="flex align-items-center border-solid border-primary border-round-sm border-1 p-3 gap-4">
+    <span class="font-bold text-2xl text-primary white-space-nowrap">选择待排数量</span>
+    <p-slider [disabled]="locked" [animate]="true" [min]="0" [max]="1000" [step]="50" [(ngModel)]="count" class="w-full" (onSlideEnd)="countSelectedOnChange()"/>
+    <span class="font-bold text-2xl text-primary">{{count}}</span>
+    <p-button [disabled]="locked" [raised]="true" icon="pi pi-sync" label="洗牌" class="white-space-nowrap" (onClick)="invokeShuffleEvent()"/>
+    <p-button [disabled]="locked" [raised]="true" icon="pi pi-play" label="运行" class="white-space-nowrap" (onClick)="invokeRunEvent()"/>
+</div>
+<div class="flex justify-content-between align-items-center border-solid border-primary border-round-sm border-1 p-3 gap-4">
+    <div class="flex align-items-center gap-4">
+        <ng-container *ngIf="name === 'lsd-radix-sort' || name === 'msd-radix-sort'">
+            <span class="font-bold text-2xl text-primary white-space-nowrap" >选择待排进制</span>
+            <p-selectButton [disabled]="locked" [options]="radixOptions" optionLabel="label" optionValue="value" [(ngModel)]="radix"/>
+        </ng-container>
+        <span class="font-bold text-2xl text-primary white-space-nowrap">选择待排顺序</span>
+        <p-selectButton [disabled]="locked" [options]="orderOptions" optionLabel="label" optionValue="value" [(ngModel)]="order"/>
+    </div>
+    <div class="flex align-items-center gap-4">
+        <span class="font-bold text-2xl text-primary white-space-nowrap">交换次数：{{times | number:'0.0-0':'zh'}}</span>
+        <span class="font-bold text-2xl text-primary white-space-nowrap">排序用时：{{timer | timer}}</span>
+    </div>
+</div>

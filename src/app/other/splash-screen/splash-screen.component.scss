@@ -1,0 +1,31 @@
+$max: 1.0;
+$min: 0.5;
+
+.shine-effect {
+    @keyframes opacity-change {
+        0%{
+            opacity: $max;
+        }
+
+        25% {
+            opacity: $min;
+        }
+
+        50% {
+            opacity: $max;
+        }
+
+        75%{
+            opacity: $min;
+        }
+
+        100% {
+            opacity: $max;
+        }
+    }
+
+    animation-name: 'opacity-change';
+    animation-duration: 5000ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}

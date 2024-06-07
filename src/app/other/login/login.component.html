@@ -1,0 +1,26 @@
+<div class="fixed flex align-items-center gap-5" [style.left]="calculateXAxisPosition(titleBox)" [style.top]="'20%'" #titleBox>
+    <p-image src="assets/tauri.svg" alt="logo" width="192" height="192"/>
+    <span class="font-bold text-primary" [style.font-size]="'11rem'">TauriNG</span>
+</div>
+<div class="card border-round-md border-2 surface-border fixed w-30rem" [style.backdrop-filter]="theme === 'dark' ? 'blur(0.125rem)' : 'blur(0.375rem)'" [style.height]="'fit-content'" [style.left]="calculateXAxisPosition(loginBox)" [style.bottom]="'30%'" #loginBox>
+    <div class="flex align-items-center px-3 pt-3 gap-3">
+        <i class="pi pi-prime text-5xl"></i>
+        <span class="font-bold text-4xl">用户登入</span>
+    </div>
+    <p-divider />
+    <form class="formgrid grid px-3 gap-3">
+        <div class="field col-12 flex align-items-end gap-3">
+            <label for="username"><i class="pi pi-user text-2xl"></i></label>
+            <input type="text" pInputText placeholder="请输入账号" id="username" class="flex-auto"/>
+        </div>
+        <div class="field col-12 flex align-items-end gap-3">
+            <label for="password"><i class="pi pi-key text-2xl"></i></label>
+            <p-password promptLabel="当前密码强度" weakLabel="较弱" mediumLabel="中等" strongLabel="较强" placeholder="请输入密码" id="password" class="flex-auto" styleClass="w-full" inputStyleClass="w-full"/>
+        </div>
+    </form>
+    <p-divider />
+    <div class="flex justify-content-between px-3 pb-3">
+        <p-button label="忘记密码" [link]="true" styleClass="text-color"/>
+        <p-button label="登入"/>
+    </div>
+</div>
