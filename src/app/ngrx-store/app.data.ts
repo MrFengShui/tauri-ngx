@@ -190,11 +190,17 @@ export const APP_NAVLIST: Observable<TreeNode<{ url: string[], param?: string }>
     let list: TreeNode<{ url: string[], param?: string }>[] = Array.from([]);
     list.push({
         key: '1',
-        label: '主页',
-        data: { url: ['/home'] },
+        label: '项目导航',
+        data: { url: ['/playground'] },
         leaf: true
     });
     list.push(ALGORITHM_SORT_NAVLIST);
+    list.push({
+        key: '10',
+        label: '关于本站',
+        data: { url: ['/authorization', 'register'] },
+        leaf: true
+    });
     subscriber.next(list);
     subscriber.complete();
 });

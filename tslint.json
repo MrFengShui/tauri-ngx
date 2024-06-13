@@ -1,6 +1,0 @@
-{
-    "rules": {
-        "component-selector": [ true, "element", ["tauri-app"], "kebab-case" ],
-        "directive-selector": [ true, "attribute", ["tauri-app"], "camelCase" ]
-    }
-}

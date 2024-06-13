@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, Renderer2, ViewChild } from "@angular/core";
+import { ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, Renderer2, ViewChild } from "@angular/core";
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { Store } from "@ngrx/store";
 import { Subscription, filter, map, timer } from "rxjs";
@@ -17,26 +17,20 @@ import { SORT_FEATURE_SELECTIOR } from "./ngrx-store/sourt.selector";
 export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
 
     @ViewChild('container', { read: ElementRef, static: true })
-    private container!: ElementRef<HTMLDivElement>;
+    private container!: ElementRef<HTMLCanvasElement>;
 
     @ViewChild('canvas', { read: ElementRef, static: true })
     private canvas!: ElementRef<HTMLCanvasElement>;
 
     @HostListener('window:load', ['$event'])
     private hostListenWindowOnLoad(): void {
-        const width: number = this.container.nativeElement.clientWidth;
-        const height: number = this.container.nativeElement.clientHeight;
-        this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${width}`);
-        this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${height}`);
+        this.initCanvasSize();
         this.create();
     }
 
     @HostListener('window:resize', ['$event'])
     private hostListenWindowResize(): void {
-        const width: number = this.container.nativeElement.clientWidth;
-        const height: number = this.container.nativeElement.clientHeight;
-        this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${width}`);
-        this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${height}`);
+        this.initCanvasSize();
         this.reset();
         this.create();
     }
@@ -61,6 +55,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
     name: string = '';
 
     private utils: SortCanvasUtils | null = null;
+    private event$: Subscription | null = null;
     private store$: Subscription | null = null;
     private route$: Subscription | null = null;
     private match$: Subscription | null = null;
@@ -68,20 +63,22 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
 
     constructor(
         private _route: ActivatedRoute,
-        private _router: Router,
         private _cdr: ChangeDetectorRef,
         private _element: ElementRef<HTMLElement>,
         private _renderer: Renderer2,
+        private _ngZone: NgZone,
         private _store: Store,
         private _service: SortMatchService
     ) { }
 
     ngOnInit(): void {
+        this.initHostLayout();
         this.listenQueryParamsChange();
         this.listenDataListChange();
     }
 
     ngOnDestroy(): void {
+        this.event$?.unsubscribe();
         this.store$?.unsubscribe();
         this.route$?.unsubscribe();
         this.timer$?.unsubscribe();
@@ -90,24 +87,8 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
 
     invokeRunEvent(): void {
         this.locked = true;
-        this.timer$ = timer(0, 1000).subscribe(value => this.timer = value);
-        this.match$ = this._service.match(this.name, this.source, this.order, this.radix).subscribe(value => {
-            if (value) {
-                this.locked = !value.completed;
-                this.times = value.times as number;
-                this.source = value.datalist;
-
-                if (this.utils) {
-                    this.utils.loadData(this.source);
-                    this.utils.draw();
-                }
-
-                if (value.completed) {
-                    this.timer$?.unsubscribe();
-                    this.match$?.unsubscribe();
-                }
-            }
-        });
+        this.listenToStopWatch();
+        this.listenToSortProcess();
     }
 
     invokeShuffleEvent(): void {
@@ -115,7 +96,10 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
     }
 
     countSelectedOnChange(): void {
-        this._store.dispatch(SORT_CREATE_DATA_LIST_ACTION({ size: this.count as number, name: this.name }));
+        if (this.name) {
+            this._store.dispatch(SORT_CREATE_DATA_LIST_ACTION({ size: this.count as number, name: this.name }));
+            return;
+        }        
     }
 
     private initHostLayout(): void {
@@ -124,6 +108,11 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
         this._renderer.addClass(this._element.nativeElement, 'gap-3');
         this._renderer.addClass(this._element.nativeElement, 'w-full');
         this._renderer.addClass(this._element.nativeElement, 'h-full');
+    }
+
+    private initCanvasSize(): void {
+        this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${this.container.nativeElement.clientWidth}`);
+        this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${this.container.nativeElement.clientHeight}`);
     }
 
     private create(flag: boolean = true): void {
@@ -145,33 +134,71 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
         this.source.splice(0);
     }
 
-    private listenQueryParamsChange(): void {
-        this.route$ = this._route.queryParams
-        .pipe(map(params => params['name']))
-        .subscribe(name => {
-            this.name = name;
-            
-            this.initHostLayout();
-            this.reset();
-            this.create(false);
+    private listenToStopWatch(): void {
+        this._ngZone.runOutsideAngular(() => {
+            this.timer$ = timer(0, 1000).subscribe(value => 
+                this._ngZone.run(() => {
+                    this.timer = value;
+                    this._cdr.detectChanges();
+                }));
+        });
+    }
 
-            this.timer$?.unsubscribe();
-            this.match$?.unsubscribe();
+    private listenToSortProcess(): void {
+        this._ngZone.runOutsideAngular(() => {
+            this.match$ = this._service.match(this.name, this.source, this.order, this.radix)
+                .subscribe(value => this._ngZone.run(() => {
+                    if (value) {
+                        this.locked = !value.completed;
+                        this.times = value.times as number;
+                        this.source = value.datalist;
+        
+                        if (this.utils) {
+                            this.utils.loadData(this.source);
+                            this.utils.draw();
+                        }
+        
+                        if (value.completed) {
+                            this.timer$?.unsubscribe();
+                            this.match$?.unsubscribe();
+                        }
+
+                        this._cdr.detectChanges();
+                    }
+                }));
+        });
+    }
+
+    private listenQueryParamsChange(): void {
+        this._ngZone.runOutsideAngular(() => {
+            this.route$ = this._route.queryParams
+                .pipe(map(params => params['name']))
+                .subscribe(name => this._ngZone.run(() => {
+                    this.name = name;
+                    
+                    this.initCanvasSize();
+                    this.reset();
+                    this.create(false);
+        
+                    this.timer$?.unsubscribe();
+                    this.match$?.unsubscribe();
+                }));
         });
     }
 
     private listenDataListChange(): void {
-        this.store$ = this._store.select(SORT_FEATURE_SELECTIOR)
-            .subscribe(state => {
+        this._ngZone.runOutsideAngular(() => {
+            this.store$ = this._store.select(SORT_FEATURE_SELECTIOR)
+            .subscribe(state => this._ngZone.run(() => {
                 this.locked = !state.completed;
                 this.source = JSON.parse(JSON.stringify(state.datalist));
-                this._cdr.detectChanges();
 
                 if (this.utils) {
                     this.utils.loadData(this.source);
                     this.utils.draw();
                 }
-            });
+            }));
+        });
     }
 
 }

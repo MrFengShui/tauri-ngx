@@ -1,6 +1,6 @@
 <p-toolbar [style]="{height: '5.5rem'}" [styleClass]="'border-noround'">
     <ng-template pTemplate="start">
-        <a pButton severity="secondary" routerLink="/home" class="flex align-items-center no-underline gap-3"
+        <a pButton severity="secondary" [routerLink]="['/playground']" class="flex align-items-center no-underline gap-3"
             [style.height]="'3rem'">
             <img src="../assets/tauri.svg" height="100%" />
             <span class="text-2xl font-bold">TauriNG</span>
@@ -24,14 +24,14 @@
                 </ng-template>
             </p-dropdown>
             <p-toggleButton [onLabel]="'夜晚'" [offLabel]="'白昼'" [onIcon]="'pi pi-moon'" [offIcon]="'pi pi-sun'" [(ngModel)]="styleThemeMode" (onChange)="styleOnChange()"/>
-            <p-button icon="pi pi-user" [rounded]="true" [raised]="true" [routerLink]="['/login']" [queryParams]="{ theme: styleThemeMode ? 'dark' : 'light' }"/>
+            <p-button icon="pi pi-user" [rounded]="true" [raised]="true" [routerLink]="['/authorization', 'login']"/>
         </div>
     </ng-template>
 </p-toolbar>
 <p-splitter [gutterSize]="8" [panelSizes]="[15, 85]" [style.height]="'calc(100% - 88px)'" styleClass="h-full">
     <ng-template pTemplate>
         <div class="col flex w-full" #treeContainer>
-            <p-tree [value]="navlist" [virtualScroll]="true" [virtualScrollItemSize]="48" selectionMode="single" [(selection)]="navlistSelect" (onNodeSelect)="onNodeSelect($event)" class="w-full h-full" styleClass="h-full p-0"/>
+            <p-tree emptyMessage="暂无数据" [value]="navlist" [virtualScroll]="true" [virtualScrollItemSize]="48" selectionMode="single" [(selection)]="navlistSelect" (onNodeSelect)="onNodeSelect($event)" class="w-full h-full" styleClass="h-full p-0"/>
         </div>
     </ng-template>
     <ng-template pTemplate>

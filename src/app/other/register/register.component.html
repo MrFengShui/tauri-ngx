@@ -1,0 +1,60 @@
+<div class="flex flex-column align-items-center gap-6">
+    <div class="flex align-items-center gap-3" #titleBox>
+        <p-image src="assets/tauri.svg" alt="logo" width="256" height="256" imageClass="border-circle bg-primary p-4"/>
+        <span class="logo-text font-bold text-primary line-height-1">TauriNG</span>
+    </div>
+    <div class="border-1 border-round-md surface-border shadow-8" [style.backdrop-filter]="'blur(0.5rem)'" [style.width]="'80rem'" [style.height]="'45rem'" #mainBox>
+        <p-dataView gridStyleClass="border-1" [value]="source" [paginator]="true" [rows]="8" [totalRecords]="source.length" [showCurrentPageReport]="true" [showJumpToPageDropdown]="false"
+            currentPageReportTemplate="第{currentPage}页/共{totalPages}页" styleClass="h-full" paginatorStyleClass="border-noround" #dataview>
+            <ng-template pTemplate="header">
+                <div class="flex align-items-center gap-3">
+                    <i class="pi pi-users text-4xl"></i>
+                    <span class="font-bold text-2xl">账号清单</span>
+                    <div class="flex-auto"></div>
+                    <p-button icon="pi pi-user-plus" label="新增账号" [raised]="true" severity="success" (click)="handleAddUserEvent()"/>
+                    <p-button icon="pi pi-user-plus" label="全部删除" [raised]="true" severity="danger" [disabled]="source.length === 0" (click)="handleClearUserEvent()"/>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="empty">
+                <tauri-app-empty-holder [class.h-full]="source.length === 0"></tauri-app-empty-holder>
+            </ng-template>
+            <ng-template pTemplate="list" let-source>
+                <div class="flex flex-column overflow-x-hidden overflow-y-auto h-full" [class.h-full]="source.length > 0">
+                    <div class="grid nested-grid p-3 m-0 surface-border" [class.border-bottom-1]="!last" *ngFor="let item of source; index as i; last as last">
+                        <div class="col-fixed text-center">
+                            <p-avatar [image]="item.profile.avatar.source" size="xlarge" shape="circle" styleClass="border-3 surface-border"/>
+                        </div>
+                        <div class="col">
+                            <div class="grid text-xl">
+                                <div class="col-1 font-bold">标识</div>
+                                <div class="col-11">{{item.profile.id}}</div>
+                                <div class="col-1 font-bold">昵称</div>
+                                <div class="col-3">{{item.profile.nickname}}</div>
+                                <div class="col-1 font-bold">创建</div>
+                                <div class="col-3">{{item.profile.createTime | date: 'YYYY/MM/dd HH:mm:ss'}}</div>
+                                <div class="col-1 font-bold">修改</div>
+                                <div class="col-3">{{item.profile.updateTime | date: 'YYYY/MM/dd HH:mm:ss'}}</div>
+                                <div class="col-1 font-bold">账号</div>
+                                <div class="col-3">{{item.account.username}}</div>
+                                <div class="col-1 font-bold">密码</div>
+                                <div class="col-7 white-space-nowrap overflow-hidden text-overflow-ellipsis">{{item.account.password}}</div>
+                            </div>
+                        </div>
+                        <div class="col-fixed w-10rem">
+                            <div class="grid">
+                                <div class="col-12">
+                                    <p-button icon="pi pi-user-edit" label="修改账户" severity="warning" [raised]="true" (click)="handleModifyUserEvent(item)"/>
+                                </div>
+                                <div class="col-12">
+                                    <p-button icon="pi pi-user-minus" label="删除账户" severity="danger" [raised]="true" (click)="handleRemoveUserEvent(item)"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ng-template>
+        </p-dataView>
+    </div>
+</div>
+<p-confirmDialog closable="false"/>
+<p-toast life="5000"/>

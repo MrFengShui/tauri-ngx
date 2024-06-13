@@ -1,15 +1,14 @@
-<div class="flex flex-auto" #container>
-    <canvas [style.background-color]="'var(--surface-300)'" #canvas></canvas>
+<div class="flex flex-auto" [style.height]="'calc(100% - ' + ctrlBox_1.clientHeight + 'px - ' + ctrlBox_2.clientHeight + 'px - 2rem)'" #container>
+    <canvas class="w-full h-full" [style.background-color]="'var(--surface-300)'" #canvas></canvas>
 </div>
-<!-- <div class="flex-auto"></div> -->
-<div class="flex align-items-center border-solid border-primary border-round-sm border-1 p-3 gap-4">
+<div class="flex align-items-center border-solid border-primary border-round-sm border-1 p-3 gap-4" #ctrlBox_1>
     <span class="font-bold text-2xl text-primary white-space-nowrap">选择待排数量</span>
     <p-slider [disabled]="locked" [animate]="true" [min]="0" [max]="1000" [step]="50" [(ngModel)]="count" class="w-full" (onSlideEnd)="countSelectedOnChange()"/>
     <span class="font-bold text-2xl text-primary">{{count}}</span>
     <p-button [disabled]="locked" [raised]="true" icon="pi pi-sync" label="洗牌" class="white-space-nowrap" (onClick)="invokeShuffleEvent()"/>
     <p-button [disabled]="locked" [raised]="true" icon="pi pi-play" label="运行" class="white-space-nowrap" (onClick)="invokeRunEvent()"/>
 </div>
-<div class="flex justify-content-between align-items-center border-solid border-primary border-round-sm border-1 p-3 gap-4">
+<div class="flex justify-content-between align-items-center border-solid border-primary border-round-sm border-1 p-3 gap-4" #ctrlBox_2>
     <div class="flex align-items-center gap-4">
         <ng-container *ngIf="name === 'lsd-radix-sort' || name === 'msd-radix-sort'">
             <span class="font-bold text-2xl text-primary white-space-nowrap" >选择待排进制</span>

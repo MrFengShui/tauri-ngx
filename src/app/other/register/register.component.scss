@@ -1,0 +1,34 @@
+.p-dataview {
+    .p-dataview-header, .p-dataview-content, .p-paginator {
+        background: none;
+        border: none;
+    }
+
+    .p-dataview-content, .p-dataview-emptymessage {
+        border-color: var(--surface-border);
+        border-top-width: 1px;
+        border-bottom-width: 1px;
+        border-left-width: 0;
+        border-right-width: 0;
+        border-style: solid;
+        height: calc(45rem - 2px - 80px - 70px);
+    }
+}
+
+.prompt {
+    &.hidden {
+        visibility: hidden;
+    }
+
+    &.success {
+        color: var(--green-500);
+    }
+
+    &.warning {
+        color: var(--yellow-500);
+    }
+
+    &.error {
+        color: var(--red-500);
+    }
+}

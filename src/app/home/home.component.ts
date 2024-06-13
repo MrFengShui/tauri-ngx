@@ -39,18 +39,18 @@ export class HomePageComponent {
         private _store: Store
     ) { }
 
-    ngOnInit(): void {console.info('ngOnInit');
+    ngOnInit(): void {
         this._store.dispatch(APP_CONFIG_STYLE_NAME_LOAD_ACTION());
         this._store.dispatch(APP_CONFIG_STYLE_COLOR_LOAD_ACTION());
     }
 
-    ngOnDestroy(): void {console.info('ngOnDestroy');
+    ngOnDestroy(): void {
         this.config$?.unsubscribe();
         this.style$?.unsubscribe();
         this.navlist$?.unsubscribe();
     }
 
-    ngAfterViewInit(): void {console.info('ngAfterViewInit');
+    ngAfterViewInit(): void {
         this.initHostLayout();
         this.initNavlist();
         this.listenConfigChange();
@@ -120,7 +120,7 @@ export class HomePageComponent {
             this.style$ = this._store.select(APP_FEATURE_SELECTOR)
                 .pipe(filter(state => state.styleFeatuer.action === APP_STYLE_CHANGE_ACTION.type))
                 .subscribe(state => this._ngZone.run(() => {
-                    const feature: AppStyleReducerState = state.styleFeatuer;console.info('state:', feature.value);
+                    const feature: AppStyleReducerState = state.styleFeatuer;
                     this.renderStyle(feature.value as AppStyleModel);
                     this._cdr.detectChanges();
                 }));

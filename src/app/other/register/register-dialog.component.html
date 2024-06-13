@@ -1,0 +1,108 @@
+<div class="flex align-items-center gap-3">
+    <i class="pi pi-user-plus text-4xl"></i>
+    <span class="font-bold text-2xl">新增账号</span>
+</div>
+<div class="grid nested-grid border-y-1 surface-border -mx-4">
+    <div class="col" [style.max-width]="'calc((100% - 1rem) * 0.5)'">
+        <form [formGroup]="accountFormGroup" class="formgrid grid m-0 p-4">
+            <div class="field col-12 flex align-items-baseline gap-4">
+                <label for="username" class="font-bold text-xl">账号</label>
+                <input type="text" pInputText placeholder="请输入账号" id="username" formControlName="usernameControl" class="flex-auto"/>
+            </div>
+            <div class="field col-12 flex align-items-baseline gap-4 prompt error" [class.hidden]="accountFormGroup.controls['usernameControl'].valid">
+                <label for="username" class="font-bold text-xl" [style.visibility]="'hidden'">占位</label>
+                <span class="flex-auto text-xs" *ngIf="accountFormGroup.controls['usernameControl'].hasError('required')">错误：账号不能为空。</span>
+                <span class="flex-auto text-xs" *ngIf="accountFormGroup.controls['usernameControl'].hasError('minlength')">错误：输入的账号太短。</span>
+                <span class="flex-auto text-xs" *ngIf="accountFormGroup.controls['usernameControl'].hasError('maxlength')">错误：输入的账号太长。</span>
+            </div>
+            <div class="field col-12 flex align-items-baseline gap-4">
+                <label for="password" class="font-bold text-xl">密码</label>
+                <p-password promptLabel="当前密码强度" weakLabel="较弱" mediumLabel="中等" strongLabel="较强" placeholder="请输入密码" inputId="password" formControlName="passwordControl" class="flex-auto" 
+                    styleClass="w-full" inputStyleClass="w-full"/>
+            </div>
+            <div class="field col-12 flex align-items-baseline gap-4 prompt error"  [class.hidden]="accountFormGroup.controls['passwordControl'].valid">
+                <label for="username" class="font-bold text-xl" [style.visibility]="'hidden'">占位</label>
+                <span class="flex-auto text-xs" *ngIf="accountFormGroup.controls['passwordControl'].hasError('required')">错误：密码不能为空。</span>
+                <span class="flex-auto text-xs" *ngIf="accountFormGroup.controls['passwordControl'].hasError('minlength')">错误：输入的密码太短。</span>
+                <span class="flex-auto text-xs" *ngIf="accountFormGroup.controls['passwordControl'].hasError('maxlength')">错误：输入的密码太长。</span>
+            </div>
+            <div class="field col-12 flex align-items-baseline gap-4">
+                <label for="repassword" class="font-bold text-xl">确认</label>
+                <p-password promptLabel="当前密码强度" weakLabel="较弱" mediumLabel="中等" strongLabel="较强" placeholder="请再次输入密码" inputId="repassword" formControlName="repasswordControl" class="flex-auto" 
+                    styleClass="w-full" inputStyleClass="w-full"/>
+            </div>
+            <div class="field col-12 flex align-items-baseline gap-4 prompt error" [class.hidden]="accountFormGroup.controls['repasswordControl'].valid">
+                <label for="username" class="font-bold text-xl" [style.visibility]="'hidden'">占位</label>
+                <span class="flex-auto text-xs" *ngIf="accountFormGroup.controls['repasswordControl'].hasError('required')">错误：密码不能为空。</span>
+                <span class="flex-auto text-xs" *ngIf="accountFormGroup.controls['repasswordControl'].hasError('minlength')">错误：输入的密码太短。</span>
+                <span class="flex-auto text-xs" *ngIf="accountFormGroup.controls['repasswordControl'].hasError('maxlength')">错误：输入的密码太长。</span>
+                <span class="flex-auto text-xs" *ngIf="accountFormGroup.controls['repasswordControl'].hasError('dismatch')">错误：两次密码输入不匹配。</span>
+            </div>
+        </form>
+    </div>
+    <div class="col-fixed w-1rem py-4">
+        <p-divider layout="vertical" type="dashed" styleClass="m-0 p-0"/>
+    </div>
+    <div class="col" [style.max-width]="'calc((100% - 1rem) * 0.5)'">
+        <form [formGroup]="profileFormGroup" class="formgrid grid m-0 p-4">
+            <div class="field col-12 flex align-items-baseline gap-4">
+                <label for="user_id" class="font-bold text-xl">标识</label>
+                <input type="text" pInputText id="user_id" formControlName="idControl" class="flex-auto"/>
+            </div>
+            <div class="field col-12 flex align-items-baseline gap-4">
+                <label for="avatar" class="font-bold text-xl">头像</label>
+                <p-fileUpload accept="image/*" [multiple]="false" [fileLimit]="256 * 256" id="avatar" class="flex-auto" (onSelect)="handleFileSelectEvent($event, upload)" #upload>
+                    <ng-template pTemplate="header" let-chooseCallback="chooseCallback">
+                        <div class="flex justify-content-between gap-4">
+                            <p-button icon="pi pi-image" label="选择图片" [raised]="true" (click)="chooseCallback()"/>
+                            <p-button icon="pi pi-trash" label="取消选择" [raised]="true" severity="danger" (click)="handleFileClearEvent(upload)"/>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="content">
+                        <div class="flex align-items-center gap-4">
+                            <p-avatar [image]="model?.profile?.avatar?.source" size="xlarge" shape="circle" styleClass="border-3 surface-border"/>
+                            <div class="flex flex-column flex-auto gap-3 w-20rem">
+                                <div class="flex align-items-center gap-3 text-xs white-space-nowrap">
+                                    <div class="font-bold">文件名称</div>
+                                    <div [pTooltip]="model?.profile?.avatar?.name" class="flex-auto overflow-hidden text-overflow-ellipsis">{{model?.profile?.avatar?.name}}</div>
+                                </div>
+                                <div class="flex align-items-center gap-3 text-xs white-space-nowrap">
+                                    <div class="font-bold">文件大小</div>
+                                    <div class="flex-auto">{{model?.profile?.avatar?.size| number}}<ng-container *ngIf="model?.profile?.avatar">（字节）</ng-container></div>
+                                </div>
+                                <div class="flex align-items-center gap-3 text-xs white-space-nowrap">
+                                    <div class="font-bold">文件类别</div>
+                                    <div class="flex-auto">{{model?.profile?.avatar?.timestamp| date: 'yyyy/MM/dd HH:mm:ss'}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="file"></ng-template>
+                    <ng-template pTemplate="empty"></ng-template>
+                </p-fileUpload>
+            </div>
+            <div class="field col-12 flex align-items-baseline gap-4">
+                <label for="nickname" class="font-bold text-xl">昵称</label>
+                <input type="text" pInputText id="nickname" formControlName="nicknameControl" class="flex-auto"/>
+            </div>
+            <div class="field col-12 flex align-items-baseline gap-4 prompt error" [class.hidden]="profileFormGroup.controls['nicknameControl'].valid">
+                <label for="username" class="font-bold text-xl" [style.visibility]="'hidden'">占位</label>
+                <span class="flex-auto text-xs" *ngIf="profileFormGroup.controls['nicknameControl'].hasError('required')">错误：昵称不能为空。</span>
+                <span class="flex-auto text-xs" *ngIf="profileFormGroup.controls['nicknameControl'].hasError('minlength')">错误：输入的昵称太短。</span>
+                <span class="flex-auto text-xs" *ngIf="profileFormGroup.controls['nicknameControl'].hasError('maxlength')">错误：输入的昵称太长。</span>
+            </div>
+            <div class="field col-12 flex align-items-baseline gap-4">
+                <label for="create_time" class="font-bold text-xl">创建</label>
+                <p-inputNumber [useGrouping]="false" [prefix]="formatTimestamp(createTimeInput.value | date: 'yyyy/MM/dd HH:mm:ss')" suffix="（毫秒）" inputId="create_time" formControlName="createtimeControl" class="flex-auto" styleClass="w-full" #createTimeInput/>
+            </div>
+            <div class="field col-12 flex align-items-baseline gap-4">
+                <label for="update_time" class="font-bold text-xl">修改</label>
+                <p-inputNumber [useGrouping]="false" [prefix]="formatTimestamp(updateTimeInput.value | date: 'yyyy/MM/dd HH:mm:ss')" suffix="（毫秒）" inputId="update_time" formControlName="updatetimeControl" class="flex-auto" styleClass="w-full" #updateTimeInput/>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="flex justify-content-between">
+    <p-button icon="pi pi-times" label="关闭" severity="danger" [raised]="true" (click)="handleCancelEvent()"/>
+    <p-button icon="pi pi-check" label="提交" severity="success" [raised]="true" (click)="handleSubmitEvent()"/>
+</div>

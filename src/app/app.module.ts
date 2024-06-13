@@ -23,6 +23,7 @@ import { TreeModule } from 'primeng/tree';
 
 import { AppComponent } from "./app.component";
 import { HomePageComponent } from "./home/home.component";
+import { DashboardPageComponent } from "./dashboard/dashboard.component";
 
 import { AppRouteModule } from "./app-route.module";
 import { AlgorithmModule } from "./algorithm/algo.module";
@@ -37,7 +38,8 @@ import { AppConfigEffect, AppStyleEffect } from "./ngrx-store/app.effect";
 @NgModule({
     declarations: [
         AppComponent,
-        HomePageComponent
+        HomePageComponent,
+        DashboardPageComponent
     ],
     imports: [
         BrowserModule,

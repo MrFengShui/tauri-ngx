@@ -1,4 +1,5 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, Renderer2 } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, Renderer2 } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription, filter } from 'rxjs';
 
@@ -7,6 +8,7 @@ import { APP_FEATURE_SELECTOR } from './ngrx-store/app.selector';
 import { AppStyleModel, AppStyleReducerState } from './ngrx-store/app.state';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'tauri-app-root-page',
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss'
@@ -25,21 +27,32 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
 
     styleThemeMode: boolean = true;
 
+    private event$: Subscription | null = null;
     private style$: Subscription | null = null;
     private styleLink: HTMLElement | null = null;
     
     constructor(
         private _cdr: ChangeDetectorRef,
         private _renderer: Renderer2,
+        private _router: Router,
+        private _ngZone: NgZone,
         private _store: Store
-    ) { }
+    ) {
+        this._ngZone.runOutsideAngular(() => {
+            this.event$ = this._router.events
+                .pipe(filter(event => event instanceof NavigationEnd))
+                .subscribe(() => 
+                    this._ngZone.run(() => 
+                        this._store.dispatch(APP_STYLE_CHECK_ACTION())));
+        });
+     }
 
     ngOnInit(): void {
         this.styleLink = document.getElementById('style-link');
-        this._store.dispatch(APP_STYLE_CHECK_ACTION());
     }
 
     ngOnDestroy(): void {
+        this.event$?.unsubscribe();
         this.style$?.unsubscribe();
     }
 
@@ -48,9 +61,10 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     private listenStyleChange(): void {
-        this.style$ = this._store.select(APP_FEATURE_SELECTOR)
+        this._ngZone.runOutsideAngular(() => {
+            this.style$ = this._store.select(APP_FEATURE_SELECTOR)
             .pipe(filter(state => state.styleFeatuer.action.length > 0))
-            .subscribe(state => {
+            .subscribe(state => this._ngZone.run(() => {
                 const feature: AppStyleReducerState = state.styleFeatuer;
                 // console.log(feature.action);
                 if (feature.action === APP_STYLE_CHECK_ACTION.type) {
@@ -75,7 +89,8 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
 
                 this._cdr.detectChanges();
-            });
+            }));
+        });
     }
 
 }
