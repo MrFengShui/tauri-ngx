@@ -1,0 +1,17 @@
+.p-tree {
+    .p-tree-container {
+        overflow: hidden;
+
+        .p-element {
+            &:not(button) {
+                width: 100%;
+            }
+        }
+
+        ul {
+            &, li {
+                width: 100%;
+            }
+        }
+    }
+}

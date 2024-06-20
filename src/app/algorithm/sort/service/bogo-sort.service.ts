@@ -1,29 +1,15 @@
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
+import { random } from "lodash";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, 
+    PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { SortToolsService } from "./sort.service";
 
-const isSortedByAscent = (source: SortDataModel[]): boolean => {
-    for (let i = 0; i < source.length - 1; i++) {
-        if (source[i + 1].value < source[i].value) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-const isSortedByDescent = (source: SortDataModel[]): boolean => {
-    for (let i = 0; i < source.length - 1; i++) {
-        if (source[i + 1].value > source[i].value) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
+/**
+ * 猴子排序
+ */
 @Injectable()
 export class BogoSortService {
 
@@ -32,74 +18,110 @@ export class BogoSortService {
             let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
 
             if (order === 'ascent') {
-                this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByAscent(array, false, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }
     
             if (order === 'descent') {
-                this.sortByDescent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByDescent(array, false, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }
         });
     }
 
-    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+    private async sortByAscent(source: SortDataModel[], flag: boolean, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
         let i: number, j: number;
-        let isValid: boolean = isSortedByAscent(source);
         
-        while (!isValid) {
-            i = Math.floor(Math.random() * source.length);
-            j = Math.floor(Math.random() * source.length);
+        while (!flag) {
+            i = random(0, source.length - 1, false);
+            j = random(0, source.length - 1, false);
+            flag = true;
             
-            if (i === j) continue;
+            if (i === j) {
+                flag = false;
+                continue;
+            }
 
-            source[i].color = 'lawngreen';
-            source[j].color = 'orangered';
+            source[i].color = PRIMARY_COLOR;
+            source[j].color = SECONDARY_COLOR;
+            callback({ times, datalist: source});
 
             if (i < j && source[i].value > source[j].value) {
                 await swap(source, i, j, temp);
                 times += 1;
             }
 
-            callback({ completed: false, times, datalist: source});
             await delay(SORT_DELAY_DURATION);
             
-            source[i].color = 'whitesmoke';
-            source[j].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
+            source[i].color = CLEAR_COLOR;
+            source[j].color = CLEAR_COLOR;
+            callback({ times, datalist: source});
 
-            isValid = isSortedByAscent(source);
+            await delay(SORT_DELAY_DURATION);
+
+            for (let k = source.length - 1; k > 0; k--) {
+                source[k].color = ACCENT_COLOR;
+                callback({ times, datalist: source});
+
+                await delay(SORT_DELAY_DURATION);
+
+                source[k].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+
+                if (source[k - 1].value > source[k].value) {
+                    flag = false;
+                    break;
+                }
+            }
         }
 
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
+    private async sortByDescent(source: SortDataModel[], flag: boolean, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
         let i: number, j: number;
-        let isValid: boolean = isSortedByDescent(source);
         
-        while (!isValid) {
-            i = Math.floor(Math.random() * source.length);
-            j = Math.floor(Math.random() * source.length);
+        while (!flag) {
+            i = random(0, source.length - 1, false);
+            j = random(0, source.length - 1, false);
+            flag = true;
             
-            if (i === j) continue;
+            if (i === j) {
+                flag = false;
+                continue;
+            }
 
-            source[i].color = 'lawngreen';
-            source[j].color = 'orangered';
+            source[i].color = PRIMARY_COLOR;
+            source[j].color = SECONDARY_COLOR;
 
             if (i < j && source[i].value < source[j].value) {
                 await swap(source, i, j, temp);
                 times += 1;
             }
 
-            callback({ completed: false, times, datalist: source});
+            callback({ times, datalist: source});
 
             await delay(SORT_DELAY_DURATION);
             
-            source[i].color = 'whitesmoke';
-            source[j].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
+            source[i].color = CLEAR_COLOR;
+            source[j].color = CLEAR_COLOR;
+            callback({ times, datalist: source});
 
-            isValid = isSortedByDescent(source);
+            await delay(SORT_DELAY_DURATION);
+
+            for (let k = source.length - 1; k > 0; k--) {
+                source[k].color = ACCENT_COLOR;
+                callback({ times, datalist: source});
+
+                await delay(SORT_DELAY_DURATION);
+
+                source[k].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+
+                if (source[k - 1].value < source[k].value) {
+                    flag = false;
+                    break;
+                }
+            }
         }
 
         await delay(SORT_DELAY_DURATION);
@@ -108,97 +130,330 @@ export class BogoSortService {
 
 }
 
+/**
+ * 猴子冒泡排序（单向）
+ */
 @Injectable()
 export class BogoBubbleSortService {
+
+    constructor(private _service: SortToolsService) {}
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
             let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
 
             if (order === 'ascent') {
-                this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByAscent(array, false, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }
     
             if (order === 'descent') {
-                this.sortByDescent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByDescent(array, false, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }
         });
     }
 
-    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let i: number = 0, j: number, pivot: number = 0;
-        let isValid: boolean = isSortedByAscent(source);
+    private async sortByAscent(source: SortDataModel[], flag: boolean, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        let index: number, threshold: number = source.length - 1;
         
-        while (!isValid) {
-            j = Math.floor(Math.random() * (source.length - i) + i);
+        while (!flag) {
+            flag = true;
+            
+            for (let i = 0; i < threshold; i++) {
+                index = random(i + 1, threshold - 1, false);
+                
+                source[i].color = PRIMARY_COLOR;
+                source[index].color = SECONDARY_COLOR;
+                callback({ times, datalist: source});
 
-            source[pivot].color = 'dodgerblue';
-            source[i].color = 'lawngreen';
-            source[j].color = 'orangered';
-            callback({ completed: false, times, datalist: source});
+                if (source[index].value < source[i].value) {
+                    await swap(source, i, index, temp);
+                    times += 1;
+                }
 
-            if (i < j && source[i].value > source[j].value) {
-                await swap(source, i, j, temp);
-                times += 1;
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = CLEAR_COLOR;
+                source[index].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
             }
 
             await delay(SORT_DELAY_DURATION);
             
-            source[pivot].color = 'dodgerblue';
-            source[i].color = 'whitesmoke';
-            source[j].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
+            for (let i = source.length - 1; i > 0; i--) {
+                source[i].color = ACCENT_COLOR;
+                callback({ times, datalist: source});
 
-            i = i + 1 === source.length ? pivot : i + 1;
-            
-            if (source[pivot].value - 1 === pivot) {
-                source[pivot].color = 'whitesmoke';
-                pivot += 1;
-                i = pivot;
-                callback({ completed: false, times, datalist: source});
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+
+                if (source[i - 1].value > source[i].value) {
+                    flag = false;
+                    threshold = i;
+
+                    await swap(source, i - 1, i, temp);
+                    callback({ times, datalist: source});
+                    break;
+                }
             }
-            
-            isValid = isSortedByAscent(source);
         }
 
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        let i: number = 0, j: number, pivot: number = 0;
-        let isValid: boolean = isSortedByDescent(source);
+    private async sortByDescent(source: SortDataModel[], flag: boolean, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        let index: number, threshold: number = source.length - 1;
         
-        while (!isValid) {
-            j = Math.floor(Math.random() * (source.length - i) + i);
+        while (!flag) {
+            flag = true;
+            
+            for (let i = 0; i < threshold; i++) {
+                index = random(i + 1, threshold - 1, false);
+                
+                source[i].color = PRIMARY_COLOR;
+                source[index].color = SECONDARY_COLOR;
+                callback({ times, datalist: source});
 
-            source[pivot].color = 'dodgerblue';
-            source[i].color = 'lawngreen';
-            source[j].color = 'orangered';
-            callback({ completed: false, times, datalist: source});
+                if (source[index].value > source[i].value) {
+                    await swap(source, i, index, temp);
+                    times += 1;
+                }
 
-            if (i < j && source[i].value < source[j].value) {
-                await swap(source, i, j, temp);
-                times += 1;
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = CLEAR_COLOR;
+                source[index].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
             }
 
             await delay(SORT_DELAY_DURATION);
             
-            source[pivot].color = 'dodgerblue';
-            source[i].color = 'whitesmoke';
-            source[j].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
-            
-            i = i === source.length - 1 ? pivot : i + 1;
-            
-            if (source.length - source[pivot].value === pivot) {
-                source[pivot].color = 'whitesmoke';
-                pivot += 1;
-                i = pivot;
-                callback({ completed: false, times, datalist: source});
+            for (let i = source.length - 1; i > 0; i--) {
+                source[i].color = ACCENT_COLOR;
+                callback({ times, datalist: source});
+
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+
+                if (source[i - 1].value < source[i].value) {
+                    flag = false;
+                    threshold = i;
+
+                    await swap(source, i - 1, i, temp);
+                    callback({ times, datalist: source});
+                    break;
+                }
+            }
+        }
+
+        await delay(SORT_DELAY_DURATION);
+        await complete(source, times, callback);
+    }
+
+}
+
+/**
+ * 猴子冒泡排序（双向）
+ */
+@Injectable()
+export class BogoCocktailSortService {
+
+    constructor(private _service: SortToolsService) {}
+
+    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
+        return new Observable(subscriber => {
+            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
+
+            if (order === 'ascent') {
+                this.sortByAscent(array, false, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+            }
+    
+            if (order === 'descent') {
+                this.sortByDescent(array, false, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+            }
+        });
+    }
+
+    private async sortByAscent(source: SortDataModel[], flag: boolean, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        let index: number, lhs: number = 0, rhs: number = source.length - 1;
+        
+        while (!flag) {
+            flag = true;
+
+            for (let i = lhs; i < rhs; i++) {
+                index = random(i + 1, rhs - 1, false);
+                
+                source[i].color = PRIMARY_ONE_COLOR;
+                source[index].color = SECONDARY_ONE_COLOR;
+                callback({ times, datalist: source});
+
+                if (source[index].value < source[i].value) {
+                    await swap(source, i, index, temp);
+                    times += 1;
+                }
+
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = CLEAR_COLOR;
+                source[index].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
             }
 
-            isValid = isSortedByDescent(source);
+            await delay(SORT_DELAY_DURATION);
+
+            for (let i = source.length - 1; i > lhs; i--) {
+                source[i].color = ACCENT_ONE_COLOR;
+                callback({ times, datalist: source});
+
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+
+                if (source[i - 1].value > source[i].value) {
+                    flag = false;
+                    rhs = i;
+
+                    await swap(source, i - 1, i, temp);
+                    break;
+                }
+            }
+
+            await delay(SORT_DELAY_DURATION);
+
+            for (let i = rhs; i > lhs; i--) {
+                index = random(lhs + 1, i - 1, false);
+                
+                source[i].color = PRIMARY_TWO_COLOR;
+                source[index].color = SECONDARY_TWO_COLOR;
+                callback({ times, datalist: source});
+
+                if (source[index].value > source[i].value) {
+                    await swap(source, i, index, temp);
+                    times += 1;
+                }
+
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = CLEAR_COLOR;
+                source[index].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+            }
+            
+            await delay(SORT_DELAY_DURATION);
+            
+            for (let i = 0; i < rhs; i++) {
+                source[i].color = ACCENT_TWO_COLOR;
+                callback({ times, datalist: source});
+
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+
+                if (source[i + 1].value < source[i].value) {
+                    flag = false;
+                    lhs = i;
+
+                    await swap(source, i + 1, i, temp);
+                    break;
+                }
+            }
+        }
+
+        await delay(SORT_DELAY_DURATION);
+        await complete(source, times, callback);
+    }
+
+    private async sortByDescent(source: SortDataModel[], flag: boolean, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
+        let index: number, lhs: number = 0, rhs: number = source.length - 1;
+        
+        while (!flag) {
+            flag = true;
+
+            for (let i = lhs; i < rhs; i++) {
+                index = random(i + 1, rhs - 1, false);
+                
+                source[i].color = PRIMARY_ONE_COLOR;
+                source[index].color = SECONDARY_ONE_COLOR;
+                callback({ times, datalist: source});
+
+                if (source[index].value > source[i].value) {
+                    await swap(source, i, index, temp);
+                    times += 1;
+                }
+
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = CLEAR_COLOR;
+                source[index].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+            }
+
+            await delay(SORT_DELAY_DURATION);
+
+            for (let i = source.length - 1; i > lhs; i--) {
+                source[i].color = ACCENT_ONE_COLOR;
+                callback({ times, datalist: source});
+
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+
+                if (source[i - 1].value < source[i].value) {
+                    flag = false;
+                    rhs = i;
+
+                    await swap(source, i - 1, i, temp);
+                    break;
+                }
+            }
+
+            await delay(SORT_DELAY_DURATION);
+
+            for (let i = rhs; i > lhs; i--) {
+                index = random(lhs + 1, i - 1, false);
+                
+                source[i].color = PRIMARY_TWO_COLOR;
+                source[index].color = SECONDARY_TWO_COLOR;
+                callback({ times, datalist: source});
+
+                if (source[index].value < source[i].value) {
+                    await swap(source, i, index, temp);
+                    times += 1;
+                }
+
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = CLEAR_COLOR;
+                source[index].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+            }
+            
+            await delay(SORT_DELAY_DURATION);
+            
+            for (let i = 0; i < rhs; i++) {
+                source[i].color = ACCENT_TWO_COLOR;
+                callback({ times, datalist: source});
+
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+
+                if (source[i + 1].value > source[i].value) {
+                    flag = false;
+                    lhs = i;
+
+                    await swap(source, i + 1, i, temp);
+                    break;
+                }
+            }
         }
 
         await delay(SORT_DELAY_DURATION);

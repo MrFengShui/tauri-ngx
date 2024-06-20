@@ -2,14 +2,17 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
 
+/**
+ * 选择排序（单向）
+ */
 @Injectable()
 export class SelectionSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
+            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -28,26 +31,26 @@ export class SelectionSortService {
             pivot = i;
             
             for (let j = pivot + 1; j < source.length; j++) {
-                source[i].color = 'lawngreen';
-                source[j].color = 'dodgerblue';
-                source[pivot].color = 'orangered';
-                callback({ completed: false, times, datalist: source });
+                source[i].color = PRIMARY_COLOR;
+                source[j].color = SECONDARY_COLOR;
+                source[pivot].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
 
                 if (source[j].value < source[pivot].value) {
-                    source[pivot].color = 'whitesmoke';
+                    source[pivot].color = CLEAR_COLOR;
                     pivot = j;
                 }
 
                 await delay(SORT_DELAY_DURATION);
-                source[i].color = 'whitesmoke';
-                source[j].color = 'whitesmoke';
-                source[pivot].color = 'orangered';
-                callback({ completed: false, times, datalist: source });
+                source[i].color = CLEAR_COLOR;
+                source[j].color = CLEAR_COLOR;
+                source[pivot].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
             }
 
-            source[i].color = 'lawngreen';
-            source[pivot].color = 'orangered';
-            callback({ completed: false, times, datalist: source});
+            source[i].color = PRIMARY_COLOR;
+            source[pivot].color = ACCENT_COLOR;
+            callback({ times, datalist: source});
 
             if (source[pivot].value < source[i].value) {
                 await swap(source, i, pivot, temp);
@@ -56,9 +59,9 @@ export class SelectionSortService {
             
             await delay(SORT_DELAY_DURATION);
 
-            source[i].color = 'whitesmoke';
-            source[pivot].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
+            source[i].color = CLEAR_COLOR;
+            source[pivot].color = CLEAR_COLOR;
+            callback({ times, datalist: source});
         }
 
         await delay(SORT_DELAY_DURATION);
@@ -72,26 +75,26 @@ export class SelectionSortService {
             pivot = i;
             
             for (let j = pivot + 1; j < source.length; j++) {
-                source[i].color = 'lawngreen';
-                source[j].color = 'dodgerblue';
-                source[pivot].color = 'orangered';
-                callback({ completed: false, times, datalist: source });
+                source[i].color = PRIMARY_COLOR;
+                source[j].color = SECONDARY_COLOR;
+                source[pivot].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
 
                 if (source[j].value > source[pivot].value) {
-                    source[pivot].color = 'whitesmoke';
+                    source[pivot].color = CLEAR_COLOR;
                     pivot = j;
                 }
 
                 await delay(SORT_DELAY_DURATION);
-                source[i].color = 'whitesmoke';
-                source[j].color = 'whitesmoke';
-                source[pivot].color = 'orangered';
-                callback({ completed: false, times, datalist: source });
+                source[i].color = CLEAR_COLOR;
+                source[j].color = CLEAR_COLOR;
+                source[pivot].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
             }
 
-            source[i].color = 'lawngreen';
-            source[pivot].color = 'orangered';
-            callback({ completed: false, times, datalist: source});
+            source[i].color = PRIMARY_COLOR;
+            source[pivot].color = ACCENT_COLOR;
+            callback({ times, datalist: source});
 
             if (source[pivot].value > source[i].value) {
                 await swap(source, i, pivot, temp);
@@ -100,9 +103,9 @@ export class SelectionSortService {
             
             await delay(SORT_DELAY_DURATION);
 
-            source[i].color = 'whitesmoke';
-            source[pivot].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
+            source[i].color = CLEAR_COLOR;
+            source[pivot].color = CLEAR_COLOR;
+            callback({ times, datalist: source});
         }
 
         await delay(SORT_DELAY_DURATION);
@@ -111,120 +114,15 @@ export class SelectionSortService {
 
 }
 
-@Injectable()
-export class BoSelectionSortService {
-
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
-
-            if (order === 'ascent') {
-                this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-        });
-    }
-
-    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let pivot: number;
-        
-        for (let i = 0; i < source.length; i++) {
-            pivot = await this.indexOfMinData(source, i, source.length - 1, i, times, callback);
-            source[pivot].color = 'orangered';
-            callback({ completed: false, times, datalist: source});
-
-            if (source[pivot].value < source[i].value) {
-                await swap(source, i, pivot, temp);
-                times += 1;
-            }
-            
-            await delay(SORT_DELAY_DURATION);
-
-            source[i].color = 'whitesmoke';
-            source[pivot].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
-        }
-
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
-    }
-
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        let pivot: number;
-        
-        for (let i = 0; i < source.length; i++) {
-            pivot = await this.indexOfMaxData(source, i, source.length - 1, i, times, callback);
-            
-            if (source[pivot].value > source[i].value) {
-                source[pivot].color = 'orangered';
-                await swap(source, i, pivot, temp);
-                times += 1;
-            }
-            
-            callback({ completed: false, times, datalist: source});
-
-            await delay(SORT_DELAY_DURATION);
-
-            source[i].color = 'whitesmoke';
-            source[pivot].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
-        }
-
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
-    }
-
-    private async indexOfMinData(source: SortDataModel[], lhs: number, rhs: number, pivot: number, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        source[pivot].color = 'lawngreen';
-
-        if (lhs < rhs) {
-            let mid: number = Math.floor((rhs - lhs) * 0.5 + lhs);
-            source[mid].color = 'dodgerblue';
-            callback({ completed: false, times, datalist: source});
-
-            lhs = await this.indexOfMinData(source, lhs, mid, pivot, times, callback);
-            rhs = await this.indexOfMinData(source, mid + 1, rhs, pivot, times, callback);
-            await delay(SORT_DELAY_DURATION);
-
-            source[mid].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
-            return source[lhs].value < source[rhs].value ? lhs : rhs;
-        }
-        
-        return lhs;
-    }
-
-    private async indexOfMaxData(source: SortDataModel[], lhs: number, rhs: number, pivot: number, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        source[pivot].color = 'lawngreen';
-
-        if (lhs < rhs) {
-            let mid: number = Math.floor((rhs - lhs) * 0.5 + lhs);
-            source[mid].color = 'orangered';
-            callback({ completed: false, times, datalist: source});
-
-            lhs = await this.indexOfMaxData(source, lhs, mid, pivot, times, callback);
-            rhs = await this.indexOfMaxData(source, mid + 1, rhs, pivot, times, callback);
-            await delay(SORT_DELAY_DURATION);
-
-            source[mid].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
-            return source[lhs].value > source[rhs].value ? lhs : rhs;
-        }
-        
-        return lhs;
-    }
-
-}
-
+/**
+ * 选择排序（双向）
+ */
 @Injectable()
 export class BiSelectionSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
+            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -243,26 +141,29 @@ export class BiSelectionSortService {
             pivot = i;
             
             for (j = pivot + 1; j < source.length - i; j++) {
-                source[i].color = 'lawngreen';
-                source[j].color = 'dodgerblue';
-                source[pivot].color = 'orangered';
-                callback({ completed: false, times, datalist: source });
+                source[i].color = PRIMARY_ONE_COLOR;
+                source[j].color = SECONDARY_ONE_COLOR;
+                source[pivot].color = ACCENT_ONE_COLOR;
+                callback({ times, datalist: source });
 
                 if (source[j].value < source[pivot].value) {
-                    source[pivot].color = 'whitesmoke';
+                    source[pivot].color = CLEAR_COLOR;
                     pivot = j;
                 }
 
                 await delay(SORT_DELAY_DURATION);
-                source[i].color = 'whitesmoke';
-                source[j].color = 'whitesmoke';
-                source[pivot].color = 'orangered';
-                callback({ completed: false, times, datalist: source });
+
+                source[i].color = CLEAR_COLOR;
+                source[j].color = CLEAR_COLOR;
+                source[pivot].color = ACCENT_ONE_COLOR;
+                callback({ times, datalist: source });
             }
 
-            source[i].color = 'lawngreen';
-            source[pivot].color = 'orangered';
-            callback({ completed: false, times, datalist: source});
+            await delay(SORT_DELAY_DURATION);
+
+            source[i].color = PRIMARY_ONE_COLOR;
+            source[pivot].color = SECONDARY_ONE_COLOR;
+            callback({ times, datalist: source });
 
             if (source[pivot].value < source[i].value) {
                 await swap(source, i, pivot, temp);
@@ -271,36 +172,37 @@ export class BiSelectionSortService {
             
             await delay(SORT_DELAY_DURATION);
 
-            source[i].color = 'whitesmoke';
-            source[pivot].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
+            source[i].color = CLEAR_COLOR;
+            source[pivot].color = CLEAR_COLOR;
+            callback({ times, datalist: source});
 
             k = source.length - i - 1;
             pivot = k;
 
             for (j = pivot - 1; j > i; j--) {
-                source[k].color = 'lawngreen';
-                source[j].color = 'dodgerblue';
-                source[pivot].color = 'orangered';
-                callback({ completed: false, times, datalist: source });
+                source[k].color = PRIMARY_TWO_COLOR;
+                source[j].color = SECONDARY_TWO_COLOR;
+                source[pivot].color = ACCENT_TWO_COLOR;
+                callback({ times, datalist: source });
 
                 if (source[j].value > source[pivot].value) {
-                    source[pivot].color = 'whitesmoke';
+                    source[pivot].color = CLEAR_COLOR;
                     pivot = j;
                 }
 
                 await delay(SORT_DELAY_DURATION);
-                source[k].color = 'whitesmoke';
-                source[j].color = 'whitesmoke';
-                source[pivot].color = 'orangered';
-                callback({ completed: false, times, datalist: source });
+                source[k].color = CLEAR_COLOR;
+                source[j].color = CLEAR_COLOR;
+                source[pivot].color = ACCENT_TWO_COLOR;
+                callback({ times, datalist: source });
             }
 
-            source[k].color = 'lawngreen';
-            source[pivot].color = 'orangered';
-            callback({ completed: false, times, datalist: source});
+            await delay(SORT_DELAY_DURATION);
 
-            
+            source[k].color = PRIMARY_TWO_COLOR;
+            source[pivot].color = SECONDARY_TWO_COLOR;
+            callback({ times, datalist: source });
+
             if (source[pivot].value > source[k].value) {
                 await swap(source, k, pivot, temp);
                 times += 1;
@@ -308,9 +210,9 @@ export class BiSelectionSortService {
             
             await delay(SORT_DELAY_DURATION);
 
-            source[k].color = 'whitesmoke';
-            source[pivot].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
+            source[k].color = CLEAR_COLOR;
+            source[pivot].color = CLEAR_COLOR;
+            callback({ times, datalist: source});
         }
 
         await delay(SORT_DELAY_DURATION);
@@ -324,27 +226,29 @@ export class BiSelectionSortService {
             pivot = i;
             
             for (j = pivot + 1; j < source.length - i; j++) {
-                source[i].color = 'lawngreen';
-                source[j].color = 'dodgerblue';
-                source[pivot].color = 'orangered';
-                callback({ completed: false, times, datalist: source });
+                source[i].color = PRIMARY_ONE_COLOR;
+                source[j].color = SECONDARY_ONE_COLOR;
+                source[pivot].color = ACCENT_ONE_COLOR;
+                callback({ times, datalist: source });
 
                 if (source[j].value > source[pivot].value) {
-                    source[pivot].color = 'whitesmoke';
+                    source[pivot].color = CLEAR_COLOR;
                     pivot = j;
                 }
 
                 await delay(SORT_DELAY_DURATION);
-                source[i].color = 'whitesmoke';
-                source[j].color = 'whitesmoke';
-                source[pivot].color = 'orangered';
-                callback({ completed: false, times, datalist: source });
+                source[i].color = CLEAR_COLOR;
+                source[j].color = CLEAR_COLOR;
+                source[pivot].color = ACCENT_ONE_COLOR;
+                callback({ times, datalist: source });
             }
 
-            source[i].color = 'lawngreen';
-            source[pivot].color = 'orangered';
-            callback({ completed: false, times, datalist: source});
-            
+            await delay(SORT_DELAY_DURATION);
+
+            source[i].color = PRIMARY_ONE_COLOR;
+            source[pivot].color = SECONDARY_ONE_COLOR;
+            callback({ times, datalist: source });
+
             if (source[pivot].value > source[i].value) {
                 await swap(source, i, pivot, temp);
                 times += 1;
@@ -352,44 +256,46 @@ export class BiSelectionSortService {
             
             await delay(SORT_DELAY_DURATION);
 
-            source[i].color = 'whitesmoke';
-            source[pivot].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
+            source[i].color = CLEAR_COLOR;
+            source[pivot].color = CLEAR_COLOR;
+            callback({ times, datalist: source});
 
             k = source.length - i - 1;
             pivot = k;
 
             for (j = pivot - 1; j > i; j--) {
-                source[k].color = 'lawngreen';
-                source[j].color = 'dodgerblue';
-                source[pivot].color = 'orangered';
-                callback({ completed: false, times, datalist: source });
+                source[k].color = PRIMARY_TWO_COLOR;
+                source[j].color = SECONDARY_TWO_COLOR;
+                source[pivot].color = ACCENT_TWO_COLOR;
+                callback({ times, datalist: source });
 
                 if (source[j].value < source[pivot].value) {
-                    source[pivot].color = 'whitesmoke';
+                    source[pivot].color = CLEAR_COLOR;
                     pivot = j;
                 }
 
                 await delay(SORT_DELAY_DURATION);
-                source[k].color = 'whitesmoke';
-                source[j].color = 'whitesmoke';
-                source[pivot].color = 'orangered';
-                callback({ completed: false, times, datalist: source });
+                source[k].color = CLEAR_COLOR;
+                source[j].color = CLEAR_COLOR;
+                source[pivot].color = ACCENT_TWO_COLOR;
+                callback({ times, datalist: source });
             }
 
-            source[k].color = 'lawngreen';
-            source[pivot].color = 'orangered';
-            callback({ completed: false, times, datalist: source});
-            
+            await delay(SORT_DELAY_DURATION);
+
+            source[k].color = PRIMARY_TWO_COLOR;
+            source[pivot].color = SECONDARY_TWO_COLOR;
+            callback({ times, datalist: source });
+
             if (source[pivot].value < source[k].value) {
                 await swap(source, k, pivot, temp);
                 times += 1;
             }
             
             await delay(SORT_DELAY_DURATION);
-            source[k].color = 'whitesmoke';
-            source[pivot].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
+            source[k].color = CLEAR_COLOR;
+            source[pivot].color = CLEAR_COLOR;
+            callback({ times, datalist: source});
         }
 
         await delay(SORT_DELAY_DURATION);

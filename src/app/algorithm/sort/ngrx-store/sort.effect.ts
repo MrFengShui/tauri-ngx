@@ -13,28 +13,20 @@ export class SortEffect {
     createDataList$ = createEffect(() => this._actions
         .pipe(
             ofType(SORT_CREATE_DATA_LIST_ACTION),
-            exhaustMap(action => this._utilsService.createDataList(action.size, action.name)
-                .pipe(map(value => SORT_CREATE_DATA_LIST_DONE_ACTION({ flag: true, list: value }))))
+            exhaustMap(action => this._service.createDataList(action.size, action.name)
+                .pipe(map(value => SORT_CREATE_DATA_LIST_DONE_ACTION({ action: action.type, value }))))
         ));
 
     shuffleDataList$ = createEffect(() => this._actions
         .pipe(
             ofType(SORT_SHUFFLE_DATA_LIST_ACTION),
-            exhaustMap(action => this._utilsService.shuffleDataList(JSON.parse(JSON.stringify(action.list)))
-                .pipe(map(value => SORT_SHUFFLE_DATA_LIST_DONE_ACTION({ flag: true, list: value }))))
+            exhaustMap(action => this._service.shuffleDataList(JSON.parse(JSON.stringify(action.list)))
+                .pipe(map(value => SORT_SHUFFLE_DATA_LIST_DONE_ACTION({ action: action.type, value }))))
         ));
-
-    // bubbleSort$ = createEffect(() => this._actions
-    //     .pipe(
-    //         ofType(SORT_RUN_DATA_LIST_ACTION),
-    //         exhaustMap(action => this._bubbleService.sort(action.array, action.order)
-    //             .pipe(map(value => SORT_RUN_DATA_LIST_DONE_ACTION({ flag: value.completed, list: value.datalist }))))
-    //     ));
 
     constructor(
         private _actions: Actions,
-        private _utilsService: SortUtilsService,
-        private _bubbleService: BubbleSortService
+        private _service: SortUtilsService
     ) {}
 
 }

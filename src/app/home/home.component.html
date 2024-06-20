@@ -28,13 +28,19 @@
         </div>
     </ng-template>
 </p-toolbar>
-<p-splitter [gutterSize]="8" [panelSizes]="[15, 85]" [style.height]="'calc(100% - 88px)'" styleClass="h-full">
-    <ng-template pTemplate>
-        <div class="col flex w-full" #treeContainer>
-            <p-tree emptyMessage="暂无数据" [value]="navlist" [virtualScroll]="true" [virtualScrollItemSize]="48" selectionMode="single" [(selection)]="navlistSelect" (onNodeSelect)="onNodeSelect($event)" class="w-full h-full" styleClass="h-full p-0"/>
+<div class="grid grid-nogutter" [style.height]="'calc(100% - 5.5rem)'">
+    <div class="col-fixed border-right-1 surface-border h-full w-16rem">
+        <div class="flex overflow-auto w-full h-full">
+            <p-tree emptyMessage="暂无数据" [indentation]="0.5" [lazy]="true" [value]="navlist" selectionMode="single" styleClass="border-none p-0" 
+                [style.height]="'fit-content'">
+                <ng-template let-node pTemplate="default">
+                    <a [routerLink]="node.data?.url" routerLinkActive="text-primary" [routerLinkActiveOptions]="{ exact: false }" [queryParams]="{ name: node.data?.param }" class="font-bold text-color white-space-nowrap no-underline w-full h-full" *ngIf="node.leaf">{{node.label}}</a>
+                    <span class="font-bold text-color white-space-nowrap" *ngIf="!node.leaf">{{node.label}}</span>
+                </ng-template>
+            </p-tree>
         </div>
-    </ng-template>
-    <ng-template pTemplate>
-        <div class="col flex w-full overflow-x-hidden overflow-y-auto"><router-outlet></router-outlet></div>
-    </ng-template>
-</p-splitter>
+    </div>
+    <div class="col h-full">
+        <div class="overflow-x-hidden overflow-y-auto w-full h-full p-2"><router-outlet></router-outlet></div>
+    </div>
+</div>

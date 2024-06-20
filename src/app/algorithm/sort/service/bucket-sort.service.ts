@@ -2,7 +2,8 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, stableSortByAscent, stableSortByDescent } from "../sort.utils";
+import { ACCENT_COLOR, CLEAR_COLOR, SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { SortToolsService } from "./sort.service";
 
 /**
  * 桶排序
@@ -10,7 +11,9 @@ import { SORT_DELAY_DURATION, complete, delay, stableSortByAscent, stableSortByD
 @Injectable()
 export class BucketSortService {
 
-    private cache: {[key: number]: SortDataModel[]} = {};
+    private cache: {[key: string | number]: number[]} = {};
+
+    constructor(private _service: SortToolsService) {}
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
@@ -25,7 +28,7 @@ export class BucketSortService {
     }
 
     private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let i: number = 0, index: number;
+        let index: number;
 
         for (let item of source) {
             index = Math.floor((item.value - 1) / 25);
@@ -34,35 +37,36 @@ export class BucketSortService {
                 this.cache[index] = Array.from([]);
             }
 
-            this.cache[index].push(item);
+            this.cache[index].push(item.value);
             times += 1;
             
-            item.color = 'lawngreen';
+            item.color = ACCENT_COLOR;
             callback({ completed: false, times, datalist: source});
 
             await delay(SORT_DELAY_DURATION);
             
-            item.color = 'whitesmoke';
+            item.color = CLEAR_COLOR;
             callback({ completed: false, times, datalist: source});
         }
 
+        index = 0;
         await delay(SORT_DELAY_DURATION);
         
         for (let key of Object.keys(this.cache)) {
-            index = Number.parseInt(key);
-            times = await stableSortByAscent(this.cache[index], times);
+            times = this._service.stableSortByAscent(this.cache[key], times);
             
-            for (let item of this.cache[index]) {
+            for (let item of this.cache[key]) {
                 times += 1;
-                source[i] = { ...source[i], value: item.value, color: 'lawngreen', radix: item.radix };
+                source[index].color = ACCENT_COLOR;
+                source[index].value = item;
                 callback({ completed: false, times, datalist: source});
 
                 await delay(SORT_DELAY_DURATION);
                 
-                source[i].color = 'whitesmoke';
+                source[index].color = CLEAR_COLOR;
                 callback({ completed: false, times, datalist: source});
 
-                i += 1;
+                index += 1;
             }
         }
 
@@ -72,7 +76,7 @@ export class BucketSortService {
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        let i: number = 0, index: number;
+        let index: number;
         
         for (let item of source) {
             index = Math.floor((item.value - 1) / 25);
@@ -81,7 +85,7 @@ export class BucketSortService {
                 this.cache[index] = Array.from([]);
             }
 
-            this.cache[index].push(item);
+            this.cache[index].push(item.value);
             times += 1;
             
             item.color = 'lawngreen';
@@ -93,23 +97,24 @@ export class BucketSortService {
             callback({ completed: false, times, datalist: source});
         }
 
+        index = 0;
         await delay(SORT_DELAY_DURATION);
         
         for (let key of Object.keys(this.cache).reverse()) {
-            index = Number.parseInt(key);
-            times = await stableSortByDescent(this.cache[index], times);
+            times = this._service.stableSortByDescent(this.cache[key], times);
             
-            for (let item of this.cache[index]) {
+            for (let item of this.cache[key]) {
                 times += 1;
-                source[i] = { ...source[i], value: item.value, color: 'lawngreen', radix: item.radix };
+                source[index].color = ACCENT_COLOR;
+                source[index].value = item;
                 callback({ completed: false, times, datalist: source});
 
                 await delay(SORT_DELAY_DURATION);
                 
-                source[i].color = 'whitesmoke';
+                source[index].color = CLEAR_COLOR;
                 callback({ completed: false, times, datalist: source});
 
-                i += 1;
+                index += 1;
             }
         }
         
@@ -118,11 +123,10 @@ export class BucketSortService {
         await this.clear();
     }
 
-    private async clear(index: number = 0): Promise<void> {
+    private async clear(): Promise<void> {
         for (let key of Object.keys(this.cache)) {
-            index = Number.parseInt(key);
-            this.cache[index].splice(0);
-            delete this.cache[index];
+            this.cache[key].splice(0);
+            delete this.cache[key];
         }
     }
 

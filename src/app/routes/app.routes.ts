@@ -11,7 +11,7 @@ import { RegisterPageComponent } from "../other/register/register.component";
 import { permissionForRegisterPage } from "../other/ngrx-store/auth.service";
 
 export const routes: Routes = [
-    { path: '', redirectTo: '/splash-screen', pathMatch: 'full' },
+    { path: '', redirectTo: '/playground', pathMatch: 'full' },
     {
         path: 'playground', component: HomePageComponent, 
         children: [

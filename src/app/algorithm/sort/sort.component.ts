@@ -1,38 +1,39 @@
-import { ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, Renderer2, ViewChild } from "@angular/core";
-import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
-import { Store } from "@ngrx/store";
-import { Subscription, filter, map, timer } from "rxjs";
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, Renderer2, ViewChild } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
+import { Observer, Subscription, map, timer } from "rxjs";
+import { cloneDeep } from "lodash";
 
-import { SortMatchService } from "./service/sort.service";
+import { SortMatchService, SortUtilsService } from "./service/sort.service";
 
-import { SortDataModel, SortOrder, SortRadix, SortRadixBaseModel } from "./ngrx-store/sort.state";
+import { SortDataModel, SortOrder, SortRadix, SortRadixBaseModel, SortStateModel } from "./ngrx-store/sort.state";
 import { SortCanvasUtils } from "./sort.utils";
-import { SORT_CREATE_DATA_LIST_ACTION, SORT_SHUFFLE_DATA_LIST_ACTION } from "./ngrx-store/sort.action";
-import { SORT_FEATURE_SELECTIOR } from "./ngrx-store/sourt.selector";
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-algo-sort',
     templateUrl: './sort.component.html'
 })
-export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
-
-    @ViewChild('container', { read: ElementRef, static: true })
-    private container!: ElementRef<HTMLCanvasElement>;
+export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
     @ViewChild('canvas', { read: ElementRef, static: true })
     private canvas!: ElementRef<HTMLCanvasElement>;
 
     @HostListener('window:load', ['$event'])
-    private hostListenWindowOnLoad(): void {
-        this.initCanvasSize();
-        this.create();
+    private async hostListenWindowOnLoad(): Promise<void> {
+        const size: { width: number, height: number } = await this.calcCanvasDimension();
+        this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${size.width}`);
+        this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${size.height}`);
+        this.maxValue = this.matchMaxValue(size.width);
+        this.resetCanvasParams(size.width, size.height);
     }
 
     @HostListener('window:resize', ['$event'])
-    private hostListenWindowResize(): void {
-        this.initCanvasSize();
-        this.reset();
-        this.create();
+    private async hostListenWindowResize(): Promise<void> {
+        const size: { width: number, height: number } = await this.calcCanvasDimension();
+        this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${size.width}`);
+        this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${size.height}`);
+        this.maxValue = this.matchMaxValue(size.width);
+        this.resetCanvasParams(size.width, size.height);
     }
 
     source: SortDataModel[] = [];
@@ -50,13 +51,15 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
     radix: SortRadix = 10;
     timer: number = 0;
     times: number = 0;
-    count: number | undefined = 0;
+    count: number = 0;
+    maxValue: number = 1024;
     locked: boolean = false;
     name: string = '';
 
     private utils: SortCanvasUtils | null = null;
     private event$: Subscription | null = null;
-    private store$: Subscription | null = null;
+    private shuffle$: Subscription | null = null;
+    private create$: Subscription | null = null;
     private route$: Subscription | null = null;
     private match$: Subscription | null = null;
     private timer$: Subscription | null = null;
@@ -67,39 +70,59 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
         private _element: ElementRef<HTMLElement>,
         private _renderer: Renderer2,
         private _ngZone: NgZone,
-        private _store: Store,
-        private _service: SortMatchService
+        private _utilsService: SortUtilsService,
+        private _matchService: SortMatchService
     ) { }
 
     ngOnInit(): void {
-        this.initHostLayout();
-        this.listenQueryParamsChange();
-        this.listenDataListChange();
+        this.utils = new SortCanvasUtils(this.canvas.nativeElement);
     }
 
     ngOnDestroy(): void {
         this.event$?.unsubscribe();
-        this.store$?.unsubscribe();
+        this.shuffle$?.unsubscribe();
+        this.create$?.unsubscribe();
         this.route$?.unsubscribe();
         this.timer$?.unsubscribe();
         this.match$?.unsubscribe();
     }
 
-    invokeRunEvent(): void {
+    ngAfterViewInit(): void {
+        this.initHostLayout();
+        this.listenQueryParamsChange();
+    }
+
+    handleRunSortEvent(): void {
         this.locked = true;
-        this.listenToStopWatch();
+        this.listenStopWatchChange();
         this.listenToSortProcess();
     }
 
-    invokeShuffleEvent(): void {
-        this._store.dispatch(SORT_SHUFFLE_DATA_LIST_ACTION({ list: this.source }));
+    handleCountSelectChange(): void {
+        if (this.name.length > 0) {
+            this._ngZone.runOutsideAngular(() => {
+                this.create$ = this._utilsService.createDataList(this.count, this.name).subscribe(value => 
+                    this._ngZone.run(() => {
+                        this.source = cloneDeep(value);
+                        
+                        if (this.utils) {
+                            this.utils.loadData(this.source);
+                            this.utils.draw(this.count);
+                        }
+
+                        this._cdr.detectChanges();
+                        this.create$?.unsubscribe();
+                    }));
+            });
+        }        
     }
 
-    countSelectedOnChange(): void {
-        if (this.name) {
-            this._store.dispatch(SORT_CREATE_DATA_LIST_ACTION({ size: this.count as number, name: this.name }));
-            return;
-        }        
+    handleShuffleSourceEvent(): void {
+        this._ngZone.runOutsideAngular(() => {
+            this.locked = true;
+            this.shuffle$ = this._utilsService.shuffleDataList(this.source)
+                .subscribe(this.acceptDataAndShow());
+        });
     }
 
     private initHostLayout(): void {
@@ -110,20 +133,18 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
         this._renderer.addClass(this._element.nativeElement, 'h-full');
     }
 
-    private initCanvasSize(): void {
-        this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${this.container.nativeElement.clientWidth}`);
-        this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${this.container.nativeElement.clientHeight}`);
+    private calcCanvasDimension(): Promise<{ width: number, height: number }> {
+        return new Promise(resolve => {
+            let task = setTimeout(() => {
+                clearTimeout(task);
+                const width: number = this.canvas.nativeElement.clientWidth;
+                const height: number = this.canvas.nativeElement.clientHeight;
+                resolve({ width, height });
+            });
+        });
     }
 
-    private create(flag: boolean = true): void {
-        if (flag) {
-            this.utils = new SortCanvasUtils(this.canvas.nativeElement);
-        }
-        
-        this.utils?.clear();
-    }
-
-    private reset(): void {
+    private resetCanvasParams(width: number, height: number): void {
         this.count = 0;
         this.timer = 0;
         this.times = 0;
@@ -132,40 +153,71 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
         this.radix = 10;
 
         this.source.splice(0);
+
+        if (this.utils) {
+            this.utils.create(width, height);
+            this.utils.clear();
+        }
+        
+        this._cdr.detectChanges();
     }
 
-    private listenToStopWatch(): void {
+    private matchMaxValue(size: number): number {
+        let count: number = 0;
+
+        while (size > 1) {
+            size >>= 1;
+            count += 1;
+        }
+
+        return Math.pow(2, count - 1);
+    }
+
+    private acceptDataAndShow(): Partial<Observer<SortStateModel | null>> {
+        return {
+            next: state => this._ngZone.run(() => {
+                this.source = cloneDeep(state?.datalist as SortDataModel[]);
+                this.times = state?.times as number;
+                
+                if (this.utils) {
+                    this.utils.loadData(this.source);
+                    this.utils.draw(this.count);
+                }
+
+                this._cdr.markForCheck();
+            }),
+            error: error => this._ngZone.run(() => {
+                this.locked = false;
+                this._cdr.detectChanges();
+                this.shuffle$?.unsubscribe();
+            }),
+            complete: () => this._ngZone.run(() => {
+                this.locked = false;
+                this._cdr.markForCheck();
+                this.shuffle$?.unsubscribe();
+            })
+        };
+    }
+
+    private listenStopWatchChange(): void {
         this._ngZone.runOutsideAngular(() => {
             this.timer$ = timer(0, 1000).subscribe(value => 
                 this._ngZone.run(() => {
-                    this.timer = value;
-                    this._cdr.detectChanges();
+                    if (this.locked) {
+                        this.timer = value;
+                        this._cdr.markForCheck();
+                    } else {
+                        this.timer$?.unsubscribe();
+                    }
                 }));
         });
     }
 
     private listenToSortProcess(): void {
         this._ngZone.runOutsideAngular(() => {
-            this.match$ = this._service.match(this.name, this.source, this.order, this.radix)
-                .subscribe(value => this._ngZone.run(() => {
-                    if (value) {
-                        this.locked = !value.completed;
-                        this.times = value.times as number;
-                        this.source = value.datalist;
-        
-                        if (this.utils) {
-                            this.utils.loadData(this.source);
-                            this.utils.draw();
-                        }
-        
-                        if (value.completed) {
-                            this.timer$?.unsubscribe();
-                            this.match$?.unsubscribe();
-                        }
-
-                        this._cdr.detectChanges();
-                    }
-                }));
+            this.locked = true;
+            this.match$ = this._matchService.match(this.name, this.source, this.order, this.radix)
+                .subscribe(this.acceptDataAndShow());
         });
     }
 
@@ -173,31 +225,18 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy {
         this._ngZone.runOutsideAngular(() => {
             this.route$ = this._route.queryParams
                 .pipe(map(params => params['name']))
-                .subscribe(name => this._ngZone.run(() => {
+                .subscribe(name => this._ngZone.run(async () => {
                     this.name = name;
                     
-                    this.initCanvasSize();
-                    this.reset();
-                    this.create(false);
+                    const size: { width: number, height: number } = await this.calcCanvasDimension();
+                    this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${size.width}`);
+                    this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${size.height}`);
+                    this.maxValue = this.matchMaxValue(size.width);
+                    this.resetCanvasParams(size.width, size.height);
         
                     this.timer$?.unsubscribe();
                     this.match$?.unsubscribe();
                 }));
-        });
-    }
-
-    private listenDataListChange(): void {
-        this._ngZone.runOutsideAngular(() => {
-            this.store$ = this._store.select(SORT_FEATURE_SELECTIOR)
-            .subscribe(state => this._ngZone.run(() => {
-                this.locked = !state.completed;
-                this.source = JSON.parse(JSON.stringify(state.datalist));
-
-                if (this.utils) {
-                    this.utils.loadData(this.source);
-                    this.utils.draw();
-                }
-            }));
         });
     }
 

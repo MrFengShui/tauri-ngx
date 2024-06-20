@@ -4,7 +4,7 @@
         <span class="logo-text font-bold text-primary line-height-1">TauriNG</span>
     </div>
     <div class="border-1 border-round-md surface-border shadow-8" [style.backdrop-filter]="'blur(0.5rem)'" [style.width]="'80rem'" [style.height]="'45rem'" #mainBox>
-        <p-dataView gridStyleClass="border-1" [value]="source" [paginator]="true" [rows]="8" [totalRecords]="source.length" [showCurrentPageReport]="true" [showJumpToPageDropdown]="false"
+        <p-dataView gridStyleClass="border-1" [value]="source" [paginator]="true" [rows]="5" [totalRecords]="source.length" [showCurrentPageReport]="true" [showJumpToPageDropdown]="false"
             currentPageReportTemplate="第{currentPage}页/共{totalPages}页" styleClass="h-full" paginatorStyleClass="border-noround" #dataview>
             <ng-template pTemplate="header">
                 <div class="flex align-items-center gap-3">
@@ -22,7 +22,7 @@
                 <div class="flex flex-column overflow-x-hidden overflow-y-auto h-full" [class.h-full]="source.length > 0">
                     <div class="grid nested-grid p-3 m-0 surface-border" [class.border-bottom-1]="!last" *ngFor="let item of source; index as i; last as last">
                         <div class="col-fixed text-center">
-                            <p-avatar [image]="item.profile.avatar.source" size="xlarge" shape="circle" styleClass="border-3 surface-border"/>
+                            <p-avatar [image]="item.profile.avatar.source" size="xlarge" shape="circle" styleClass="border-3 border-primary-300 bg-primary-700"/>
                         </div>
                         <div class="col">
                             <div class="grid text-xl">

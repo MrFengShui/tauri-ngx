@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, NgZone, Renderer2 } from "@angular/core";
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, Renderer2, ViewEncapsulation } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngrx/store";
 import { Subscription, filter, last } from "rxjs";
@@ -12,10 +12,12 @@ import { AppStyleNameModel, AppStyleColorModel, ColorType, AppStyleModel, AppCon
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
+    encapsulation: ViewEncapsulation.None,
     selector: 'home-page',
-    templateUrl: 'home.component.html'
+    templateUrl: 'home.component.html',
+    styleUrl: 'home.component.scss'
 })
-export class HomePageComponent {
+export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
     
     styleThemeMode: boolean = true;
     styleNameSelect: AppStyleNameModel = { name: 'lara', text: 'Aura主题样式' };
@@ -30,11 +32,9 @@ export class HomePageComponent {
     private navlist$: Subscription | null = null;
     
     constructor(
-        private _route: ActivatedRoute,
         private _cdr: ChangeDetectorRef,
         private _element: ElementRef<HTMLElement>,
         private _renderer: Renderer2,
-        private _router: Router,
         private _ngZone: NgZone,
         private _store: Store
     ) { }
@@ -55,12 +55,6 @@ export class HomePageComponent {
         this.initNavlist();
         this.listenConfigChange();
         this.listenStyleChange();
-    }
-
-    onNodeSelect(event: TreeNodeSelectEvent): void {
-        if (event.node.leaf && event.node.data['url']) {
-            this._router.navigate(event.node.data['url'], { queryParams: { name: event.node.data['param'] } });
-        }
     }
 
     styleOnChange(): void {

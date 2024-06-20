@@ -62,16 +62,16 @@
                         <div class="flex align-items-center gap-4">
                             <p-avatar [image]="model?.profile?.avatar?.source" size="xlarge" shape="circle" styleClass="border-3 surface-border"/>
                             <div class="flex flex-column flex-auto gap-3 w-20rem">
-                                <div class="flex align-items-center gap-3 text-xs white-space-nowrap">
-                                    <div class="font-bold">文件名称</div>
-                                    <div [pTooltip]="model?.profile?.avatar?.name" class="flex-auto overflow-hidden text-overflow-ellipsis">{{model?.profile?.avatar?.name}}</div>
+                                <div class="flex align-items-baseline gap-3 text-xs">
+                                    <div class="font-bold white-space-nowrap">文件名称</div>
+                                    <div class="flex-auto break-all">{{model?.profile?.avatar?.name}}</div>
                                 </div>
-                                <div class="flex align-items-center gap-3 text-xs white-space-nowrap">
-                                    <div class="font-bold">文件大小</div>
+                                <div class="flex align-items-baseline gap-3 text-xs">
+                                    <div class="font-bold white-space-nowrap">文件大小</div>
                                     <div class="flex-auto">{{model?.profile?.avatar?.size| number}}<ng-container *ngIf="model?.profile?.avatar">（字节）</ng-container></div>
                                 </div>
-                                <div class="flex align-items-center gap-3 text-xs white-space-nowrap">
-                                    <div class="font-bold">文件类别</div>
+                                <div class="flex align-items-baseline gap-3 text-xs">
+                                    <div class="font-bold white-space-nowrap">文件类别</div>
                                     <div class="flex-auto">{{model?.profile?.avatar?.timestamp| date: 'yyyy/MM/dd HH:mm:ss'}}</div>
                                 </div>
                             </div>

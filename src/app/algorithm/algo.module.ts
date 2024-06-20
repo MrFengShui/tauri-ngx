@@ -18,27 +18,31 @@ import { TimerPipe } from "../pipe/timer.pipe";
 
 import { AlgorithmSortPageComponent } from "./sort/sort.component";
 
-import { SortEffect } from "./sort/ngrx-store/sort.effect";
-import { SORT_FEATURE_KEY } from "./sort/ngrx-store/sourt.selector";
-import { SORT_REDUCER } from "./sort/ngrx-store/sort.reducer";
-
-import { SortMatchService, SortUtilsService } from "./sort/service/sort.service";
-import { BubbleSortService, BiBubbleSortService } from "./sort/service/bubble-sort.service";
-import { BSInsertionSortService, InsertionSortService, ShellSortService } from "./sort/service/insertion-sort.service";
-import { BiSelectionSortService, BoSelectionSortService, SelectionSortService } from "./sort/service/selection-sort.service";
-import { BogoBubbleSortService, BogoSortService } from "./sort/service/bogo-sort.service";
+import { SortMatchService, SortToolsService, SortUtilsService } from "./sort/service/sort.service";
+import { BubbleSortService, CooktailSortService } from "./sort/service/bubble-sort.service";
+import { BinarySearchInserionSortService, InsertionSortService, ShellSortService } from "./sort/service/insertion-sort.service";
+import { LibrarySortService } from "./sort/service/library-sort.service";
+import { BiSelectionSortService, SelectionSortService } from "./sort/service/selection-sort.service";
+import { BogoBubbleSortService, BogoCocktailSortService, BogoSortService } from "./sort/service/bogo-sort.service";
 import { QuickSortService, TwoWayQuickSortService } from "./sort/service/quick-sort.service";
 import { CountSortService } from "./sort/service/count-sort.service";
 import { BucketSortService } from "./sort/service/bucket-sort.service";
 import { RadixLSDSortService, RadixMSDSortService } from "./sort/service/radix-sort.service";
 import { SleepSortService } from "./sort/service/sleep-sort.service";
 import { CycleSortService } from "./sort/service/cycle-sort.service";
-import { HeapSortService } from "./sort/service/heap-sort.service";
-import { MergeSortService } from "./sort/service/merge-sort.service";
+import { HeapSortService, TernaryHeapSortService } from "./sort/service/heap-sort.service";
+import { BottomUpMergeSortService, FourWayMergeSortService, InPlaceMergeSortService, TopDownMergeSortService } from "./sort/service/merge-sort.service";
 import { StoogeSortService } from "./sort/service/stooge-sort.service";
 import { SlowSortService } from "./sort/service/slow-sort.service";
 import { GnomeSortService } from "./sort/service/gnome-sort.service";
 import { TournamentSortService } from "./sort/service/tournament-sort.service";
+import { BottomUpBitonicMergeSortService, TopDownBitonicMergeSortService } from "./sort/service/bitonic-merge-sort.service";
+import { OddEvenSortService } from "./sort/service/odd-even-sort.service";
+import { CombSortService } from "./sort/service/bubble-sort.service";
+import { PancakeSortService } from "./sort/service/pancake-sort.service";
+import { GravitySortService } from "./sort/service/gravity-sort.service";
+import { BottomUpOddEvenMergeSortService, TopDownOddEvenMergeSortService } from "./sort/service/odd-even-merge-sort.service";
+import { PatienceSortService } from "./sort/service/patience-sort.service";
 
 @NgModule({
     declarations: [
@@ -59,17 +63,18 @@ import { TournamentSortService } from "./sort/service/tournament-sort.service";
         TagModule,
         ToolbarModule,
 
-        EffectsModule.forFeature([SortEffect]),
-        StoreModule.forFeature(SORT_FEATURE_KEY, { 'feature': SORT_REDUCER })
+        // EffectsModule.forFeature([SortEffect]),
+        // StoreModule.forFeature(SORT_FEATURE_KEY, { 'feature': SORT_REDUCER })
     ],
     exports: [
         AlgorithmSortPageComponent
     ],
     providers: [
-        SortMatchService, SortUtilsService, 
-        BubbleSortService, BiBubbleSortService, InsertionSortService, BSInsertionSortService, ShellSortService, SelectionSortService, BiSelectionSortService, BoSelectionSortService, QuickSortService, TwoWayQuickSortService, HeapSortService,
-        BucketSortService, CountSortService, RadixLSDSortService, RadixMSDSortService, MergeSortService,
-        BogoSortService, BogoBubbleSortService, CycleSortService, GnomeSortService, SleepSortService, StoogeSortService, SlowSortService, TournamentSortService
+        SortMatchService, SortUtilsService, SortToolsService,
+        BubbleSortService, CooktailSortService, OddEvenSortService, CombSortService, InsertionSortService, BinarySearchInserionSortService, LibrarySortService, ShellSortService, SelectionSortService, BiSelectionSortService, QuickSortService, TwoWayQuickSortService, HeapSortService, TernaryHeapSortService,
+        BucketSortService, CountSortService, RadixLSDSortService, RadixMSDSortService, TopDownMergeSortService, BottomUpMergeSortService, FourWayMergeSortService, InPlaceMergeSortService,
+        TopDownBitonicMergeSortService, BottomUpBitonicMergeSortService, TopDownOddEvenMergeSortService, BottomUpOddEvenMergeSortService,
+        BogoSortService, BogoBubbleSortService, BogoCocktailSortService, CycleSortService, GnomeSortService, GravitySortService, SleepSortService, StoogeSortService, SlowSortService, TournamentSortService, PancakeSortService, PatienceSortService
     ]
 })
 export class AlgorithmModule {}
