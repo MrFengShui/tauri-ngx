@@ -47,3 +47,10 @@ export interface AppConfigReducerState {
     value: AppStyleNameModel[] | AppStyleColorModel[] | TreeNode[];
 
 }
+
+export interface AppNavlistReducerState {
+
+    action: string;
+    value: TreeNode[];
+
+}

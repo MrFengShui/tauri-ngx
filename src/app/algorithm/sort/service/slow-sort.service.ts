@@ -2,65 +2,74 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
 
+/**
+ * 慢速排序
+ */
 @Injectable()
 export class SlowSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
+            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
-                this.sortByAscent(array, temp, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }
     
             if (order === 'descent') {
-                this.sortByDescent(array, temp, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByDescent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }
         });
     }
 
-    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, callback: (param: SortStateModel) => void): Promise<void> {
-        await this.sortByOrdert(source, 0, source.length - 1, temp, 'ascent', callback);
+    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        times = await this.sortByOrder(source, 0, source.length - 1, temp, 'ascent', times, callback);
         await delay(SORT_DELAY_DURATION);
-        await complete(source, 0, callback);
+        await complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, callback: (parram: SortStateModel) => void): Promise<void> {
-        await this.sortByOrdert(source, 0, source.length - 1, temp, 'descent', callback);
+    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
+        times = await this.sortByOrder(source, 0, source.length - 1, temp, 'descent', times, callback);
         await delay(SORT_DELAY_DURATION);
-        await complete(source, 0, callback);
+        await complete(source, times, callback);
     }
 
-    private async sortByOrdert(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, order: SortOrder, callback: (parram: SortStateModel) => void): Promise<void> {
+    private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, order: SortOrder, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
         if (rhs > lhs) {
             let mid: number = Math.floor((rhs - lhs) * 0.5 + lhs);
-            await this.sortByOrdert(source, lhs, mid, temp, order, callback);
-            await this.sortByOrdert(source, mid + 1, rhs, temp, order, callback);
+            times = await this.sortByOrder(source, lhs, mid, temp, order, times, callback);
+            times = await this.sortByOrder(source, mid + 1, rhs, temp, order, times, callback);
 
-            source[lhs].color = 'lawngreen';
-            source[rhs].color = 'orangered';
+            source[lhs].color = PRIMARY_COLOR;
+            source[rhs].color = SECONDARY_COLOR;
 
             if (order === 'ascent' && source[mid].value > source[rhs].value) {
                 source[mid].color = 'dodgerblue';
                 await swap(source, mid, rhs, temp);
+                times += 1;
             }
 
             if (order === 'descent' && source[mid].value < source[rhs].value) {
                 source[mid].color = 'dodgerblue';
                 await swap(source, mid, rhs, temp);
+                times += 1;
             }
 
-            callback({ completed: false, datalist: source });
-            await delay(SORT_DELAY_DURATION);
-            source[lhs].color = 'whitesmoke';
-            source[mid].color = 'whitesmoke';
-            source[rhs].color = 'whitesmoke';
-            callback({ completed: false, datalist: source });
+            callback({ times, datalist: source });
 
-            await this.sortByOrdert(source, lhs, rhs - 1, temp, order, callback);
+            await delay(SORT_DELAY_DURATION);
+
+            source[lhs].color = CLEAR_COLOR;
+            source[mid].color = CLEAR_COLOR;
+            source[rhs].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+
+            times = await this.sortByOrder(source, lhs, rhs - 1, temp, order, times, callback);
         }
+
+        return times;
     }
 
 }

@@ -65,8 +65,15 @@ export class AppConfigService {
         return this._http.get<{ list: AppStyleColorModel[] }>('./assets/config/app.style.color.json', { responseType: 'json' }).pipe(map(value => value.list));
     }
 
-    public loadNavlistConfigFile(): Observable<TreeNode[]> {
-        return this._http.get<{ list: TreeNode[] }>('./assets/config/app.navlist.json', { responseType: 'json' }).pipe(map(value => value.list));
+}
+
+@Injectable()
+export class AppNavlistService {
+
+    constructor(private _http: HttpClient) {}
+
+    public loadNavlistFile(): Observable<TreeNode[]> {
+        return this._http.get<{ list: TreeNode[] }>('assets/config/app.navlist.json', { responseType: 'json' }).pipe(map(value => value.list));
     }
 
 }

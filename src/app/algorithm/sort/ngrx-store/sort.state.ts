@@ -1,13 +1,7 @@
 export type SortOrder = 'ascent' | 'descent';
 export type SortRadix = 2 | 8 | 10 | 16;
-export type SortStateModel = { completed?: boolean, times?: number, datalist: SortDataModel[] };
-
-export interface SortRadixBaseModel {
-
-    label: string;
-    value: SortRadix;
-    
-}
+export type SortMergeWay = 3 | 4 | 6 | 8;
+export type SortStateModel = { times: number, datalist: SortDataModel[] };
 
 export interface SortDataRadixModel {
 
@@ -15,6 +9,27 @@ export interface SortDataRadixModel {
     oct: string;
     dec: string;
     hex: string;
+
+}
+
+export interface SortRadixOptionModel {
+
+    label: string;
+    value: SortRadix;
+    
+}
+
+export interface SortOrderOptionModel {
+
+    label: string;
+    value: SortOrder;
+
+}
+
+export interface SortMergeWayOptionModel {
+
+    label: string;
+    value: SortMergeWay;
 
 }
 
@@ -26,9 +41,9 @@ export interface SortDataModel {
 
 }
 
-export interface SortReducerState {
+export interface SortOptionLoadState {
 
     action: string;
-    value: SortStateModel | SortDataModel[] | null;
+    value: SortOrderOptionModel[] | SortRadixOptionModel[] | SortMergeWayOptionModel[];
 
 }

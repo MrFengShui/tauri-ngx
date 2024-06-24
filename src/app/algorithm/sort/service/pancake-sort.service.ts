@@ -33,14 +33,14 @@ export class PancakeSortService {
                 source[index].color = ACCENT_COLOR;
                 source[j].color = PRIMARY_ONE_COLOR;
                 source[k].color = SECONDARY_ONE_COLOR;
-                callback({ completed: false, times, datalist: source});
+                callback({ times, datalist: source});
 
                 await swap(source, j, k, temp);
                 await delay(SORT_DELAY_DURATION);
 
                 source[j].color = CLEAR_COLOR;
                 source[k].color = CLEAR_COLOR;
-                callback({ completed: false, times, datalist: source});
+                callback({ times, datalist: source});
             }
 
             source[index].color = CLEAR_COLOR;
@@ -50,14 +50,14 @@ export class PancakeSortService {
 
                 source[i].color = PRIMARY_TWO_COLOR;
                 source[0].color = SECONDARY_TWO_COLOR;
-                callback({ completed: false, times, datalist: source});
+                callback({ times, datalist: source});
 
                 await swap(source, i, 0, temp);
                 await delay(SORT_DELAY_DURATION);
 
                 source[i].color = CLEAR_COLOR;
                 source[0].color = CLEAR_COLOR;
-                callback({ completed: false, times, datalist: source});
+                callback({ times, datalist: source});
 
                 await delay(SORT_DELAY_DURATION);
             }
@@ -67,14 +67,14 @@ export class PancakeSortService {
 
                 source[j].color = PRIMARY_TWO_COLOR;
                 source[k].color = SECONDARY_TWO_COLOR;
-                callback({ completed: false, times, datalist: source});
+                callback({ times, datalist: source});
 
                 await swap(source, j, k, temp);
                 await delay(SORT_DELAY_DURATION);
 
                 source[j].color = CLEAR_COLOR;
                 source[k].color = CLEAR_COLOR;
-                callback({ completed: false, times, datalist: source});
+                callback({ times, datalist: source});
             }
         }
 
@@ -94,14 +94,14 @@ export class PancakeSortService {
                 source[index].color = ACCENT_COLOR;
                 source[j].color = PRIMARY_ONE_COLOR;
                 source[k].color = SECONDARY_ONE_COLOR;
-                callback({ completed: false, times, datalist: source});
+                callback({ times, datalist: source});
 
                 await swap(source, j, k, temp);
                 await delay(SORT_DELAY_DURATION);
 
                 source[j].color = CLEAR_COLOR;
                 source[k].color = CLEAR_COLOR;
-                callback({ completed: false, times, datalist: source});
+                callback({ times, datalist: source});
             }
 
             source[index].color = CLEAR_COLOR;
@@ -111,14 +111,14 @@ export class PancakeSortService {
 
                 source[i].color = PRIMARY_TWO_COLOR;
                 source[0].color = SECONDARY_TWO_COLOR;
-                callback({ completed: false, times, datalist: source});
+                callback({ times, datalist: source});
 
                 await swap(source, i, 0, temp);
                 await delay(SORT_DELAY_DURATION);
 
                 source[i].color = CLEAR_COLOR;
                 source[0].color = CLEAR_COLOR;
-                callback({ completed: false, times, datalist: source});
+                callback({ times, datalist: source});
 
                 await delay(SORT_DELAY_DURATION);
             }
@@ -128,14 +128,14 @@ export class PancakeSortService {
                 
                 source[j].color = PRIMARY_TWO_COLOR;
                 source[k].color = SECONDARY_TWO_COLOR;
-                callback({ completed: false, times, datalist: source});
+                callback({ times, datalist: source});
 
                 await swap(source, j, k, temp);
                 await delay(SORT_DELAY_DURATION);
 
                 source[j].color = CLEAR_COLOR;
                 source[k].color = CLEAR_COLOR;
-                callback({ completed: false, times, datalist: source});
+                callback({ times, datalist: source});
             }
         }
 

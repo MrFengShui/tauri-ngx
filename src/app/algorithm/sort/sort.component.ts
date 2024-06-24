@@ -1,12 +1,15 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, Renderer2, ViewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
-import { Observer, Subscription, map, timer } from "rxjs";
-import { cloneDeep } from "lodash";
+import { Store } from "@ngrx/store";
+import { Observer, Subscription, map, timer, filter } from "rxjs";
+import { ceil, cloneDeep } from "lodash";
 
 import { SortMatchService, SortUtilsService } from "./service/sort.service";
 
-import { SortDataModel, SortOrder, SortRadix, SortRadixBaseModel, SortStateModel } from "./ngrx-store/sort.state";
+import { SortDataModel, SortMergeWay, SortMergeWayOptionModel, SortOrder, SortOrderOptionModel, SortRadix, SortRadixOptionModel, SortStateModel } from "./ngrx-store/sort.state";
 import { SortCanvasUtils } from "./sort.utils";
+import { SORT_MERGE_WAY_OPTION_LOAD_ACTION, SORT_ORDER_OPTION_LOAD_ACTION, SORT_RADIX_OPTION_LOAD_ACTION } from "./ngrx-store/sort.action";
+import { SORT_OPTION_LOAD_SELECTOR } from "./ngrx-store/sourt.selector";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,35 +23,21 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
 
     @HostListener('window:load', ['$event'])
     private async hostListenWindowOnLoad(): Promise<void> {
-        const size: { width: number, height: number } = await this.calcCanvasDimension();
-        this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${size.width}`);
-        this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${size.height}`);
-        this.maxValue = this.matchMaxValue(size.width);
-        this.resetCanvasParams(size.width, size.height);
+        await this.update();
     }
 
     @HostListener('window:resize', ['$event'])
     private async hostListenWindowResize(): Promise<void> {
-        const size: { width: number, height: number } = await this.calcCanvasDimension();
-        this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${size.width}`);
-        this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${size.height}`);
-        this.maxValue = this.matchMaxValue(size.width);
-        this.resetCanvasParams(size.width, size.height);
+        await this.update();
     }
 
     source: SortDataModel[] = [];
-    orderOptions: Array<{label: string, value: SortOrder}> = [
-        { label: '升序', value: 'ascent' },
-        { label: '降序', value: 'descent' }
-    ];
+    orderOptions: SortOrderOptionModel[] = [];
     order: SortOrder = 'ascent';
-    radixOptions: Array<SortRadixBaseModel> = [
-        { label: '二进制', value: 2 },
-        { label: '八进制', value: 8 },
-        { label: '十进制', value: 10 },
-        { label: '十六进制', value: 16 }
-    ];
+    radixOptions: SortRadixOptionModel[] = [];
     radix: SortRadix = 10;
+    mergeWayOptions: SortMergeWayOptionModel[] = [];
+    mergeWay: SortMergeWay = 3;
     timer: number = 0;
     times: number = 0;
     count: number = 0;
@@ -63,6 +52,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     private route$: Subscription | null = null;
     private match$: Subscription | null = null;
     private timer$: Subscription | null = null;
+    private store$: Subscription | null = null;
 
     constructor(
         private _route: ActivatedRoute,
@@ -70,12 +60,16 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         private _element: ElementRef<HTMLElement>,
         private _renderer: Renderer2,
         private _ngZone: NgZone,
+        private _store: Store,
         private _utilsService: SortUtilsService,
         private _matchService: SortMatchService
     ) { }
 
     ngOnInit(): void {
         this.utils = new SortCanvasUtils(this.canvas.nativeElement);
+        this._store.dispatch(SORT_ORDER_OPTION_LOAD_ACTION());
+        this._store.dispatch(SORT_RADIX_OPTION_LOAD_ACTION());
+        this._store.dispatch(SORT_MERGE_WAY_OPTION_LOAD_ACTION());
     }
 
     ngOnDestroy(): void {
@@ -85,11 +79,13 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         this.route$?.unsubscribe();
         this.timer$?.unsubscribe();
         this.match$?.unsubscribe();
+        this.store$?.unsubscribe();
     }
 
     ngAfterViewInit(): void {
         this.initHostLayout();
         this.listenQueryParamsChange();
+        this.listenLoadConfigChange();
     }
 
     handleRunSortEvent(): void {
@@ -162,17 +158,6 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         this._cdr.detectChanges();
     }
 
-    private matchMaxValue(size: number): number {
-        let count: number = 0;
-
-        while (size > 1) {
-            size >>= 1;
-            count += 1;
-        }
-
-        return Math.pow(2, count - 1);
-    }
-
     private acceptDataAndShow(): Partial<Observer<SortStateModel | null>> {
         return {
             next: state => this._ngZone.run(() => {
@@ -199,6 +184,14 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         };
     }
 
+    private async update(): Promise<void> {
+        const size: { width: number, height: number } = await this.calcCanvasDimension();
+        this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${size.width}`);
+        this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${size.height}`);
+        this.maxValue = Math.pow(2, Math.ceil(Math.log2(size.width)) - 1);
+        this.resetCanvasParams(size.width, size.height);
+    }
+
     private listenStopWatchChange(): void {
         this._ngZone.runOutsideAngular(() => {
             this.timer$ = timer(0, 1000).subscribe(value => 
@@ -216,7 +209,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     private listenToSortProcess(): void {
         this._ngZone.runOutsideAngular(() => {
             this.locked = true;
-            this.match$ = this._matchService.match(this.name, this.source, this.order, this.radix)
+            this.match$ = this._matchService.match(this.name, this.source, this.order, this.radix, this.mergeWay)
                 .subscribe(this.acceptDataAndShow());
         });
     }
@@ -227,15 +220,33 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
                 .pipe(map(params => params['name']))
                 .subscribe(name => this._ngZone.run(async () => {
                     this.name = name;
-                    
-                    const size: { width: number, height: number } = await this.calcCanvasDimension();
-                    this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${size.width}`);
-                    this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${size.height}`);
-                    this.maxValue = this.matchMaxValue(size.width);
-                    this.resetCanvasParams(size.width, size.height);
-        
+
+                    await this.update();
+
                     this.timer$?.unsubscribe();
                     this.match$?.unsubscribe();
+                }));
+        });
+    }
+
+    private listenLoadConfigChange(): void {
+        this._ngZone.runOutsideAngular(() => {
+            this.store$ = this._store.select(SORT_OPTION_LOAD_SELECTOR)
+                .pipe(filter(state => state.action.length > 0))
+                .subscribe(state => this._ngZone.run(() => {
+                    if (state.action === SORT_ORDER_OPTION_LOAD_ACTION.type) {
+                        this.orderOptions = state.value as SortOrderOptionModel[];
+                    }
+
+                    if (state.action === SORT_RADIX_OPTION_LOAD_ACTION.type) {
+                        this.radixOptions = state.value as SortRadixOptionModel[];
+                    }
+
+                    if (state.action === SORT_MERGE_WAY_OPTION_LOAD_ACTION.type) {
+                        this.mergeWayOptions = state.value as SortMergeWayOptionModel[];
+                    }
+
+                    this._cdr.markForCheck();
                 }));
         });
     }

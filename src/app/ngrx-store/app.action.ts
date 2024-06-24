@@ -1,6 +1,6 @@
 import { createAction, props } from '@ngrx/store';
 
-import { AppConfigReducerState, AppStyleReducerState, AppStyleStructModel } from './app.state';
+import { AppConfigReducerState, AppNavlistReducerState, AppStyleReducerState, AppStyleStructModel } from './app.state';
 /**
  *  
  */
@@ -35,16 +35,6 @@ export const APP_STYLE_CHANGE_DONE_ACTION = createAction(
     props<AppStyleReducerState>()
 );
 
-/**
- * 
- */
-export const APP_CONFIG_NAVLIST_LOAD_ACTION = createAction('[App Component] Config Navlist Load Action');
-
-export const APP_CONFIG_NAVLIST_LOAD_DONE_ACTION = createAction(
-    '[App Component] Config Navlist Load Done Action', 
-    props<AppConfigReducerState>()
-);
-
 export const APP_CONFIG_STYLE_NAME_LOAD_ACTION = createAction('[App Component] Config Style Name Load Action');
 
 export const APP_CONFIG_STYLE_NAME_LOAD_DONE_ACTION = createAction(
@@ -57,5 +47,12 @@ export const APP_CONFIG_STYLE_COLOR_LOAD_ACTION = createAction('[App Component] 
 export const APP_CONFIG_STYLE_COLOR_LOAD_DONE_ACTION = createAction(
     '[App Component] Config Style Color Load Done Action', 
     props<AppConfigReducerState>()
+);
+
+export const APP_NAVLIST_LOAD_ACTION = createAction('[App Component] Navlist Load Action');
+
+export const APP_NAVLIST_LOAD_DONE_ACTION = createAction(
+    '[App Component] Navlist Load Done Action', 
+    props<AppNavlistReducerState>()
 );
 

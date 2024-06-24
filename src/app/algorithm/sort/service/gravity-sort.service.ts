@@ -28,12 +28,12 @@ export class GravitySortService {
             times += 1;
 
             source[i].color = ACCENT_COLOR;
-            callback({ completed: false, times, datalist: source });
+            callback({ times, datalist: source });
 
             await delay(SORT_DELAY_DURATION);
 
             source[i].color = CLEAR_COLOR;
-            callback({ completed: false, times, datalist: source });
+            callback({ times, datalist: source });
 
             let list: boolean[] = Array.from([]);
 
@@ -68,7 +68,7 @@ export class GravitySortService {
                 }
             }
 
-            callback({ completed: false, times, datalist: source });
+            callback({ times, datalist: source });
             await delay(SORT_DELAY_DURATION);
         }
 
@@ -84,12 +84,12 @@ export class GravitySortService {
             times += 1;
 
             source[i].color = ACCENT_COLOR;
-            callback({ completed: false, times, datalist: source });
+            callback({ times, datalist: source });
 
             await delay(SORT_DELAY_DURATION);
 
             source[i].color = CLEAR_COLOR;
-            callback({ completed: false, times, datalist: source });
+            callback({ times, datalist: source });
 
             let list: boolean[] = Array.from([]);
 
@@ -124,7 +124,7 @@ export class GravitySortService {
                 }
             }
 
-            callback({ completed: false, times, datalist: source });
+            callback({ times, datalist: source });
             await delay(SORT_DELAY_DURATION);
         }
 

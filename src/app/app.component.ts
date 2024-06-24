@@ -63,9 +63,9 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     private listenStyleChange(): void {
         this._ngZone.runOutsideAngular(() => {
             this.style$ = this._store.select(APP_FEATURE_SELECTOR)
-            .pipe(filter(state => state.styleFeatuer.action.length > 0))
+            .pipe(filter(state => state.styleFeature.action.length > 0))
             .subscribe(state => this._ngZone.run(() => {
-                const feature: AppStyleReducerState = state.styleFeatuer;
+                const feature: AppStyleReducerState = state.styleFeature;
                 // console.log(feature.action);
                 if (feature.action === APP_STYLE_CHECK_ACTION.type) {
                     if (feature.value) {

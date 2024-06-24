@@ -2,7 +2,9 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { ACCENT_COLOR, CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+
+type Node = { index: number, value: number, parent?: Node };
 
 /**
  * 锦标赛排序
@@ -10,101 +12,43 @@ import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
 @Injectable()
 export class TournamentSortService {
 
-    private fstCache: SortDataModel[] = Array.from([]);
-    private sndCache: SortDataModel[] = Array.from([]);
-    private trdCache: SortDataModel[] = Array.from([]);
+    private tree: { [key: string | number]: Node[] } = {};
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
-
             if (order === 'ascent') {
-                this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByAscent(array, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }
 
             if (order === 'descent') {
-                this.sortByDescent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByDescent(array, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }
         });
     }
 
-    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let winner: SortDataModel;
+    private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        let depth: number = Math.ceil(Math.log2(source.length) + 1), index: number;
+
+        times = await this.createTree(source, depth, times, callback);
 
         for (let i = 0; i < source.length; i++) {
-            this.fstCache.push({ value: source[i].value, color: source[i].color });
-            times += 1; 
+            await this.buildMinTree(depth);
+            
+            index = this.tree[0][0].index;
+            times += 1;
 
-            source[i].color = 'lawngreen';
-            callback({ completed: false, times, datalist: source });
+            source[i].value = this.tree[0][0].value;
+            source[i].color = PRIMARY_COLOR;
+            source[index].color = SECONDARY_COLOR;
+            callback({ times, datalist: source });
 
             await delay(SORT_DELAY_DURATION);
 
-            source[i].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source });
-        }
+            source[i].color = CLEAR_COLOR;
+            source[index].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
 
-        for (let i = 0; i < this.fstCache.length; i++) {
-            for (let j = 0; j < this.fstCache.length; j++) {
-                this.sndCache.push(this.fstCache[j]);
-                times += 1; 
-
-                source[i].color = 'lawngreen';
-                source[j].color = 'dodgerblue';
-                callback({ completed: false, times, datalist: source });
-
-                await delay(SORT_DELAY_DURATION);
-
-                source[i].color = 'lawngreen';
-                source[j].color = 'whitesmoke';
-                callback({ completed: false, times, datalist: source });
-            }
-
-            while (this.sndCache.length > 2) {
-                for (let j = 0; j < this.sndCache.length; j += 2) {
-                    if (this.sndCache[j + 1]) {
-                        this.trdCache.push(this.sndCache[j].value < this.sndCache[j + 1].value ? this.sndCache[j] : this.sndCache[j + 1]);
-                    } else {
-                        this.trdCache.push(this.sndCache[j]);
-                    }
-
-                    times += 1;
-                }
-
-                this.sndCache.splice(0);
-
-                for (let item of this.trdCache) {
-                    this.sndCache.push(item);
-
-                    times += 1;
-                }
-                
-                this.trdCache.splice(0);
-            }
-            
-            winner = this.sndCache[0].value < this.sndCache[1].value ? this.sndCache[0] : this.sndCache[1]; 
-            source[i].value = winner.value;
-            times += 1;
-            
-            for (let j = 0; j < this.fstCache.length; j++) {
-                source[i].color = 'lawngreen';
-                source[j].color = 'orangered';
-                callback({ completed: false, times, datalist: source });  
-
-                await delay(SORT_DELAY_DURATION);   
-
-                if (this.fstCache[j].value === source[i].value) {
-                    this.fstCache[j].value = Number.MAX_SAFE_INTEGER;
-                    times += 1;
-
-                    source[j].color = 'whitesmoke';
-                    callback({ completed: false, times, datalist: source });    
-                    break;
-                }
-
-                source[j].color = 'whitesmoke';
-                callback({ completed: false, times, datalist: source });    
-            }
+            this.tree[depth - 1][index].value = Number.MAX_SAFE_INTEGER;
         }
 
         await delay(SORT_DELAY_DURATION);
@@ -112,94 +56,138 @@ export class TournamentSortService {
         await this.clear();
     }
 
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        let winner: SortDataModel;
+    private async sortByDescent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        let depth: number = Math.ceil(Math.log2(source.length) + 1), index: number;
+
+        times = await this.createTree(source, depth, times, callback);
 
         for (let i = 0; i < source.length; i++) {
-            this.fstCache.push({ value: source[i].value, color: source[i].color });
-            times += 1; 
+            await this.buildMaxTree(depth);
+            
+            index = this.tree[0][0].index;
+            times += 1;
 
-            source[i].color = 'lawngreen';
-            callback({ completed: false, times, datalist: source });
+            source[i].value = this.tree[0][0].value;
+            source[i].color = PRIMARY_COLOR;
+            source[index].color = SECONDARY_COLOR;
+            callback({ times, datalist: source });
 
             await delay(SORT_DELAY_DURATION);
 
-            source[i].color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source });
-        }
+            source[i].color = CLEAR_COLOR;
+            source[index].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
 
-        for (let i = 0; i < this.fstCache.length; i++) {
-            for (let j = 0; j < this.fstCache.length; j++) {
-                this.sndCache.push(this.fstCache[j]);
-                times += 1; 
-                
-                source[i].color = 'lawngreen';
-                source[j].color = 'dodgerblue';
-                callback({ completed: false, times, datalist: source });
-
-                await delay(SORT_DELAY_DURATION);
-
-                source[i].color = 'lawngreen';
-                source[j].color = 'whitesmoke';
-                callback({ completed: false, times, datalist: source });
-            }
-
-            while (this.sndCache.length > 2) {
-                for (let j = 0; j < this.sndCache.length; j += 2) {
-                    if (this.sndCache[j + 1]) {
-                        this.trdCache.push(this.sndCache[j].value > this.sndCache[j + 1].value ? this.sndCache[j] : this.sndCache[j + 1]);
-                    } else {
-                        this.trdCache.push(this.sndCache[j]);
-                    }
-
-                    times += 1;
-                }
-
-                this.sndCache.splice(0);
-
-                for (let item of this.trdCache) {
-                    this.sndCache.push(item);
-
-                    times += 1;
-                }
-                
-                this.trdCache.splice(0);
-            }
-            
-            winner = this.sndCache[0].value > this.sndCache[1].value ? this.sndCache[0] : this.sndCache[1]; 
-            source[i].value = winner.value;
-            times += 1;
-            
-            for (let j = 0; j < this.fstCache.length; j++) {
-                source[i].color = 'lawngreen';
-                source[j].color = 'orangered';
-                callback({ completed: false, times, datalist: source });  
-
-                await delay(SORT_DELAY_DURATION);   
-
-                if (this.fstCache[j].value === source[i].value) {
-                    this.fstCache[j].value = Number.MIN_SAFE_INTEGER;
-                    times += 1;
-
-                    source[j].color = 'whitesmoke';
-                    callback({ completed: false, times, datalist: source });    
-                    break;
-                }
-
-                source[j].color = 'whitesmoke';
-                callback({ completed: false, times, datalist: source });    
-            }
+            this.tree[depth - 1][index].value = Number.MIN_SAFE_INTEGER;
         }
 
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
-        await this.clear();
     }
 
-    private async clear(): Promise<void> {
-        this.fstCache.splice(0);
-        this.sndCache.splice(0);
-        this.trdCache.splice(0);
+    private async createTree(source: SortDataModel[], depth: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        for (let i = 0; i < depth; i++) {
+            this.tree[i] = Array.from([]);
+
+            if (i === depth - 1) {
+                for (let j = 0; j < source.length; j++) {
+                    times += 1;
+
+                    source[j].color = ACCENT_COLOR;
+                    callback({ times, datalist: source });
+
+                    await delay(SORT_DELAY_DURATION);
+
+                    source[j].color = CLEAR_COLOR;
+                    callback({ times, datalist: source });
+
+                    this.tree[i].push({ index: j, value: source[j].value });
+                }
+            }
+        }
+        
+        return times;
+    }
+
+    private async buildMaxTree(depth: number): Promise<void> {
+        let k: number, temp: Node;
+
+        for (let i = depth - 1; i > 0 ;i--) {
+            for (let j = 0; j < this.tree[i].length; j += 2) {
+                k = Math.min(j + 1, this.tree[i].length - 1);
+
+                if (j === k) {
+                    temp = this.tree[i][k];
+
+                    if (temp.parent) {
+                        temp.parent.index = temp.index;
+                        temp.parent.value = temp.value;
+                    } else {
+                        this.tree[i - 1].push({ index: temp.index, value: temp.value });
+                    }
+                    
+                    break;
+                } 
+                
+                temp = this.tree[i][j].value > this.tree[i][k].value ? this.tree[i][j] : this.tree[i][k];
+
+                if (temp.parent) {
+                    temp.parent.index = temp.index;
+                    temp.parent.value = temp.value;
+                } else {
+                    let node: Node = { index: temp.index, value: temp.value };
+                    this.tree[i][j].parent = node;
+                    this.tree[i][k].parent = node;
+                    this.tree[i - 1].push(node);
+                }
+            }
+        }
+    }
+
+    private async buildMinTree(depth: number): Promise<void> {
+        let k: number, temp: Node;
+
+        for (let i = depth - 1; i > 0 ;i--) {
+            for (let j = 0; j < this.tree[i].length; j += 2) {
+                k = Math.min(j + 1, this.tree[i].length - 1);
+
+                if (j === k) {
+                    temp = this.tree[i][k];
+
+                    if (temp.parent) {
+                        temp.parent.index = temp.index;
+                        temp.parent.value = temp.value;
+                    } else {
+                        this.tree[i - 1].push({ index: temp.index, value: temp.value });
+                    }
+                    
+                    break;
+                } 
+                
+                temp = this.tree[i][j].value < this.tree[i][k].value ? this.tree[i][j] : this.tree[i][k];
+
+                if (temp.parent) {
+                    temp.parent.index = temp.index;
+                    temp.parent.value = temp.value;
+                } else {
+                    let node: Node = { index: temp.index, value: temp.value };
+                    this.tree[i][j].parent = node;
+                    this.tree[i][k].parent = node;
+                    this.tree[i - 1].push(node);
+                }
+            }
+        }
+    }
+
+    private clear(): Promise<void> {
+        return new Promise(resolve => {
+            for (let key of Object.keys(this.tree)) {
+                this.tree[key].splice(0);
+                delete this.tree[key];
+            }
+
+            resolve();
+        });
     }
 
 }

@@ -1,8 +1,9 @@
 import { Injectable } from "@angular/core";
-import { Observable, of } from "rxjs";
+import { HttpClient } from "@angular/common/http";
+import { Observable, of, map } from "rxjs";
 import { random } from 'lodash';
 
-import { SortDataModel, SortStateModel, SortOrder, SortRadix } from "../ngrx-store/sort.state";
+import { SortDataModel, SortStateModel, SortOrder, SortRadix, SortOrderOptionModel, SortRadixOptionModel, SortMergeWayOptionModel } from "../ngrx-store/sort.state";
 
 import { CLEAR_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR, SORT_DELAY_DURATION, delay } from "../sort.utils";
 
@@ -11,25 +12,49 @@ import { BinarySearchInserionSortService, InsertionSortService, ShellSortService
 import { LibrarySortService } from "./library-sort.service";
 import { BiSelectionSortService, SelectionSortService } from "./selection-sort.service";
 import { BogoBubbleSortService, BogoCocktailSortService, BogoSortService } from "./bogo-sort.service";
-import { QuickSortService, TwoWayQuickSortService } from "./quick-sort.service";
+import { DualPivotIterativeQuickSortService, DualPivotRecursiveQuickSortService, IterativeQuickSortService, RecursiveQuickSortService, ThreeWayIterativeQuickSortService, ThreeWayRecursiveQuickSortService, TwoWayIterativeQuickSortService, TwoWayRecursiveQuickSortService } from "./quick-sort.service";
 import { CountSortService } from "./count-sort.service";
-import { BucketSortService } from "./bucket-sort.service";
+import { BucketSortService, InterpolationSortService, PigeonholeSortService } from "./bucket-sort.service";
 import { RadixLSDSortService, RadixMSDSortService } from "./radix-sort.service";
 import { SleepSortService } from "./sleep-sort.service";
 import { CycleSortService } from "./cycle-sort.service";
 import { HeapSortService, TernaryHeapSortService } from "./heap-sort.service";
-import { TopDownMergeSortService, FourWayMergeSortService, BottomUpMergeSortService, InPlaceMergeSortService } from "./merge-sort.service";
+import { TopDownMergeSortService, MultiWayMergeSortService, BottomUpMergeSortService, InPlaceMergeSortService } from "./merge-sort.service";
 import { StoogeSortService } from "./stooge-sort.service";
 import { SlowSortService } from "./slow-sort.service";
 import { GnomeSortService } from "./gnome-sort.service";
 import { TournamentSortService } from "./tournament-sort.service";
 import { BottomUpBitonicMergeSortService, TopDownBitonicMergeSortService } from "./bitonic-merge-sort.service";
-import { OddEvenSortService } from "./odd-even-sort.service";
+import { OddEvenSortService } from "./bubble-sort.service";
 import { CombSortService } from "./bubble-sort.service";
 import { PancakeSortService } from "./pancake-sort.service";
 import { GravitySortService } from "./gravity-sort.service";
 import { BottomUpOddEvenMergeSortService, TopDownOddEvenMergeSortService } from "./odd-even-merge-sort.service";
 import { PatienceSortService } from "./patience-sort.service";
+import { StrandSortService } from "./strand-sort.service";
+import { TimSortService } from "./tim-sort.service";
+
+@Injectable()
+export class SortLoadConfigService {
+
+    constructor(private _http: HttpClient) {}
+
+    public loadSortOrderOptions(): Observable<SortOrderOptionModel[]> {
+        return this._http.get<{ list: SortOrderOptionModel[] }>('assets/config/sort.order.option.json', { responseType: 'json' })
+            .pipe(map(value => value.list))
+    }
+
+    public loadSortRadixOptions(): Observable<SortRadixOptionModel[]> {
+        return this._http.get<{ list: SortRadixOptionModel[] }>('assets/config/sort.radix.option.json', { responseType: 'json' })
+            .pipe(map(value => value.list))
+    }
+
+    public loadSortMergeWayOptions(): Observable<SortMergeWayOptionModel[]> {
+        return this._http.get<{ list: SortMergeWayOptionModel[] }>('assets/config/sort.merge-way.option.json', { responseType: 'json' })
+            .pipe(map(value => value.list))
+    }
+
+}
 
 @Injectable()
 export class SortUtilsService {
@@ -107,6 +132,22 @@ export class SortUtilsService {
 @Injectable()
 export class SortToolsService {
 
+    public findMinMaxValue(source: SortDataModel[]): [number, number] {
+        let min: number = Number.MAX_SAFE_INTEGER, max: number = Number.MIN_SAFE_INTEGER;
+        
+        for (let item of source) {
+            if (item.value < min) {
+                min = item.value;
+            }
+
+            if (item.value > max) {
+                max = item.value;
+            }
+        }
+
+        return [min, max];
+    }
+
     public searchByAscent(source: SortDataModel[], target: SortDataModel, lhs: number, rhs: number): number {
         const mid = Math.floor((rhs - lhs) * 0.5 + lhs);
 
@@ -131,37 +172,6 @@ export class SortToolsService {
         }
     } 
 
-    public stableSortByAscent(source: number[], times: number, temp: number = -1): number {
-        for (let i = 1; i < source.length; i++) {
-            for (let j = i; j > 0; j--) {
-                if (source[j - 1] > source[j]) {
-                    temp = source[j - 1];
-                    source[j - 1] = source[j];
-                    source[j] = temp;
-                    times += 1;
-                }
-            }
-        }
-    
-        return times;
-    } 
-    
-
-    public stableSortByDescent(source: number[], times: number, temp: number = -1): number {
-        for (let i = 1; i < source.length; i++) {
-            for (let j = i; j > 0; j--) {
-                if (source[j - 1] < source[j]) {
-                    temp = source[j - 1];
-                    source[j - 1] = source[j];
-                    source[j] = temp;
-                    times += 1;
-                }
-            }
-        }
-    
-        return times;
-    } 
-    
     public isSortedByAscent(source: SortDataModel[]): boolean {
         for (let i = 0; i < source.length - 1; i++) {
             if (source[i + 1].value < source[i].value) {
@@ -198,19 +208,28 @@ export class SortMatchService {
         private _shell: ShellSortService,
         private _selection: SelectionSortService,
         private _biSelection: BiSelectionSortService,
-        private _quick: QuickSortService,
-        private _2wQuick: TwoWayQuickSortService,
+        private _recuQuick: RecursiveQuickSortService,
+        private _iterQuick: IterativeQuickSortService,
+        private _2wRecuQuick: TwoWayRecursiveQuickSortService,
+        private _2wIterQuick: TwoWayIterativeQuickSortService,
+        private _3wRecuQuick: ThreeWayRecursiveQuickSortService,
+        private _3wIterQuick: ThreeWayIterativeQuickSortService,
+        private _dpRecuQuick: DualPivotRecursiveQuickSortService,
+        private _dpIterQuick: DualPivotIterativeQuickSortService,
         private _heap: HeapSortService,
         private _tHeap: TernaryHeapSortService,
         
         private _bucket: BucketSortService,
         private _count: CountSortService,
+        private _interpolation: InterpolationSortService,
+        private _pigeonhole: PigeonholeSortService,
         private _radixLSD: RadixLSDSortService,
         private _radixMSD: RadixMSDSortService,
         private _tdMerge: TopDownMergeSortService,
         private _buMerge: BottomUpMergeSortService,
         private _ipMerge: InPlaceMergeSortService,
-        private _4wMerge: FourWayMergeSortService,
+        private _kMerge: MultiWayMergeSortService,
+        private _tim: TimSortService,
 
         private _tdBitonic: TopDownBitonicMergeSortService,
         private _buBitonic: BottomUpBitonicMergeSortService,
@@ -223,16 +242,16 @@ export class SortMatchService {
         private _cycle: CycleSortService,
         private _gnome: GnomeSortService,
         private _gravity: GravitySortService,
+        private _pancake: PancakeSortService,
+        private _patience: PatienceSortService,
         private _sleep: SleepSortService,
         private _stooge: StoogeSortService,
         private _slow: SlowSortService,
+        private _strand: StrandSortService,
         private _tournament: TournamentSortService,
-        private _pancake: PancakeSortService,
-        private _patience: PatienceSortService
-
     ) {}
 
-    public match(name: string, array: SortDataModel[], order: SortOrder, radix: SortRadix = 10): Observable<SortStateModel | null> {console.warn('name:', name);
+    public match(name: string, array: SortDataModel[], order: SortOrder, radix: SortRadix = 10, way: number = 3): Observable<SortStateModel | null> {console.warn('name:', name);
         if (name === 'bogo-sort') {
             return this._bogo.sort(array, order);
         }
@@ -257,6 +276,10 @@ export class SortMatchService {
             return this._gnome.sort(array, order);
         }
 
+        if (name === 'library-sort') {
+            return this._library.sort(array, order);
+        }
+
         if (name === 'pancake-sort') {
             return this._pancake.sort(array, order);
         }
@@ -277,12 +300,12 @@ export class SortMatchService {
             return this._slow.sort(array, order);
         }
 
-        if (name === 'tournament-sort') {
-            return this._tournament.sort(array, order);
+        if (name === 'strand-sort') {
+            return this._strand.sort(array, order);
         }
 
-        if (name === 'library-sort') {
-            return this._library.sort(array, order);
+        if (name === 'tournament-sort') {
+            return this._tournament.sort(array, order);
         }
 
 
@@ -322,16 +345,36 @@ export class SortMatchService {
             return this._biSelection.sort(array, order);
         }
 
-        if (name === 'quick-sort') {
-            return this._quick.sort(array, order);
+        if (name === 'recu-quick-sort') {
+            return this._recuQuick.sort(array, order);
         }
 
-        if (name === '2w-quick-sort') {
-            return this._2wQuick.sort(array, order);
+        if (name === 'iter-quick-sort') {
+            return this._iterQuick.sort(array, order);
         }
 
-        if (name === '3w-quick-sort') {
-            // return this._quick.sort(array, order);
+        if (name === '2wr-quick-sort') {
+            return this._2wRecuQuick.sort(array, order);
+        }
+
+        if (name === '2wi-quick-sort') {
+            return this._2wIterQuick.sort(array, order);
+        }
+
+        if (name === '3wr-quick-sort') {
+            return this._3wRecuQuick.sort(array, order);
+        }
+
+        if (name === '3wi-quick-sort') {
+            return this._3wIterQuick.sort(array, order);
+        }
+
+        if (name === 'dpr-quick-sort') {
+            return this._dpRecuQuick.sort(array, order);
+        }
+
+        if (name === 'dpi-quick-sort') {
+            return this._dpIterQuick.sort(array, order);
         }
 
         if (name === 'heap-sort') {
@@ -345,6 +388,13 @@ export class SortMatchService {
 
         if (name === 'bucket-sort') {
             return this._bucket.sort(array, order);
+        }
+
+        if (name === 'interpolation-sort') {
+            return this._interpolation.sort(array, order);
+        }
+        if (name === 'pigeonhole-sort') {
+            return this._pigeonhole.sort(array, order);
         }
 
         if (name === 'count-sort') {
@@ -367,12 +417,16 @@ export class SortMatchService {
             return this._buMerge.sort(array, order);
         }
 
-        if (name === '4w-merge-sort') {
-            return this._4wMerge.sort(array, order);
+        if (name === 'kw-merge-sort') {
+            return this._kMerge.sort(array, order, way);
         }
 
         if (name === 'ip-merge-sort') {
             return this._ipMerge.sort(array, order);
+        }
+
+        if (name === 'tim-sort') {
+            return this._tim.sort(array, order);
         }
 
 

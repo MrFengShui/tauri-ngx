@@ -1,12 +1,10 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, Renderer2, ViewEncapsulation } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngrx/store";
-import { Subscription, filter, last } from "rxjs";
-import { TreeNode } from "primeng/api";
-import { TreeNodeSelectEvent } from "primeng/tree";
+import { ScrollerOptions, TreeNode } from "primeng/api";
+import { Subscription, filter, map } from "rxjs";
+import { cloneDeep } from "lodash";
 
-import { APP_CONFIG_STYLE_NAME_LOAD_ACTION, APP_CONFIG_STYLE_COLOR_LOAD_ACTION, APP_STYLE_CHANGE_ACTION, APP_CONFIG_NAVLIST_LOAD_ACTION } from "../ngrx-store/app.action";
-import { APP_NAVLIST } from "../ngrx-store/app.data";
+import { APP_CONFIG_STYLE_NAME_LOAD_ACTION, APP_CONFIG_STYLE_COLOR_LOAD_ACTION, APP_STYLE_CHANGE_ACTION, APP_NAVLIST_LOAD_ACTION } from "../ngrx-store/app.action";
 import { APP_FEATURE_SELECTOR } from "../ngrx-store/app.selector";
 import { AppStyleNameModel, AppStyleColorModel, ColorType, AppStyleModel, AppConfigReducerState, AppStyleReducerState } from "../ngrx-store/app.state";
 
@@ -42,6 +40,7 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
     ngOnInit(): void {
         this._store.dispatch(APP_CONFIG_STYLE_NAME_LOAD_ACTION());
         this._store.dispatch(APP_CONFIG_STYLE_COLOR_LOAD_ACTION());
+        this._store.dispatch(APP_NAVLIST_LOAD_ACTION());
     }
 
     ngOnDestroy(): void {
@@ -52,7 +51,7 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
 
     ngAfterViewInit(): void {
         this.initHostLayout();
-        this.initNavlist();
+        this.listenNavlistChange();
         this.listenConfigChange();
         this.listenStyleChange();
     }
@@ -69,14 +68,6 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
         this._renderer.addClass(this._element.nativeElement, 'flex');
         this._renderer.addClass(this._element.nativeElement, 'flex-column');
         this._renderer.addClass(this._element.nativeElement, 'h-full');
-    }
-
-    private initNavlist(): void {
-        this.navlist$ = APP_NAVLIST.subscribe(value => {
-            this.navlist = value;
-            this._cdr.detectChanges();
-            this.navlist$?.unsubscribe();
-        });
     }
 
     private renderStyle(model: AppStyleModel) {
@@ -100,7 +91,7 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
                         this.styleColorList = feature.value as AppStyleColorModel[];
                     }
 
-                    if (feature.action === APP_CONFIG_NAVLIST_LOAD_ACTION.type) {
+                    if (feature.action === APP_NAVLIST_LOAD_ACTION.type) {
                         this.navlist = feature.value as TreeNode[];
                     }
 
@@ -112,13 +103,27 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
     private listenStyleChange(): void {
         this._ngZone.runOutsideAngular(() => {
             this.style$ = this._store.select(APP_FEATURE_SELECTOR)
-                .pipe(filter(state => state.styleFeatuer.action === APP_STYLE_CHANGE_ACTION.type))
+                .pipe(filter(state => state.styleFeature.action === APP_STYLE_CHANGE_ACTION.type))
                 .subscribe(state => this._ngZone.run(() => {
-                    const feature: AppStyleReducerState = state.styleFeatuer;
+                    const feature: AppStyleReducerState = state.styleFeature;
                     this.renderStyle(feature.value as AppStyleModel);
                     this._cdr.detectChanges();
                 }));
         });
+    }
+
+    private listenNavlistChange(): void {
+        this._ngZone.runOutsideAngular(() => 
+            this.navlist$ = this._store.select(APP_FEATURE_SELECTOR)
+                .pipe(
+                    filter(state => state.navlistFeature.action === APP_NAVLIST_LOAD_ACTION.type),
+                    map(state => state.navlistFeature.value)
+                )
+                .subscribe(value => this._ngZone.run(() => {
+                    this.navlist = cloneDeep(value);
+                    this._cdr.markForCheck();
+                    this.navlist$?.unsubscribe();
+                })));
     }
 
 }

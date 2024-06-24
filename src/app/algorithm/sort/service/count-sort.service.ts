@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
 
 /**
  * 计数排序
@@ -10,7 +10,7 @@ import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
 @Injectable()
 export class CountSortService {
 
-    private cache: {[key: number]: number} = {};
+    private cache: {[key: string | number]: number} = {};
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
@@ -36,13 +36,13 @@ export class CountSortService {
 
             times += 1;
 
-            item.color = 'lawngreen';
-            callback({ completed: false, times, datalist: source});
+            item.color = ACCENT_ONE_COLOR;
+            callback({ times, datalist: source});
             
             await delay(SORT_DELAY_DURATION);
             
-            item.color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
+            item.color = CLEAR_COLOR;
+            callback({ times, datalist: source});
         }
 
         await delay(SORT_DELAY_DURATION);
@@ -54,13 +54,13 @@ export class CountSortService {
                 source[i].value = index;
                 times += 1;
 
-                source[i].color = 'lawngreen';
-                callback({ completed: false, times, datalist: source});
+                source[i].color = ACCENT_TWO_COLOR;
+                callback({ times, datalist: source});
 
                 await delay(SORT_DELAY_DURATION);
                 
-                source[i].color = 'whitesmoke';
-                callback({ completed: false, times, datalist: source});
+                source[i].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
 
                 i += 1;
             }
@@ -83,13 +83,13 @@ export class CountSortService {
 
             times += 1;
 
-            item.color = 'lawngreen';
-            callback({ completed: false, times, datalist: source});
+            item.color = ACCENT_ONE_COLOR;
+            callback({ times, datalist: source});
 
             await delay(SORT_DELAY_DURATION);
             
-            item.color = 'whitesmoke';
-            callback({ completed: false, times, datalist: source});
+            item.color = CLEAR_COLOR;
+            callback({ times, datalist: source});
         }
 
         await delay(SORT_DELAY_DURATION);
@@ -101,13 +101,13 @@ export class CountSortService {
                 source[i].value = index;
                 times += 1;
 
-                source[i].color = 'lawngreen';
-                callback({ completed: false, times, datalist: source});
+                source[i].color = ACCENT_TWO_COLOR;
+                callback({ times, datalist: source});
 
                 await delay(SORT_DELAY_DURATION);
                 
-                source[i].color = 'whitesmoke';
-                callback({ completed: false, times, datalist: source});
+                source[i].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
 
                 i += 1;
             }
@@ -118,10 +118,9 @@ export class CountSortService {
         await this.clear();
     }
 
-    private async clear(index: number = 0): Promise<void> {
+    private async clear(): Promise<void> {
         for (let key of Object.keys(this.cache)) {
-            index = Number.parseInt(key);
-            delete this.cache[index];
+            delete this.cache[key];
         }
     }
 

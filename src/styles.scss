@@ -5,6 +5,32 @@
 // @import url('https://fonts.font.im/css?family=Hanalei+Fill');
 // @import url('https://fonts.font.im/css?family=Hanalei');
 
+* {
+    ::-webkit-scrollbar {
+        width: 0.75rem;
+        height: 0.75rem;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: var(--primary-color);
+        border-radius: 0.125rem;
+
+        &:hover {
+            background-color: var(--primary-400);
+        }
+
+        &:active {
+            background-color: var(--primary-600);
+        }
+    }
+
+    ::-webkit-scrollbar-button,
+    ::-webkit-scrollbar-corner,
+    ::-webkit-scrollbar-track {
+        display: none;
+    }
+}
+
 html, body {
     overflow: hidden;
     margin: 0;

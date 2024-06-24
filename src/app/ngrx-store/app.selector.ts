@@ -1,13 +1,14 @@
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 
-import { AppConfigReducerState, AppStyleReducerState } from "./app.state";
+import { AppConfigReducerState, AppNavlistReducerState, AppStyleReducerState } from "./app.state";
 
 export const APP_FEATURE_KEY: string = 'APP_FEATURE_SELECTOR';
 
 export interface AppFeatureState {
 
     configFeature: AppConfigReducerState;
-    styleFeatuer: AppStyleReducerState;
+    styleFeature: AppStyleReducerState;
+    navlistFeature: AppNavlistReducerState;
 
 }
 

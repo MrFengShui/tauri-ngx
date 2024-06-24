@@ -14,6 +14,10 @@
             <span class="font-bold text-2xl text-primary white-space-nowrap" >选择待排进制</span>
             <p-selectButton [disabled]="locked" [options]="radixOptions" optionLabel="label" optionValue="value" [(ngModel)]="radix"/>
         </ng-container>
+        <ng-container *ngIf="name === 'kw-merge-sort'">
+            <span class="font-bold text-2xl text-primary white-space-nowrap" >选择归并路数</span>
+            <p-selectButton [disabled]="locked" [options]="mergeWayOptions" optionLabel="label" optionValue="value" [(ngModel)]="mergeWay"/>
+        </ng-container>
         <span class="font-bold text-2xl text-primary white-space-nowrap">选择待排顺序</span>
         <p-selectButton [disabled]="locked" [options]="orderOptions" optionLabel="label" optionValue="value" [(ngModel)]="order"/>
     </div>

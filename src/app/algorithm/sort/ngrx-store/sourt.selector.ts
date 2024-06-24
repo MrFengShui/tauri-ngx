@@ -1,16 +1,18 @@
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 
-import { SortReducerState } from "./sort.state";
+import { SortOptionLoadState } from "./sort.state";
 
-export const SORT_FEATURE_KEY: string = 'SORT_FEATURE_SELECTOR';
+export const SORT_OPTION_FEATURE_KEY: string = 'SORT_OPTION_FEATURE_SELECTOR';
 
-export interface SortFeatureState {
+export interface SortOptionFeatureState {
 
-    feature: SortReducerState;
+    feature: SortOptionLoadState;
 
 }
 
-export const SORT_FEATURE_SELECTIOR = createSelector(
-    createFeatureSelector(SORT_FEATURE_KEY),
-    (state: SortFeatureState) => state.feature
+export const SORT_OPTION_LOAD_SELECTOR = createSelector(
+    createFeatureSelector(SORT_OPTION_FEATURE_KEY),
+    (state: SortOptionFeatureState) => state.feature
 );
+
+

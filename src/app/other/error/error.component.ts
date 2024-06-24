@@ -65,9 +65,9 @@ export class ErrorPageComponent implements OnInit, OnDestroy, AfterViewInit {
     private listenStyleChange(): void {
         this._ngZone.runOutsideAngular(() => {
             this.style$ = this._store.select(APP_FEATURE_SELECTOR)
-            .pipe(filter(state => state.styleFeatuer.action === APP_STYLE_THEME_FETCH_ACTION.type))
+            .pipe(filter(state => state.styleFeature.action === APP_STYLE_THEME_FETCH_ACTION.type))
             .subscribe(state => this._ngZone.run(() => {
-                const theme: ThemeType = state.styleFeatuer.value as ThemeType;
+                const theme: ThemeType = state.styleFeature.value as ThemeType;
                 this._renderer.setStyle(this._element.nativeElement, 'background-image', `url(../../../assets/images/bg-image-${theme}.webp)`);
                 this._cdr.detectChanges();
             }));

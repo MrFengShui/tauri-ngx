@@ -29,11 +29,11 @@ import { AppRouteModule } from "./app-route.module";
 import { AlgorithmModule } from "./algorithm/algo.module";
 import { OtherModule } from "./other/other.module";
 
-import { AppConfigService, AppStyleService } from "./app.service";
+import { AppConfigService, AppNavlistService, AppStyleService } from "./app.service";
 
 import { APP_FEATURE_KEY } from "./ngrx-store/app.selector";
-import { APP_CONFIG_REDUCER, APP_STYLE_REDUCER } from "./ngrx-store/app.reducer";
-import { AppConfigEffect, AppStyleEffect } from "./ngrx-store/app.effect";
+import { APP_CONFIG_REDUCER, APP_NAVLIST_REDUCER, APP_STYLE_REDUCER } from "./ngrx-store/app.reducer";
+import { AppConfigEffect, AppNavlistEffect, AppStyleEffect } from "./ngrx-store/app.effect";
 
 @NgModule({
     declarations: [
@@ -50,18 +50,17 @@ import { AppConfigEffect, AppStyleEffect } from "./ngrx-store/app.effect";
         RouterModule,
         AppRouteModule,
 
-        EffectsModule.forRoot([AppConfigEffect, AppStyleEffect]),
-        StoreModule.forRoot({ reducer: routerReducer }),
+        EffectsModule.forRoot(AppConfigEffect, AppStyleEffect, AppNavlistEffect),
+        StoreModule.forRoot(),
         StoreModule.forFeature(APP_FEATURE_KEY, {
             'configFeature': APP_CONFIG_REDUCER,
-            'styleFeatuer': APP_STYLE_REDUCER
+            'styleFeature': APP_STYLE_REDUCER,
+            'navlistFeature': APP_NAVLIST_REDUCER
         }),
-        StoreRouterConnectingModule.forRoot(),
         StoreDevtoolsModule.instrument({
             autoPause: true,
-            connectInZone: false,
+            connectInZone: true,
             logOnly: !isDevMode(),
-            maxAge: 32,
             trace: false,
             traceLimit: 128,
         }),
@@ -82,7 +81,7 @@ import { AppConfigEffect, AppStyleEffect } from "./ngrx-store/app.effect";
     ],
     providers: [
         { provide: APP_BASE_HREF, useValue: '/tauri-app' },
-        AppConfigService, AppStyleService
+        AppConfigService, AppStyleService, AppNavlistService
     ],
     bootstrap: [AppComponent]
 })

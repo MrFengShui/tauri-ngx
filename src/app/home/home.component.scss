@@ -1,16 +1,14 @@
 .p-tree {
-    .p-tree-container {
-        overflow: hidden;
-
-        .p-element {
-            &:not(button) {
-                width: 100%;
+    .p-scroller-viewport {
+        .p-scroller {
+            &::-webkit-scrollbar-thumb {
+                visibility: hidden;
             }
-        }
 
-        ul {
-            &, li {
-                width: 100%;
+            &:hover {
+                &::-webkit-scrollbar-thumb {
+                    visibility: visible;
+                }
             }
         }
     }
