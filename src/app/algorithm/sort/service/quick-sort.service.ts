@@ -802,6 +802,8 @@ export class DualPivotRecursiveQuickSortService {
             source[rhs].color = ACCENT_TWO_COLOR;
 
             if (source[i].value < source[lhs].value) {
+                times += 1;
+
                 source[i].color = PRIMARY_ONE_COLOR;
                 source[fst].color = SECONDARY_ONE_COLOR;
                 callback({ times, datalist: source });
@@ -821,6 +823,8 @@ export class DualPivotRecursiveQuickSortService {
                     snd -= 1;
                 }
 
+                times += 1;
+
                 source[i].color = PRIMARY_TWO_COLOR;
                 source[snd].color = SECONDARY_TWO_COLOR;
                 callback({ times, datalist: source });
@@ -835,6 +839,8 @@ export class DualPivotRecursiveQuickSortService {
                 snd -= 1;
 
                 if (source[i].value < source[lhs].value) {
+                    times += 1;
+
                     source[i].color = PRIMARY_TWO_COLOR;
                     source[fst].color = SECONDARY_TWO_COLOR;
                     callback({ times, datalist: source });
@@ -883,7 +889,7 @@ export class DualPivotRecursiveQuickSortService {
         source[snd].color = CLEAR_COLOR;
         callback({ times, datalist: source });
 
-        return [times, fst, snd];
+        return [times + 2, fst, snd];
     }
 
     public async partitionByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number, number]> {
@@ -898,6 +904,8 @@ export class DualPivotRecursiveQuickSortService {
             source[rhs].color = ACCENT_TWO_COLOR;
 
             if (source[i].value > source[lhs].value) {
+                times += 1;
+
                 source[i].color = PRIMARY_ONE_COLOR;
                 source[fst].color = SECONDARY_ONE_COLOR;
                 callback({ times, datalist: source });
@@ -917,6 +925,8 @@ export class DualPivotRecursiveQuickSortService {
                     snd -= 1;
                 }
 
+                times += 1;
+
                 source[i].color = PRIMARY_TWO_COLOR;
                 source[snd].color = SECONDARY_TWO_COLOR;
                 callback({ times, datalist: source });
@@ -931,6 +941,8 @@ export class DualPivotRecursiveQuickSortService {
                 snd -= 1;
 
                 if (source[i].value > source[lhs].value) {
+                    times += 1;
+
                     source[i].color = PRIMARY_TWO_COLOR;
                     source[fst].color = SECONDARY_TWO_COLOR;
                     callback({ times, datalist: source });
@@ -979,7 +991,7 @@ export class DualPivotRecursiveQuickSortService {
         source[snd].color = CLEAR_COLOR;
         callback({ times, datalist: source });
 
-        return [times, fst, snd];
+        return [times + 2, fst, snd];
     }
 
 }

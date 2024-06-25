@@ -5,7 +5,6 @@ import { HttpClientModule } from "@angular/common/http";
 import { FormsModule } from "@angular/forms";
 import { BrowserModule } from "@angular/platform-browser";
 import { RouterModule } from "@angular/router";
-import { StoreRouterConnectingModule, routerReducer } from '@ngrx/router-store';
 import { EffectsModule } from "@ngrx/effects";
 import { StoreModule } from "@ngrx/store";
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
@@ -22,24 +21,17 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { TreeModule } from 'primeng/tree';
 
 import { AppComponent } from "./app.component";
-import { HomePageComponent } from "./home/home.component";
-import { DashboardPageComponent } from "./dashboard/dashboard.component";
 
 import { AppRouteModule } from "./app-route.module";
 import { AlgorithmModule } from "./algorithm/algo.module";
+import { MainModule } from "./main/main.module";
 import { OtherModule } from "./other/other.module";
 
-import { AppConfigService, AppNavlistService, AppStyleService } from "./app.service";
-
-import { APP_FEATURE_KEY } from "./ngrx-store/app.selector";
-import { APP_CONFIG_REDUCER, APP_NAVLIST_REDUCER, APP_STYLE_REDUCER } from "./ngrx-store/app.reducer";
-import { AppConfigEffect, AppNavlistEffect, AppStyleEffect } from "./ngrx-store/app.effect";
+import { AppConfigService, AppNavlistService, AppStyleService } from "./ngrx-store/app.service";
 
 @NgModule({
     declarations: [
-        AppComponent,
-        HomePageComponent,
-        DashboardPageComponent
+        AppComponent
     ],
     imports: [
         BrowserModule,
@@ -50,13 +42,8 @@ import { AppConfigEffect, AppNavlistEffect, AppStyleEffect } from "./ngrx-store/
         RouterModule,
         AppRouteModule,
 
-        EffectsModule.forRoot(AppConfigEffect, AppStyleEffect, AppNavlistEffect),
+        EffectsModule.forRoot(),
         StoreModule.forRoot(),
-        StoreModule.forFeature(APP_FEATURE_KEY, {
-            'configFeature': APP_CONFIG_REDUCER,
-            'styleFeature': APP_STYLE_REDUCER,
-            'navlistFeature': APP_NAVLIST_REDUCER
-        }),
         StoreDevtoolsModule.instrument({
             autoPause: true,
             connectInZone: true,
@@ -77,11 +64,17 @@ import { AppConfigEffect, AppNavlistEffect, AppStyleEffect } from "./ngrx-store/
         TreeModule,
 
         AlgorithmModule,
+        MainModule,
         OtherModule
     ],
     providers: [
-        { provide: APP_BASE_HREF, useValue: '/tauri-app' },
-        AppConfigService, AppStyleService, AppNavlistService
+        AppConfigService, AppStyleService, AppNavlistService,
+        { 
+            provide: APP_BASE_HREF, 
+            useValue: () => window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                ? 'tauri-app/simplified-chinese' 
+                : 'simplified-chinese'
+        }
     ],
     bootstrap: [AppComponent]
 })

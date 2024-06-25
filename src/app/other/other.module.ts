@@ -33,6 +33,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from "primeng/api";
 
 import { EmptyHolderComponent } from "./public/empty.component";
+import { AboutPageComponent } from "./about/about.component";
 import { ErrorPageComponent } from "./error/error.component";
 import { SplashScreenPageComponent } from "./splash-screen/splash-screen.component";
 import { LoginPageComponent } from "./login/login.component";
@@ -48,6 +49,8 @@ import { AuthEffect } from "./ngrx-store/auth.effect";
 @NgModule({
     declarations: [
         EmptyHolderComponent,
+
+        AboutPageComponent,
         ErrorPageComponent,
         LoginPageComponent,
         RegisterPageComponent,
@@ -91,6 +94,8 @@ import { AuthEffect } from "./ngrx-store/auth.effect";
     ],
     exports: [
         EmptyHolderComponent,
+
+        AboutPageComponent,
         ErrorPageComponent,
         LoginPageComponent,
         RegisterPageComponent,

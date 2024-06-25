@@ -1,12 +1,12 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, Renderer2, ViewEncapsulation } from "@angular/core";
-import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
+import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { Router } from "@angular/router";
 import { Store } from "@ngrx/store";
 import { Subscription, filter } from "rxjs";
 
-import { ThemeType } from "../../ngrx-store/app.state";
-import { APP_FEATURE_SELECTOR } from "../../ngrx-store/app.selector";
 import { APP_STYLE_THEME_FETCH_ACTION } from "../../ngrx-store/app.action";
+import { APP_FEATURE_SELECTOR } from "../../ngrx-store/app.selector";
+import { ThemeType } from "../../ngrx-store/app.state";
 
 @Component({
     selector: 'tauri-app-login-page',

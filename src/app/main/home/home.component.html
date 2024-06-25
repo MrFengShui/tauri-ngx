@@ -1,0 +1,44 @@
+<p-toolbar [style]="{height: '5.5rem'}" [styleClass]="'border-noround'">
+    <ng-template pTemplate="start">
+        <a pButton severity="secondary" [routerLink]="['/playground']" class="flex align-items-center no-underline gap-3"
+            [style.height]="'3rem'">
+            <img src="../assets/tauri.svg" height="100%" />
+            <span class="text-2xl font-bold">TauriNG</span>
+        </a>
+    </ng-template>
+    <ng-template pTemplate="end">
+        <div class="flex align-items-center gap-3">
+            <p-dropdown [options]="styleNameList" optionLabel="text" placeholder="请选择一种样式" [(ngModel)]="styleNameSelect" (onChange)="styleOnChange()"></p-dropdown>
+            <p-dropdown [options]="styleColorList" optionLabel="text" placeholder="请选择一种色彩" [(ngModel)]="styleColorSelect" (onChange)="styleOnChange()">
+                <ng-template pTemplate="item" let-color>
+                    <div class="flex align-items-center gap-3">
+                        <span class="color-show-panel" [style]="{'background-color': color.code}"></span>
+                        <span>{{color.text}}</span>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="selectedItem" *ngIf="styleColorSelect">
+                    <div class="flex align-items-center gap-3">
+                        <span class="color-show-panel" [style]="{'background-color': styleColorSelect.code}"></span>
+                        <span>{{styleColorSelect.text}}</span>
+                    </div>
+                </ng-template>
+            </p-dropdown>
+            <p-toggleButton [onLabel]="'夜晚'" [offLabel]="'白昼'" [onIcon]="'pi pi-moon'" [offIcon]="'pi pi-sun'" [(ngModel)]="styleThemeMode" (onChange)="styleOnChange()"/>
+            <p-button icon="pi pi-user" [rounded]="true" [raised]="true" [routerLink]="['/authorization', 'login']"/>
+        </div>
+    </ng-template>
+</p-toolbar>
+<div class="grid grid-nogutter" [style.height]="'calc(100% - 5.5rem)'">
+    <div class="col-fixed border-right-1 surface-border h-full w-16rem">
+        <p-tree emptyMessage="暂无数据" [lazy]="true" [indentation]="0.75" [virtualScroll]="true" [virtualScrollItemSize]="36" [value]="navlist" selectionMode="single" class="w-full h-full" styleClass="border-none h-full p-0">
+            <ng-template let-node pTemplate="default">
+                <a [routerLink]="node.data?.url" routerLinkActive="text-primary" [queryParams]="{ name: node.data?.param }" 
+                    class="white-space-nowrap no-underline w-full h-full" [class.text-primary]="node.data?.mark" [style.color]="'var(--text-color)'" *ngIf="node.leaf">{{node.label}}</a>
+                <span class="text-color white-space-nowrap" *ngIf="!node.leaf">{{node.label}}</span>
+            </ng-template>
+        </p-tree>
+    </div>
+    <div class="col h-full">
+        <div class="overflow-x-hidden overflow-y-auto w-full h-full p-2"><router-outlet></router-outlet></div>
+    </div>
+</div>

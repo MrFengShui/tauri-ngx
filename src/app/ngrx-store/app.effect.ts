@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { exhaustMap, map } from "rxjs";
 
-import { AppConfigService, AppNavlistService, AppStyleService } from "../app.service";
+import { AppConfigService, AppNavlistService, AppStyleService } from "./app.service";
 
 import { APP_NAVLIST_LOAD_ACTION, APP_NAVLIST_LOAD_DONE_ACTION, APP_CONFIG_STYLE_COLOR_LOAD_ACTION, APP_CONFIG_STYLE_COLOR_LOAD_DONE_ACTION, APP_CONFIG_STYLE_NAME_LOAD_ACTION, APP_CONFIG_STYLE_NAME_LOAD_DONE_ACTION, APP_STYLE_CHANGE_ACTION, APP_STYLE_CHANGE_DONE_ACTION, APP_STYLE_CHECK_ACTION, APP_STYLE_CHECK_DONE_ACTION, APP_STYLE_FETCH_ACTION, APP_STYLE_FETCH_DONE_ACTION, APP_STYLE_THEME_FETCH_ACTION } from "./app.action";
 

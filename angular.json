@@ -16,11 +16,11 @@
             "prefix": "tauri-app",
             "architect": {
                 "build": {
-                    "builder": "@angular-devkit/build-angular:application",
+                    "builder": "ngx-build-plus:browser",
                     "options": {
-                        "outputPath": "dist/tauri-app",
+                        "outputPath": "docs/simplified-chinese",
                         "index": "src/index.html",
-                        "browser": "src/main.ts",
+                        "main": "src/main.ts",
                         "polyfills": [
                             "zone.js"
                         ],
@@ -32,6 +32,8 @@
                         "styles": [
                             "src/styles.scss"
                         ],
+                        "sourceMap": true,
+                        "progress": true,
                         "verbose": true
                     },
                     "configurations": {
@@ -39,29 +41,31 @@
                             "budgets": [
                                 {
                                     "type": "initial",
-                                    "maximumWarning": "500kb",
-                                    "maximumError": "1mb"
+                                    "maximumWarning": "2mb",
+                                    "maximumError": "4mb"
                                 },
                                 {
                                     "type": "anyComponentStyle",
-                                    "maximumWarning": "2kb",
-                                    "maximumError": "4kb"
+                                    "maximumWarning": "256kb",
+                                    "maximumError": "512kb"
                                 }
                             ],
                             "outputHashing": "all"
                         },
                         "development": {
-                            "optimization": false,
-                            "extractLicenses": false,
+                            "optimization": true,
+                            "extractLicenses": true,
                             "sourceMap": true
                         }
                     },
                     "defaultConfiguration": "production"
                 },
                 "serve": {
-                    "builder": "@angular-devkit/build-angular:dev-server",
+                    "builder": "ngx-build-plus:dev-server",
                     "options": {
-                        "port": 4200
+                        "port": 4200,
+                        "ssl": true,
+                        "verbose": true
                     },
                     "configurations": {
                         "production": {
