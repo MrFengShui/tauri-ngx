@@ -6,7 +6,7 @@
         "tslint-help": "tslint --help",
         "ng": "ng",
         "start": "ng serve",
-        "build": "ng build --base-href /simplified-chinese/",
+        "build": "ng build --base-href /simplified-chinese/ --deploy-url /simplified-chinese/",
         "lint": "ng lint",
         "watch": "ng build --watch --configuration development",
         "tauri": "tauri",
