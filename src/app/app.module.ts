@@ -73,7 +73,7 @@ import { AppConfigService, AppNavlistService, AppStyleService } from "./ngrx-sto
             provide: APP_BASE_HREF, 
             useValue: () => window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
                 ? 'tauri-app/simplified-chinese' 
-                : 'simplified-chinese'
+                : ''
         }
     ],
     bootstrap: [AppComponent]
