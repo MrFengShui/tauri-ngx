@@ -2,8 +2,8 @@
     "build": {
         "beforeDevCommand": "npm run build",
         "beforeBuildCommand": "npm run build",
-        "devPath": "../docs/simplified-chinese",
-        "distDir": "../docs/simplified-chinese"
+        "devPath": "../docs/web",
+        "distDir": "../docs/web"
     },
     "package": {
         "productName": "tauri-app",

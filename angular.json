@@ -18,6 +18,8 @@
                 "build": {
                     "builder": "ngx-build-plus:browser",
                     "options": {
+                        "baseHref": "/tauri-app/web/",
+                        "deployUrl": "/tauri-app/web/",
                         "outputPath": "docs/simplified-chinese",
                         "index": "src/index.html",
                         "main": "src/main.ts",
@@ -63,6 +65,7 @@
                 "serve": {
                     "builder": "ngx-build-plus:dev-server",
                     "options": {
+                        "servePath": "/tauri-app/web/",
                         "port": 4200,
                         "ssl": true,
                         "verbose": true
