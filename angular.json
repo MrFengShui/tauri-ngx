@@ -30,8 +30,8 @@
                 "build": {
                     "builder": "ngx-build-plus:browser",
                     "options": {
-                        "baseHref": "/tauri-ngx/web/zh-hans/",
-                        "outputPath": "docs/web/zh-hans",
+                        "baseHref": "/tauri-ngx/web/",
+                        "outputPath": "docs/web",
                         "index": "src/index.html",
                         "main": "src/main.ts",
                         "polyfills": [
