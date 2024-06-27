@@ -1,8 +1,8 @@
 {
     "build": {
-        "beforeDevCommand": "npm run build",
+        "beforeDevCommand": "npm run start",
         "beforeBuildCommand": "npm run build",
-        "devPath": "../docs/web",
+        "devPath": "https://localhost:4200/tauri-ngx/web",
         "distDir": "../docs/web"
     },
     "package": {
@@ -19,7 +19,7 @@
         },
         "windows": [
             {
-                "title": "tauri-app",
+                "title": "tauri-ngx",
                 "minimizable": true,
                 "maximizable": true,
                 "maximized": true,

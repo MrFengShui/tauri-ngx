@@ -4,6 +4,20 @@
 // @import url('https://fonts.font.im/css?family=Ewert');
 // @import url('https://fonts.font.im/css?family=Hanalei+Fill');
 // @import url('https://fonts.font.im/css?family=Hanalei');
+@font-face {
+    font-family: 'global-font';
+    src: url(assets/fonts/YaheiUI/YaheiUI.ttf);
+}
+
+@font-face {
+    font-family: 'hyxf-font';
+    src: url(assets/fonts/HanYiXueFengTiJian/HanYiXueFengTiJian-1.ttf);
+}
+
+@font-face {
+    font-family: 'bungee';
+    src: url(assets/fonts/Bungee/Bungee-Regular.ttf);
+}
 
 * {
     ::-webkit-scrollbar {
@@ -39,32 +53,7 @@ html, body {
 }
 
 .p-component {
-    @font-face {
-        font-family: 'global-font';
-        src: url(assets/fonts/YaheiUI/YaheiUI.ttf);
-    }
-
     font-family: 'global-font';
     font-size: 16px;
 }
 
-.logo-text {
-    // @font-face {
-    //     font-family: 'Bungee';
-    //     src: url(assets/fonts/Bungee/Bungee-Regular.ttf);
-    // }
-
-    @font-face {
-        font-family: 'logo-font';
-        src: url(assets/fonts/HanYiXueFengTiJian/HanYiXueFengTiJian-1.ttf);
-    }
-    
-    font-family: 'logo-font';
-    font-size: 12rem;
-    // font-family: 'Bungee', cursive;
-    // font-family: 'Bungee Shade', cursive;
-    // font-family: 'Nosifer', cursive;
-    // font-family: 'Ewert', cursive;
-    // font-family: 'Hanalei Fill', cursive;
-    // font-family: 'Hanalei', cursive;
-}

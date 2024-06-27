@@ -58,11 +58,11 @@ export class AppConfigService {
     constructor(private _http: HttpClient) {}
 
     public loadStyleNameConfigFile(): Observable<AppStyleNameModel[]> {
-        return this._http.get<{ list: AppStyleNameModel[] }>('./assets/config/app.style.name.json', { responseType: 'json' }).pipe(map(value => value.list));
+        return this._http.get<{ list: AppStyleNameModel[] }>('config/app.style.name.json', { responseType: 'json' }).pipe(map(value => value.list));
     }
 
     public loadStyleColorConfigFile(): Observable<AppStyleColorModel[]> {
-        return this._http.get<{ list: AppStyleColorModel[] }>('./assets/config/app.style.color.json', { responseType: 'json' }).pipe(map(value => value.list));
+        return this._http.get<{ list: AppStyleColorModel[] }>('config/app.style.color.json', { responseType: 'json' }).pipe(map(value => value.list));
     }
 
 }
@@ -73,7 +73,7 @@ export class AppNavlistService {
     constructor(private _http: HttpClient) {}
 
     public loadNavlistFile(): Observable<TreeNode[]> {
-        return this._http.get<{ list: TreeNode[] }>('assets/config/app.navlist.json', { responseType: 'json' }).pipe(map(value => value.list));
+        return this._http.get<{ list: TreeNode[] }>('config/app.navlist.json', { responseType: 'json' }).pipe(map(value => value.list));
     }
 
 }

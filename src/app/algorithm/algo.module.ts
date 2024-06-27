@@ -23,7 +23,7 @@ import { SortOrderOptionLoadEffect as SortOptionLoadEffect } from "./sort/ngrx-s
 import { SORT_OPTION_FEATURE_KEY } from "./sort/ngrx-store/sourt.selector";
 import { SORT_OPTION_LOAD_REDUCER } from "./sort/ngrx-store/sort.reducer";
 
-import { SortLoadConfigService, SortMatchService, SortToolsService, SortUtilsService } from "./sort/service/sort.service";
+import { SortLoadConfigService, SortMatchService, SortToolsService, SortUtilsService } from "./sort/ngrx-store/sort.service";
 import { BubbleSortService, CooktailSortService } from "./sort/service/bubble-sort.service";
 import { BinarySearchInserionSortService, InsertionSortService, ShellSortService } from "./sort/service/insertion-sort.service";
 import { LibrarySortService } from "./sort/service/library-sort.service";

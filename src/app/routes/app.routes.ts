@@ -23,7 +23,7 @@ export const routes: Routes = [
     },
     { path: 'splash-screen', component: SplashScreenPageComponent, pathMatch: 'full', title: '欢迎页面' },
     { path: 'authorization/login', component: LoginPageComponent, pathMatch: 'full', title: '登入页面' },
-    { path: 'authorization/register', component: RegisterPageComponent, pathMatch: 'full', title: '注册页面', canActivate: [] },
+    { path: 'authorization/register', component: RegisterPageComponent, pathMatch: 'full', title: '注册页面', canActivate: [permissionForRegisterPage] },
     { path: 'information/about', component: AboutPageComponent, title: '关于本站' },
     { path: 'error/:code', component: ErrorPageComponent, title: '错误页面' },
     { path: '**', redirectTo: 'error/404' }

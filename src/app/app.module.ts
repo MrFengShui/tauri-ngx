@@ -1,6 +1,6 @@
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { NgModule, isDevMode } from "@angular/core";
-import { APP_BASE_HREF, CommonModule } from "@angular/common";
+import { CommonModule } from "@angular/common";
 import { HttpClientModule } from "@angular/common/http";
 import { FormsModule } from "@angular/forms";
 import { BrowserModule } from "@angular/platform-browser";
@@ -68,13 +68,7 @@ import { AppConfigService, AppNavlistService, AppStyleService } from "./ngrx-sto
         OtherModule
     ],
     providers: [
-        AppConfigService, AppStyleService, AppNavlistService,
-        // { 
-        //     provide: APP_BASE_HREF, 
-        //     useValue: () => window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        //         ? 'tauri-app/simplified-chinese' 
-        //         : './'
-        // }
+        AppConfigService, AppStyleService, AppNavlistService
     ],
     bootstrap: [AppComponent]
 })

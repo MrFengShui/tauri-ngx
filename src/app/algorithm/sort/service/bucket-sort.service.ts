@@ -3,7 +3,7 @@ import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
 import { ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
-import { SortToolsService } from "./sort.service";
+import { SortToolsService } from "../ngrx-store/sort.service";
 
 const clear = (cache: {[key: string | number]: number[]}): Promise<void> => 
     new Promise(resolve => {

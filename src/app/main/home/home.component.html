@@ -1,9 +1,7 @@
 <p-toolbar [style]="{height: '5.5rem'}" [styleClass]="'border-noround'">
     <ng-template pTemplate="start">
-        <a pButton severity="secondary" [routerLink]="['/playground']" class="flex align-items-center no-underline gap-3"
-            [style.height]="'3rem'">
-            <img src="assets/tauri.svg" height="100%" />
-            <span class="text-2xl font-bold">TauriNG</span>
+        <a [routerLink]="['/playground']" class="flex no-underline" [style.height]="'3rem'">
+            <img src="assets/logo/logo.png" height="100%"/>
         </a>
     </ng-template>
     <ng-template pTemplate="end">
@@ -39,6 +37,8 @@
         </p-tree>
     </div>
     <div class="col h-full">
-        <div class="overflow-x-hidden overflow-y-auto w-full h-full p-2"><router-outlet></router-outlet></div>
+        <div class="overflow-x-hidden overflow-y-auto w-full h-full p-2">
+            <router-outlet></router-outlet>
+        </div>
     </div>
 </div>

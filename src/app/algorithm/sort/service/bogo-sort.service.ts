@@ -5,7 +5,7 @@ import { random } from "lodash";
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
 import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, 
     PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
-import { SortToolsService } from "./sort.service";
+import { SortToolsService } from "../ngrx-store/sort.service";
 
 /**
  * 猴子排序

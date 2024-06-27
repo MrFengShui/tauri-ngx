@@ -2,7 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { exhaustMap, map } from "rxjs";
 
-import { SortLoadConfigService } from "../service/sort.service";
+import { SortLoadConfigService } from "../ngrx-store/sort.service";
 
 import { SORT_MERGE_WAY_OPTION_LOAD_ACTION, SORT_ORDER_OPTION_LOAD_ACTION, SORT_ORDER_OPTION_LOAD_DONE_ACTION, SORT_RADIX_OPTION_LOAD_ACTION, SORT_RADIX_OPTION_LOAD_DONE_ACTION } from "./sort.action";
 

@@ -4,7 +4,7 @@ import { Store } from "@ngrx/store";
 import { Observer, Subscription, map, timer, filter } from "rxjs";
 import { ceil, cloneDeep } from "lodash";
 
-import { SortMatchService, SortUtilsService } from "./service/sort.service";
+import { SortMatchService, SortUtilsService } from "./ngrx-store/sort.service";
 
 import { SortDataModel, SortMergeWay, SortMergeWayOptionModel, SortOrder, SortOrderOptionModel, SortRadix, SortRadixOptionModel, SortStateModel } from "./ngrx-store/sort.state";
 import { SortCanvasUtils } from "./sort.utils";

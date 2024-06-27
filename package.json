@@ -2,16 +2,19 @@
     "name": "tauri-app",
     "version": "0.0.0",
     "scripts": {
+        "tauri": "tauri",
+        "tauri-build": "tauri build",
+        "tauri-dev": "tauri dev --port 4200",
         "tslint-init": "tslint --init",
         "tslint-help": "tslint --help",
         "ng": "ng",
         "start": "ng serve",
+        "start:zhs": "ng serve --serve-path /tauri-ngx/web/zh-hans/ --configuration=production,locale-zh-hans",
+        "start:zht": "ng serve --serve-path /tauri-ngx/web/zh-hant/ --configuration=production,locale-zh-hant",
         "build": "ng build",
         "lint": "ng lint",
-        "watch": "ng build --watch --configuration development",
-        "tauri": "tauri",
-        "tauri-build": "tauri build",
-        "tauri-dev": "tauri dev --port 4200"
+        "i18n:extract": "ng extract-i18n",
+        "watch": "ng build --watch --configuration development"
     },
     "private": true,
     "dependencies": {
@@ -27,7 +30,7 @@
         "@ngrx/router-store": "^17.2.0",
         "@ngrx/store": "^17.2.0",
         "@ngrx/store-devtools": "^17.2.0",
-        "@tauri-apps/api": "^1",
+        "@tauri-apps/api": "^1.5.6",
         "crypto-js": "^4.2.0",
         "fabric": "^5.3.0",
         "https": "^1.0.0",

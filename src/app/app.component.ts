@@ -1,4 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, Renderer2 } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, NgZone, OnDestroy, OnInit, Renderer2 } from '@angular/core';
+import { APP_BASE_HREF, PlatformLocation } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription, filter } from 'rxjs';
@@ -11,18 +12,17 @@ import { AppStyleModel, AppStyleReducerState } from './ngrx-store/app.state';
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'tauri-app-root-page',
     templateUrl: './app.component.html',
-    styleUrl: './app.component.scss'
+    styleUrl: './app.component.scss',
+    providers: [
+        // { provide: APP_BASE_HREF, useValue: window.location.pathname + '/abc/' }
+    ]
 })
 export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
-    // greetingMessage = "";
 
     // greet(event: SubmitEvent, name: string): void {
     //     event.preventDefault();
-
     //     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    //     invoke<string>("greet", { name }).then((text) => {
-    //         this.greetingMessage = text;
-    //     });
+    //     invoke<string>("greet", { name }).then(console.log);
     // }
 
     styleThemeMode: boolean = true;

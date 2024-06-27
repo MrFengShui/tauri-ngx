@@ -3,12 +3,24 @@
     "version": 1,
     "newProjectRoot": "projects",
     "cli": {
-        "analytics": false
+        "analytics": false,
+        "cache": {
+            "enabled": false
+        },
+        "packageManager": "npm"
     },
     "projects": {
         "tauri-app": {
             "i18n": {
-                "sourceLocale": "zh"
+                "sourceLocale": "en-US",
+                "locales": {
+                    "zh-hans": {
+                        "translation": "src/locale/messages.zh-hans.json"
+                    },
+                    "zh-hant": {
+                        "translation": "src/locale/messages.zh-hant.json"
+                    }
+                }
             },
             "projectType": "application",
             "root": "",
@@ -18,18 +30,42 @@
                 "build": {
                     "builder": "ngx-build-plus:browser",
                     "options": {
-                        "baseHref": "/tauri-app/web/",
-                        "deployUrl": "/tauri-app/web/",
-                        "outputPath": "docs/simplified-chinese",
+                        "baseHref": "/tauri-ngx/web/zh-hans/",
+                        "outputPath": "docs/web/zh-hans",
                         "index": "src/index.html",
                         "main": "src/main.ts",
                         "polyfills": [
                             "zone.js"
                         ],
+                        "localize": true,
+                        "i18nMissingTranslation": "error",
                         "tsConfig": "tsconfig.app.json",
                         "inlineStyleLanguage": "scss",
                         "assets": [
-                            "src/assets"
+                            "src/assets",
+                            "src/config",
+                            "src/storage",
+                            "src/favicon.ico",
+                            {
+                                "glob": "**/*",
+                                "input": "src/assets/",
+                                "output": "/assets/"
+                            },
+                            {
+                                "glob": "**/*",
+                                "input": "src/config/",
+                                "output": "/config/"
+                            },
+                            {
+                                "glob": "**/*",
+                                "input": "src/storage/",
+                                "output": "/storage/"
+                            },
+                            {
+                                "glob": "favicon.ico",
+                                "input": "src/",
+                                "output": "/"
+                            }
                         ],
                         "styles": [
                             "src/styles.scss"
@@ -58,6 +94,12 @@
                             "optimization": true,
                             "extractLicenses": true,
                             "sourceMap": true
+                        },
+                        "locale-zh-hans": {
+                            "localize": ["zh-hans"]
+                        },
+                        "locale-zh-hant": {
+                            "localize": ["zh-hant"]
                         }
                     },
                     "defaultConfiguration": "production"
@@ -65,7 +107,7 @@
                 "serve": {
                     "builder": "ngx-build-plus:dev-server",
                     "options": {
-                        "servePath": "/tauri-app/web/",
+                        "servePath": "/tauri-ngx/web/",
                         "port": 4200,
                         "ssl": true,
                         "verbose": true
@@ -76,6 +118,12 @@
                         },
                         "development": {
                             "buildTarget": "tauri-app:build:development"
+                        },
+                        "locale-zh-hans": {
+                            "buildTarget": "tauri-app:build:locale-zh-hans"
+                        },
+                        "locale-zh-hant": {
+                            "buildTarget": "tauri-app:build:locale-zh-hant"
                         }
                     },
                     "defaultConfiguration": "development"
@@ -87,6 +135,15 @@
                             "src/**/*.ts",
                             "src/**/*.html"
                         ]
+                    }
+                },
+                "extract-i18n": {
+                    "builder": "ngx-build-plus:extract-i18n",
+                    "options": {
+                        "buildTarget": "tauri-app:build",
+                        "format": "json",
+                        "outputPath": "src/locale",
+                        "outFile": "messages.en-US.json"
                     }
                 }
             }

@@ -19,7 +19,7 @@ type RouteUrlParam = { url?: string[], param?: string, mark?: boolean };
     styleUrl: 'home.component.scss'
 })
 export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
-    
+    datetime: number = Date.now();
     styleThemeMode: boolean = true;
     styleNameSelect: AppStyleNameModel = { name: 'lara', text: 'Aura主题样式' };
     styleNameList: AppStyleNameModel[] = [];
