@@ -1,4 +1,31 @@
 {
-    "locale": "en-US",
-    "translations": {}
+    "locale": "zh-Hans",
+    "translations": {
+        "sort_component_ts_1": "数量",
+        "sort_component_ts_2": "顺序",
+        "sort_component_ts_3": "进制",
+        "sort_component_ts_4": "归并路数",
+        "sort_component_ts_5": "交换/写入次数",
+        "sort_component_ts_6": "计时",
+        "sort_component_ts_7": "洗牌",
+        "sort_component_ts_8": "运行",
+
+        "login_component_ts_1": "使用者登入",
+        "login_component_ts_2": "管理者登入",
+        "login_component_ts_3_1": "欢迎来到登入界面，请登入随机分配给您的账号。",
+        "login_component_ts_3_2": "如果忘记账号和密码，请点击下面“忘记密码”按钮。平台将再次随机分配账号和密码。",
+        "login_component_ts_3_3": "登入账号后平台将自动创建一个验证令牌，令牌有效期为七天。令牌失效之后将终止一切操作并跳转到登入页面。您将不得不重新登入账号来获取新的令牌以继续体验。",
+        "login_component_ts_3_4": "尽情享受，祝你好运！",
+        "login_component_ts_4": "请输入账号",
+        "login_component_ts_5": "请输入密码",
+        "login_component_ts_5_1": "当前密码强度",
+        "login_component_ts_5_2": "较弱",
+        "login_component_ts_5_3": "中等",
+        "login_component_ts_5_4": "较强",
+        "login_component_ts_6": "忘记密码",
+        "login_component_ts_7": "登入",
+        "login_component_ts_8_1": "欢迎来到登入界面。",
+        "login_component_ts_8_2": "如果是管理者，就应该知道登入的账号和密码。",
+        "login_component_ts_8_3": "尽情享受，祝你好运！"
+    }
 }

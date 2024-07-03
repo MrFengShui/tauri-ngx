@@ -1,0 +1,20 @@
+{
+    "list": [
+        {
+            "label": "Binary",
+            "value": 2
+        },
+        {
+            "label": "Octonary",
+            "value": 8
+        },
+        {
+            "label": "Decimal",
+            "value": 10
+        },
+        {
+            "label": "Hexadeciaml",
+            "value": 16
+        }
+    ]
+}

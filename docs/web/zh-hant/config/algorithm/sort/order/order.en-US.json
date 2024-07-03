@@ -1,0 +1,12 @@
+{
+    "list": [
+        {
+            "label": "Ascent",
+            "value": "ascent"
+        },
+        {
+            "label": "Descent",
+            "value": "descent"
+        }
+    ]
+}

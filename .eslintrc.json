@@ -19,7 +19,7 @@
                     "error",
                     {
                         "type": "attribute",
-                        "prefix": "tauri-app",
+                        "prefix": "tauri-ngx",
                         "style": "camelCase"
                     }
                 ],
@@ -27,7 +27,7 @@
                     "error",
                     {
                         "type": "element",
-                        "prefix": "tauri-app",
+                        "prefix": "tauri-ngx",
                         "style": "kebab-case"
                     }
                 ]

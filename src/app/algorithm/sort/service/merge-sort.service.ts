@@ -38,7 +38,7 @@ export class TopDownMergeSortService {
 
     private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
         if (lhs < rhs) {
-            let mid: number = Math.floor((rhs - lhs) * 0.5 + lhs);
+            const mid: number = Math.floor((rhs - lhs) * 0.5 + lhs);
             times = await this.sortByOrder(source, lhs, mid, order, times, callback);
             times = await this.sortByOrder(source, mid + 1, rhs, order, times, callback);
 
@@ -262,7 +262,7 @@ export class InPlaceMergeSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -449,7 +449,7 @@ export class MultiWayMergeSortService {
     }
 
     private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, way: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        let points: number[] = Array.from([]), pairs: Array<[number, number]> = Array.from([]);
+        const points: number[] = Array.from([]), pairs: Array<[number, number]> = Array.from([]);
 
         if (rhs - lhs >= way - 1) {
             for (let i = 0; i < way + 1; i++) {
@@ -489,7 +489,8 @@ export class MultiWayMergeSortService {
     }
 
     private async mergeByAscent(source: SortDataModel[], pairs: Array<[number, number]>, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        let array: number[] = Array.from([]), index: number, color: string, lhs: number = pairs[0][0], rhs: number = pairs[pairs.length - 1][1];
+        let index: number, color: string;
+        const array: number[] = Array.from([]), lhs: number = pairs[0][0], rhs: number = pairs[pairs.length - 1][1];
         
         for (let i = 0; i < pairs.length; i++) {
             if (i % 4 === 1) {
@@ -518,7 +519,7 @@ export class MultiWayMergeSortService {
         }
         
         while (array.length < rhs - lhs + 1) {
-            for (let key of Object.keys(this.group)) {
+            for (const key of Object.keys(this.group)) {
                 index = await this.findMinInGroup(this.group[key]);
                 this.final[Number.parseInt(key)] = { index, value: index === -1 ? Number.MAX_SAFE_INTEGER : this.group[Number.parseInt(key)][index] } ;
             }
@@ -545,7 +546,8 @@ export class MultiWayMergeSortService {
     }
 
     private async mergeByDescent(source: SortDataModel[], pairs: Array<[number, number]>, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        let array: number[] = Array.from([]), index: number, color: string, lhs: number = pairs[0][0], rhs: number = pairs[pairs.length - 1][1];
+        let index: number, color: string;
+        const array: number[] = Array.from([]), lhs: number = pairs[0][0], rhs: number = pairs[pairs.length - 1][1]
         
         for (let i = 0; i < pairs.length; i++) {
             if (i % 4 === 1) {
@@ -574,7 +576,7 @@ export class MultiWayMergeSortService {
         }
         
         while (array.length < rhs - lhs + 1) {
-            for (let key of Object.keys(this.group)) {
+            for (const key of Object.keys(this.group)) {
                 index = await this.findMaxInGroup(this.group[key]);
                 this.final[Number.parseInt(key)] = { index, value: index === -1 ? Number.MIN_SAFE_INTEGER : this.group[Number.parseInt(key)][index] } ;
             }
@@ -654,7 +656,7 @@ export class MultiWayMergeSortService {
 
     private empty(flag: boolean = true): Promise<void> {
         return new Promise(resolve => {
-            for (let key of Object.keys(this.group)) {
+            for (const key of Object.keys(this.group)) {
                 this.group[key].splice(0);
 
                 if (flag) {
@@ -668,7 +670,7 @@ export class MultiWayMergeSortService {
     }
 
     private async clear(): Promise<void> {
-        for (let points of this.points) {
+        for (const points of this.points) {
             points.splice(0);
         }
 

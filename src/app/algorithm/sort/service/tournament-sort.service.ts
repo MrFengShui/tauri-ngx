@@ -27,7 +27,8 @@ export class TournamentSortService {
     }
 
     private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let depth: number = Math.ceil(Math.log2(source.length) + 1), index: number;
+        const depth: number = Math.ceil(Math.log2(source.length) + 1);
+        let index: number;
 
         times = await this.createTree(source, depth, times, callback);
 
@@ -57,7 +58,8 @@ export class TournamentSortService {
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let depth: number = Math.ceil(Math.log2(source.length) + 1), index: number;
+        const depth: number = Math.ceil(Math.log2(source.length) + 1);
+        let index: number;
 
         times = await this.createTree(source, depth, times, callback);
 
@@ -135,7 +137,7 @@ export class TournamentSortService {
                     temp.parent.index = temp.index;
                     temp.parent.value = temp.value;
                 } else {
-                    let node: Node = { index: temp.index, value: temp.value };
+                    const node: Node = { index: temp.index, value: temp.value };
                     this.tree[i][j].parent = node;
                     this.tree[i][k].parent = node;
                     this.tree[i - 1].push(node);
@@ -170,7 +172,7 @@ export class TournamentSortService {
                     temp.parent.index = temp.index;
                     temp.parent.value = temp.value;
                 } else {
-                    let node: Node = { index: temp.index, value: temp.value };
+                    const node: Node = { index: temp.index, value: temp.value };
                     this.tree[i][j].parent = node;
                     this.tree[i][k].parent = node;
                     this.tree[i - 1].push(node);
@@ -181,7 +183,7 @@ export class TournamentSortService {
 
     private clear(): Promise<void> {
         return new Promise(resolve => {
-            for (let key of Object.keys(this.tree)) {
+            for (const key of Object.keys(this.tree)) {
                 this.tree[key].splice(0);
                 delete this.tree[key];
             }

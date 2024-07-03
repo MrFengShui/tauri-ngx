@@ -1,4 +1,31 @@
 {
-  "locale": "en-US",
-  "translations": {}
+    "locale": "en-US",
+    "translations": {
+        "sort_component_ts_1": "Quantity",
+        "sort_component_ts_2": "Order",
+        "sort_component_ts_3": "Radix Base",
+        "sort_component_ts_4": "Merge Way",
+        "sort_component_ts_5": "Swapping/Writing Count",
+        "sort_component_ts_6": "Time",
+        "sort_component_ts_7": "Shuffle",
+        "sort_component_ts_8": "Run",
+
+        "login_component_ts_1": "User Login",
+        "login_component_ts_2": "Adminstrator Login",
+        "login_component_ts_3_1": "Welcome to the login page. Please enter your account dispatched randomly by this platform.",
+        "login_component_ts_3_2": "If you forget username and password, please click button \"Forget\". This platform will dispatch new username and password randomly to you again.",
+        "login_component_ts_3_3": "After login, this platform will create a token to you, which will be expired after seven days. After that token expired, you will not be permited to do anything, but it will redirect to the login page instead. You have to login again for a new token to keep on enjoy.",
+        "login_component_ts_3_4": "Enjoy it, and good luck!",
+        "login_component_ts_4": "Please enter your username",
+        "login_component_ts_5": "Please enter your password",
+        "login_component_ts_5_1": "Strength of Password",
+        "login_component_ts_5_2": "Weak",
+        "login_component_ts_5_3": "Medium",
+        "login_component_ts_5_4": "Strong",
+        "login_component_ts_6": "Forget Password",
+        "login_component_ts_7": "Login",
+        "login_component_ts_8_1": "Welcome to the login page.",
+        "login_component_ts_8_2": "If your are an administrator, you should know what your username and password are.",
+        "login_component_ts_8_3": "Enjoy it, and good luck!"
+    }
 }

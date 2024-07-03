@@ -14,23 +14,27 @@
             "i18n": {
                 "sourceLocale": "en-US",
                 "locales": {
-                    "zh-hans": {
-                        "translation": "src/locale/messages.zh-hans.json"
+                    "zh-Hans": {
+                        "baseHref": "/tauri-ngx/web/zh-Hans/",
+                        "translation": "src/locale/messages.zh-Hans.json"
                     },
-                    "zh-hant": {
-                        "translation": "src/locale/messages.zh-hant.json"
+                    "zh-Hant": {
+                        "baseHref": "/tauri-ngx/web/zh-Hant/",
+                        "translation": "src/locale/messages.zh-Hant.json"
                     }
                 }
             },
             "projectType": "application",
             "root": "",
             "sourceRoot": "src",
-            "prefix": "tauri-app",
+            "prefix": "tauri-ngx",
             "architect": {
                 "build": {
                     "builder": "ngx-build-plus:browser",
                     "options": {
-                        "baseHref": "/tauri-ngx/web/",
+                        "allowedCommonJsDependencies": [
+                            "lodash", "crypto-js"
+                        ],
                         "outputPath": "docs/web",
                         "index": "src/index.html",
                         "main": "src/main.ts",
@@ -68,6 +72,8 @@
                             }
                         ],
                         "styles": [
+                            "src/assets/icons/primeicons.css",
+                            "src/assets/styles/primeflex.css",
                             "src/styles.scss"
                         ],
                         "sourceMap": true,
@@ -93,22 +99,31 @@
                         "development": {
                             "optimization": true,
                             "extractLicenses": true,
-                            "sourceMap": true
+                            "sourceMap": true,
+                            "outputHashing": "all"
                         },
                         "locale-zh-hans": {
-                            "localize": ["zh-hans"]
+                            "baseHref": "/tauri-ngx/web/zh-Hans/",
+                            "localize": ["zh-Hans"],
+                            "optimization": true,
+                            "extractLicenses": true,
+                            "sourceMap": true,
+                            "outputHashing": "all"
                         },
                         "locale-zh-hant": {
-                            "localize": ["zh-hant"]
+                            "baseHref": "/tauri-ngx/web/zh-Hant/",
+                            "localize": ["zh-Hant"],
+                            "optimization": true,
+                            "extractLicenses": true,
+                            "sourceMap": true,
+                            "outputHashing": "all"
                         }
                     },
-                    "defaultConfiguration": "production"
+                    "defaultConfiguration": "development"
                 },
                 "serve": {
                     "builder": "ngx-build-plus:dev-server",
                     "options": {
-                        "servePath": "/tauri-ngx/web/",
-                        "port": 4200,
                         "ssl": true,
                         "verbose": true
                     },
@@ -120,10 +135,14 @@
                             "buildTarget": "tauri-app:build:development"
                         },
                         "locale-zh-hans": {
-                            "buildTarget": "tauri-app:build:locale-zh-hans"
+                            "buildTarget": "tauri-app:build:locale-zh-hans",
+                            "servePath": "/tauri-ngx/web/zh-Hans/",
+                            "port": 5200
                         },
                         "locale-zh-hant": {
-                            "buildTarget": "tauri-app:build:locale-zh-hant"
+                            "buildTarget": "tauri-app:build:locale-zh-hant",
+                            "servePath": "/tauri-ngx/web/zh-Hant/",
+                            "port": 5300
                         }
                     },
                     "defaultConfiguration": "development"

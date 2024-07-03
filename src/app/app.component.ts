@@ -1,20 +1,26 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, NgZone, OnDestroy, OnInit, Renderer2 } from '@angular/core';
-import { APP_BASE_HREF, PlatformLocation } from '@angular/common';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, LOCALE_ID, NgZone, OnDestroy, OnInit, Renderer2 } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription, filter } from 'rxjs';
 
-import { APP_STYLE_CHANGE_ACTION, APP_STYLE_CHECK_ACTION, APP_STYLE_FETCH_ACTION } from './ngrx-store/app.action';
+import { APP_STYLE_SAVE_ACTION, APP_STYLE_CHECK_ACTION, APP_STYLE_LOAD_ACTION } from './ngrx-store/app.action';
 import { APP_FEATURE_SELECTOR } from './ngrx-store/app.selector';
-import { AppStyleModel, AppStyleReducerState } from './ngrx-store/app.state';
+import { AppStyleModel } from './ngrx-store/app.state';
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
-    selector: 'tauri-app-root-page',
+    selector: 'tauri-ngx-root-page',
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
     providers: [
-        // { provide: APP_BASE_HREF, useValue: window.location.pathname + '/abc/' }
+        {
+            provide: LOCALE_ID, 
+            useFactory: () => {
+                const baseHref: string = window.location.pathname;
+                const split: string[] = baseHref.split(/(\/)/).filter(item => item !== '/' && item.trim().length > 0);
+                return split[split.length - 1];
+            }
+        }
     ]
 })
 export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -63,32 +69,31 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     private listenStyleChange(): void {
         this._ngZone.runOutsideAngular(() => {
             this.style$ = this._store.select(APP_FEATURE_SELECTOR)
-            .pipe(filter(state => state.styleFeature.action.length > 0))
+            .pipe(filter(state => state.action.length > 0))
             .subscribe(state => this._ngZone.run(() => {
-                const feature: AppStyleReducerState = state.styleFeature;
-                // console.log(feature.action);
-                if (feature.action === APP_STYLE_CHECK_ACTION.type) {
-                    if (feature.value) {
-                        this._store.dispatch(APP_STYLE_FETCH_ACTION());
-                    } else {
-                        this._store.dispatch(APP_STYLE_CHANGE_ACTION({ name: 'lara', theme: 'light', color: 'amber' }));
-                    }
-                }
-
-                if (feature.action === APP_STYLE_FETCH_ACTION.type) {
-                    const model: AppStyleModel = feature.value as AppStyleModel;
-                    this._store.dispatch(APP_STYLE_CHANGE_ACTION({ 
-                        name: model.struct.name, 
-                        theme: model.struct.theme, 
-                        color: model.struct.color
+                if (state.action === APP_STYLE_LOAD_ACTION.type) {
+                    const model: AppStyleModel = state.result as AppStyleModel;
+                    this._store.dispatch(APP_STYLE_SAVE_ACTION({ 
+                        mode: model.mode, name: model.name, 
+                        theme: model.theme, color: model.color
                     }));
                 }
 
-                if (feature.action === APP_STYLE_CHANGE_ACTION.type) {
-                    this._renderer.setAttribute(this.styleLink, 'href', `assets/themes/${(feature.value as AppStyleModel).name as string}/theme.css`);
+                if (state.action === APP_STYLE_CHECK_ACTION.type) {
+                    if (state.result) {
+                        this._store.dispatch(APP_STYLE_LOAD_ACTION());
+                    } else {
+                        this._store.dispatch(APP_STYLE_SAVE_ACTION({ mode: false, name: 'lara', theme: 'light', color: 'amber' }));
+                    }
                 }
 
-                this._cdr.detectChanges();
+                if (state.action === APP_STYLE_SAVE_ACTION.type) {
+                    const model: AppStyleModel = state.result as AppStyleModel;
+                    this._renderer.setAttribute(this.styleLink, 'href', 
+                        `assets/themes/${model.name}-${model.theme}-${model.color}/theme.css`);
+                }
+
+                this._cdr.markForCheck();
             }));
         });
     }

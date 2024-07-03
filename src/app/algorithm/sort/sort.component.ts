@@ -1,8 +1,8 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, Renderer2, ViewChild } from "@angular/core";
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Inject, LOCALE_ID, NgZone, OnDestroy, OnInit, Renderer2, ViewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngrx/store";
 import { Observer, Subscription, map, timer, filter } from "rxjs";
-import { ceil, cloneDeep } from "lodash";
+import { cloneDeep } from "lodash";
 
 import { SortMatchService, SortUtilsService } from "./ngrx-store/sort.service";
 
@@ -13,7 +13,7 @@ import { SORT_OPTION_LOAD_SELECTOR } from "./ngrx-store/sourt.selector";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
-    selector: 'app-algo-sort',
+    selector: 'tauri-ngx-sort-page',
     templateUrl: './sort.component.html'
 })
 export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -31,6 +31,17 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         await this.update();
     }
 
+    readonly TRANSLATION_MESSAGES: { [key: string | number] : string } = {
+        1: $localize `:@@sort_component_ts_1:sort_component_ts_1`,
+        2: $localize `:@@sort_component_ts_2:sort_component_ts_2`,
+        3: $localize `:@@sort_component_ts_3:sort_component_ts_3`,
+        4: $localize `:@@sort_component_ts_4:sort_component_ts_4`,
+        5: $localize `:@@sort_component_ts_5:sort_component_ts_5`,
+        6: $localize `:@@sort_component_ts_6:sort_component_ts_6`,
+        7: $localize `:@@sort_component_ts_7:sort_component_ts_7`,
+        8: $localize `:@@sort_component_ts_8:sort_component_ts_8`,
+    }
+
     source: SortDataModel[] = [];
     orderOptions: SortOrderOptionModel[] = [];
     order: SortOrder = 'ascent';
@@ -44,6 +55,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     maxValue: number = 1024;
     locked: boolean = false;
     name: string = '';
+    localeID: string = '';
 
     private utils: SortCanvasUtils | null = null;
     private event$: Subscription | null = null;
@@ -61,15 +73,19 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         private _renderer: Renderer2,
         private _ngZone: NgZone,
         private _store: Store,
+
+        @Inject(LOCALE_ID)
+        private _localeID: string,
+
         private _utilsService: SortUtilsService,
         private _matchService: SortMatchService
     ) { }
 
     ngOnInit(): void {
         this.utils = new SortCanvasUtils(this.canvas.nativeElement);
-        this._store.dispatch(SORT_ORDER_OPTION_LOAD_ACTION());
-        this._store.dispatch(SORT_RADIX_OPTION_LOAD_ACTION());
-        this._store.dispatch(SORT_MERGE_WAY_OPTION_LOAD_ACTION());
+        this._store.dispatch(SORT_ORDER_OPTION_LOAD_ACTION({ localeID: this._localeID }));
+        this._store.dispatch(SORT_RADIX_OPTION_LOAD_ACTION({ localeID: this._localeID }));
+        this._store.dispatch(SORT_MERGE_WAY_OPTION_LOAD_ACTION({ localeID: this._localeID }));
     }
 
     ngOnDestroy(): void {
@@ -106,7 +122,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
                             this.utils.draw(this.count);
                         }
 
-                        this._cdr.detectChanges();
+                        this._cdr.markForCheck();
                         this.create$?.unsubscribe();
                     }));
             });
@@ -131,7 +147,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
 
     private calcCanvasDimension(): Promise<{ width: number, height: number }> {
         return new Promise(resolve => {
-            let task = setTimeout(() => {
+            const task = setTimeout(() => {
                 clearTimeout(task);
                 const width: number = this.canvas.nativeElement.clientWidth;
                 const height: number = this.canvas.nativeElement.clientHeight;
@@ -155,7 +171,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
             this.utils.clear();
         }
         
-        this._cdr.detectChanges();
+        this._cdr.markForCheck();
     }
 
     private acceptDataAndShow(): Partial<Observer<SortStateModel | null>> {
@@ -171,7 +187,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
 
                 this._cdr.markForCheck();
             }),
-            error: error => this._ngZone.run(() => {
+            error: () => this._ngZone.run(() => {
                 this.locked = false;
                 this._cdr.detectChanges();
                 this.shuffle$?.unsubscribe();
@@ -235,15 +251,15 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
                 .pipe(filter(state => state.action.length > 0))
                 .subscribe(state => this._ngZone.run(() => {
                     if (state.action === SORT_ORDER_OPTION_LOAD_ACTION.type) {
-                        this.orderOptions = state.value as SortOrderOptionModel[];
+                        this.orderOptions = state.result as SortOrderOptionModel[];
                     }
 
                     if (state.action === SORT_RADIX_OPTION_LOAD_ACTION.type) {
-                        this.radixOptions = state.value as SortRadixOptionModel[];
+                        this.radixOptions = state.result as SortRadixOptionModel[];
                     }
 
                     if (state.action === SORT_MERGE_WAY_OPTION_LOAD_ACTION.type) {
-                        this.mergeWayOptions = state.value as SortMergeWayOptionModel[];
+                        this.mergeWayOptions = state.result as SortMergeWayOptionModel[];
                     }
 
                     this._cdr.markForCheck();

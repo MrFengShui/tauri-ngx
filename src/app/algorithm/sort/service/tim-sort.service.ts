@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { ACCENT_COLOR, CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
 
 /**
  * 蒂姆排序
@@ -15,7 +15,7 @@ export class TimSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { color: '', value: -1 };
+            const temp: SortDataModel = { color: '', value: -1 };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -28,7 +28,8 @@ export class TimSortService {
     }
 
     private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let runLength: number = this.calcRunLength(source.length), lhs: number, mid: number, rhs: number;
+        const runLength: number = this.calcRunLength(source.length);
+        let lhs: number, mid: number, rhs: number;
 
         for (lhs = 0; lhs < source.length; lhs += runLength) {
             rhs = Math.min(source.length - 1, lhs + runLength - 1);
@@ -51,7 +52,8 @@ export class TimSortService {
     }
 
     private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        let runLength: number = this.calcRunLength(source.length), lhs: number, mid: number, rhs: number;
+        const runLength: number = this.calcRunLength(source.length);
+        let lhs: number, mid: number, rhs: number;
 
         for (lhs = 0; lhs < source.length; lhs += runLength) {
             rhs = Math.min(source.length - 1, lhs + runLength - 1);

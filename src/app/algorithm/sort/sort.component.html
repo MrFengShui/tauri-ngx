@@ -2,7 +2,7 @@
     <canvas class="surface-400 surface-border border-3 w-full h-full" #canvas></canvas>
 </div>
 <div class="flex align-items-center border-solid surface-border border-round-sm border-1 p-3 gap-4" #ctrlBox_1>
-    <span class="font-bold text-2xl text-primary white-space-nowrap">选择待排数量</span>
+    <span class="font-bold text-2xl text-primary white-space-nowrap">{{ TRANSLATION_MESSAGES[1] }}</span>
     <p-slider [disabled]="locked" [animate]="true" [min]="0" [max]="maxValue" [step]="32" [(ngModel)]="count" class="w-full" (onSlideEnd)="handleCountSelectChange()"/>
     <span class="font-bold text-2xl text-primary">{{count}}</span>
     <p-button [disabled]="locked" [raised]="true" icon="pi pi-sync" label="洗牌" class="white-space-nowrap" (onClick)="handleShuffleSourceEvent()"/>
@@ -10,19 +10,23 @@
 </div>
 <div class="flex justify-content-between align-items-center surface-border border-round-sm border-1 p-3 gap-4" #ctrlBox_2>
     <div class="flex align-items-center gap-4">
+        <span class="font-bold text-2xl text-primary white-space-nowrap">{{ TRANSLATION_MESSAGES[2] }}</span>
+        <p-selectButton [disabled]="locked" [options]="orderOptions" optionLabel="label" optionValue="value" [(ngModel)]="order"/>
         <ng-container *ngIf="name === 'lsd-radix-sort' || name === 'msd-radix-sort'">
-            <span class="font-bold text-2xl text-primary white-space-nowrap" >选择待排进制</span>
+            <span class="font-bold text-2xl text-primary white-space-nowrap" >{{ TRANSLATION_MESSAGES[3] }}</span>
             <p-selectButton [disabled]="locked" [options]="radixOptions" optionLabel="label" optionValue="value" [(ngModel)]="radix"/>
         </ng-container>
         <ng-container *ngIf="name === 'kw-merge-sort'">
-            <span class="font-bold text-2xl text-primary white-space-nowrap" >选择归并路数</span>
+            <span class="font-bold text-2xl text-primary white-space-nowrap" >{{ TRANSLATION_MESSAGES[4] }}</span>
             <p-selectButton [disabled]="locked" [options]="mergeWayOptions" optionLabel="label" optionValue="value" [(ngModel)]="mergeWay"/>
         </ng-container>
-        <span class="font-bold text-2xl text-primary white-space-nowrap">选择待排顺序</span>
-        <p-selectButton [disabled]="locked" [options]="orderOptions" optionLabel="label" optionValue="value" [(ngModel)]="order"/>
     </div>
     <div class="flex align-items-center gap-4">
-        <span class="font-bold text-2xl text-primary white-space-nowrap">交换次数：{{times | number:'0.0-0':'zh'}}</span>
-        <span class="font-bold text-2xl text-primary white-space-nowrap">排序用时：{{timer | timer}}</span>
+        <span class="font-bold text-2xl text-primary white-space-nowrap">
+            {{ TRANSLATION_MESSAGES[5] }}：{{times | number:'0.0-0'}}
+        </span>
+        <span class="font-bold text-2xl text-primary white-space-nowrap">
+            {{ TRANSLATION_MESSAGES[6] }}：{{timer | timer}}
+        </span>
     </div>
 </div>

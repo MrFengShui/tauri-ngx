@@ -1,7 +1,11 @@
 import { Component } from "@angular/core";
 
 @Component({
-    selector: 'tauri-app-dashboard-page',
+    selector: 'tauri-ngx-dashboard-page',
     templateUrl: './dashboard.component.html'
 })
-export class DashboardPageComponent {}
+export class DashboardPageComponent {
+
+    datetime: number = Date.now();
+
+}

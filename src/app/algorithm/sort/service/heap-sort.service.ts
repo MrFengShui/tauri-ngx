@@ -12,7 +12,7 @@ export class HeapSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
+            const temp: SortDataModel = { value: 0, color: 'whitesmoke' };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -148,7 +148,7 @@ export class TernaryHeapSortService {
 
     public sort(array: SortDataModel[], order: SortOrder, nodes: number = 8): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
+            const temp: SortDataModel = { value: 0, color: 'whitesmoke' };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, nodes, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -203,7 +203,8 @@ export class TernaryHeapSortService {
     }
 
     private async heapifyMaxHeap(source: SortDataModel[], way: number, length: number, parent: number, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        let children: number[] = Array.from([]), pivot: number, index: number = 0, value: number;
+        let pivot: number, index: number = 0, value: number;
+        const children: number[] = Array.from([]);
         
         while (true) {
             for (let i = 0; i < way; i++) {
@@ -245,7 +246,8 @@ export class TernaryHeapSortService {
     }
 
     private async heapifyMinHeap(source: SortDataModel[], way: number, length: number, parent: number, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        let children: number[] = Array.from([]), pivot: number, index: number = 0, value: number;
+        let pivot: number, index: number = 0, value: number;
+        const children: number[] = Array.from([]);
 
         while (true) {
             for (let i = 0; i < way; i++) {

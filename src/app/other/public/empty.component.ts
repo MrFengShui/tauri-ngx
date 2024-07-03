@@ -1,22 +1,21 @@
-import { Component, ElementRef, Input, OnInit, Renderer2 } from "@angular/core";
+import { Component, ElementRef, Input, OnInit, Renderer2, ViewEncapsulation } from "@angular/core";
 
 @Component({
-    selector: 'tauri-app-empty-holder',
+    encapsulation: ViewEncapsulation.None,
+    selector: 'tauri-ngx-empty-holder',
     template: `
-        <div class="flex flex-column align-items-center gap-3">
-            <p-image [src]="logo" alt="tauri.svg" width="256" height="256"/>
-            <span class="font-bold text-4xl">{{subject}}</span>
-            <span class="font-bold text-xl">{{content}}</span>
-        </div>
-    `
+        <img [src]="src" [alt]="alt" height="75%"/>
+        <span class="font-bold text-4xl">{{text}}</span>
+    `,
+    styleUrl: 'public.styles.scss'
 })
 export class EmptyHolderComponent implements OnInit {
     
-    @Input('logo') logo?: string = 'assets/tauri.svg';
+    @Input('src') src?: string = 'assets/images/no.data.svg';
+    
+    @Input('alt') alt?: string = 'no.data.svg';
 
-    @Input('subject') subject?: string = '暂无数据';
-
-    @Input('content') content?: string = '';
+    @Input('text') text?: string = '暂无数据';
 
     constructor(
         private _element: ElementRef,
@@ -28,11 +27,12 @@ export class EmptyHolderComponent implements OnInit {
     }
     
     private initHostLayout(): void {
+        this._renderer.addClass(this._element.nativeElement, 'tauri-ngx-empty-holder');
         this._renderer.addClass(this._element.nativeElement, 'flex');
+        this._renderer.addClass(this._element.nativeElement, 'flex-column');
         this._renderer.addClass(this._element.nativeElement, 'justify-content-center');
         this._renderer.addClass(this._element.nativeElement, 'align-items-center');
-        this._renderer.addClass(this._element.nativeElement, 'w-full');
-        this._renderer.addClass(this._element.nativeElement, 'h-full');
+        this._renderer.addClass(this._element.nativeElement, 'gap-4');
     }
 
 }

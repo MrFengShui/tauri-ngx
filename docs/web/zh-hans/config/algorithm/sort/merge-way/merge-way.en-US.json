@@ -1,0 +1,20 @@
+{
+    "list": [
+        {
+            "label": "Three-Way",
+            "value": 3
+        },
+        {
+            "label": "Four-Way",
+            "value": 4
+        },
+        {
+            "label": "Six-Way",
+            "value": 6
+        },
+        {
+            "label": "Eight-Way",
+            "value": 8
+        }
+    ]
+}

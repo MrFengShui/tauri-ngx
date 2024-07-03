@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortOrder, SortStateModel } from "../ngrx-store/sort.state";
-import { CLEAR_COLOR, PRIMARY_COLOR, delay, SORT_DELAY_DURATION, swap, complete, ACCENT_COLOR, SECONDARY_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR } from "../sort.utils";
+import { CLEAR_COLOR, PRIMARY_COLOR, delay, SORT_DELAY_DURATION, swap, complete, SECONDARY_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR } from "../sort.utils";
 
 /**
  * 图书馆排序
@@ -16,7 +16,7 @@ export class LibrarySortService {
 
     public sort(array: SortDataModel[], order: SortOrder, gap: number = 4): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, gap, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -247,7 +247,7 @@ export class LibrarySortService {
     private async export(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let pivot: number = 0;
 
-        for (let item of this.cache) {
+        for (const item of this.cache) {
             if (item.value !== 0) {
                 times += 1;
 

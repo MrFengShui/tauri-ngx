@@ -27,7 +27,7 @@ export class CountSortService {
     private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
         let i: number = 0, index: number;
 
-        for (let item of source) {
+        for (const item of source) {
             if (this.cache[item.value]) {
                 this.cache[item.value] += 1;  
             } else {
@@ -47,7 +47,7 @@ export class CountSortService {
 
         await delay(SORT_DELAY_DURATION);
 
-        for (let key of Object.keys(this.cache)) {
+        for (const key of Object.keys(this.cache)) {
             index = Number.parseInt(key);
 
             for (let j = 0; j < this.cache[index]; j++) {
@@ -74,7 +74,7 @@ export class CountSortService {
     private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
         let i: number = 0, index: number;
 
-        for (let item of source) {
+        for (const item of source) {
             if (this.cache[item.value]) {
                 this.cache[item.value] += 1;  
             } else {
@@ -94,7 +94,7 @@ export class CountSortService {
 
         await delay(SORT_DELAY_DURATION);
 
-        for (let key of Object.keys(this.cache).reverse()) {
+        for (const key of Object.keys(this.cache).reverse()) {
             index = Number.parseInt(key);
 
             for (let j = 0; j < this.cache[index]; j++) {
@@ -119,7 +119,7 @@ export class CountSortService {
     }
 
     private async clear(): Promise<void> {
-        for (let key of Object.keys(this.cache)) {
+        for (const key of Object.keys(this.cache)) {
             delete this.cache[key];
         }
     }

@@ -1,6 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
-import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { FormsModule } from "@angular/forms";
 import { RouterModule } from "@angular/router";
 import { StoreModule } from "@ngrx/store";
 import { EffectsModule } from "@ngrx/effects";
@@ -14,9 +14,12 @@ import { TreeModule } from "primeng/tree";
 import { HomePageComponent } from "./home/home.component";
 import { DashboardPageComponent } from "./dashboard/dashboard.component";
 
-import { AppConfigEffect, AppStyleEffect, AppNavlistEffect } from "../ngrx-store/app.effect";
-import { APP_CONFIG_REDUCER, APP_STYLE_REDUCER, APP_NAVLIST_REDUCER } from "../ngrx-store/app.reducer";
-import { APP_FEATURE_KEY } from "../ngrx-store/app.selector";
+import { HomeNavListLoadService, HomeOptionLoadService } from "./ngrx-store/main.service";
+
+import { HomeLoadNavListEffect } from "./ngrx-store/main.effect";
+import { HomeLoadStyleOptionEffect } from "./ngrx-store/main.effect";
+import { HOME_FEATURE_KEY } from "./ngrx-store/main.selector";
+import { HOME_NAVLIST_LOAD_REDUCER, HOME_OPTION_LOAD_REDUCER } from "./ngrx-store/main.reducer";
 
 @NgModule({
     declarations: [
@@ -28,11 +31,10 @@ import { APP_FEATURE_KEY } from "../ngrx-store/app.selector";
         FormsModule,
         RouterModule,
 
-        EffectsModule.forFeature(AppConfigEffect, AppStyleEffect, AppNavlistEffect),
-        StoreModule.forFeature(APP_FEATURE_KEY, {
-            'configFeature': APP_CONFIG_REDUCER,
-            'styleFeature': APP_STYLE_REDUCER,
-            'navlistFeature': APP_NAVLIST_REDUCER
+        EffectsModule.forFeature(HomeLoadStyleOptionEffect, HomeLoadNavListEffect),
+        StoreModule.forFeature(HOME_FEATURE_KEY, {
+            'optionsLoadFeature': HOME_OPTION_LOAD_REDUCER,
+            'navlistLoadFeature': HOME_NAVLIST_LOAD_REDUCER
         }),
 
         ButtonModule,
@@ -44,7 +46,8 @@ import { APP_FEATURE_KEY } from "../ngrx-store/app.selector";
     exports: [
         DashboardPageComponent,
         HomePageComponent
-    ]
+    ],
+    providers: [ HomeOptionLoadService, HomeNavListLoadService ]
 })
 export class MainModule {
 

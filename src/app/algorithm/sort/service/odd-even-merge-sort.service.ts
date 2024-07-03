@@ -12,7 +12,7 @@ export class TopDownOddEvenMergeSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
+            const temp: SortDataModel = { value: 0, color: 'whitesmoke' };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -150,7 +150,7 @@ export class BottomUpOddEvenMergeSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
+            const temp: SortDataModel = { value: 0, color: 'whitesmoke' };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());

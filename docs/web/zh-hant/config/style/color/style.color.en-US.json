@@ -1,0 +1,10 @@
+{
+    "list": [
+        { "name": "amber", "text": "Amber", "code": "#fbbf24" },
+        { "name": "blue", "text": "Blue", "code": "#60a5fa" },
+        { "name": "indigo", "text": "Navy", "code": "#818cf8" },
+        { "name": "pink", "text": "Red", "code": "#ec4899" },
+        { "name": "purple", "text": "Violet", "code": "#a78bfa" },
+        { "name": "teal", "text": "Green", "code": "#14b8a6" }
+    ]
+}

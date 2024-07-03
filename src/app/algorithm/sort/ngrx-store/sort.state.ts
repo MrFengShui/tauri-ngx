@@ -41,9 +41,10 @@ export interface SortDataModel {
 
 }
 
-export interface SortOptionLoadState {
+export interface SortOptionLoadState<T = any> {
 
     action: string;
-    value: SortOrderOptionModel[] | SortRadixOptionModel[] | SortMergeWayOptionModel[];
+    result: Array<T>;
+    message: string;
 
 }

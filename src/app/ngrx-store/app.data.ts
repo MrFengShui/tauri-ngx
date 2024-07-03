@@ -284,7 +284,7 @@ const ALGORITHM_SORT_NAVLIST: TreeNode<{ url: string[], param?: string }> = {
 }
 
 export const APP_NAVLIST: Observable<TreeNode<{ url: string[], param?: string }>[]> = new Observable(subscriber => {
-    let list: TreeNode<{ url: string[], param?: string }>[] = Array.from([]);
+    const list: TreeNode<{ url: string[], param?: string }>[] = Array.from([]);
     list.push({
         key: '1',
         label: '项目导航',

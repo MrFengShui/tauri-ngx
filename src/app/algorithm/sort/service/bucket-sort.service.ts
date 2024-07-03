@@ -7,7 +7,7 @@ import { SortToolsService } from "../ngrx-store/sort.service";
 
 const clear = (cache: {[key: string | number]: number[]}): Promise<void> => 
     new Promise(resolve => {
-        for (let key of Object.keys(cache)) {
+        for (const key of Object.keys(cache)) {
             cache[key].splice(0);
             delete cache[key];
         }
@@ -27,7 +27,7 @@ export class BucketSortService {
     constructor(private _service: SortToolsService) {}
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        let temp: SortDataModel = { color: '', value: -1 };
+        const temp: SortDataModel = { color: '', value: -1 };
 
         return new Observable(subscriber => {
             if (order === 'ascent') {
@@ -47,10 +47,10 @@ export class BucketSortService {
 
         await delay(SORT_DELAY_DURATION);
         
-        for (let key of Object.keys(this.cache)) {
+        for (const key of Object.keys(this.cache)) {
             lhs = index;
 
-            for (let item of this.cache[key]) {
+            for (const item of this.cache[key]) {
                 times += 1;
                 source[index].color = ACCENT_TWO_COLOR;
                 source[index].value = item;
@@ -81,10 +81,10 @@ export class BucketSortService {
 
         await delay(SORT_DELAY_DURATION);
         
-        for (let key of Object.keys(this.cache).reverse()) {
+        for (const key of Object.keys(this.cache).reverse()) {
             lhs = index;
 
-            for (let item of this.cache[key]) {
+            for (const item of this.cache[key]) {
                 times += 1;
                 source[index].color = ACCENT_TWO_COLOR;
                 source[index].value = item;
@@ -109,7 +109,7 @@ export class BucketSortService {
     }
 
     private async classify(source: SortDataModel[], index: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        for (let item of source) {
+        for (const item of source) {
             index = Math.floor((item.value - 1) / this.THRESHOLD);
 
             if (!this.cache[index]) {
@@ -207,7 +207,7 @@ export class InterpolationSortService {
     }
 
     private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let values: [number, number] = this._service.findMinMaxValue(source);
+        const values: [number, number] = this._service.findMinMaxValue(source);
         
         times = await this.save(source, 0, values[0], values[1], times, callback);
         times = await this.load(source, 0, times, callback);
@@ -218,7 +218,7 @@ export class InterpolationSortService {
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let values: [number, number] = this._service.findMinMaxValue(source);
+        const values: [number, number] = this._service.findMinMaxValue(source);
 
         times = await this.save(source, 0, values[1], values[0], times, callback);
         times = await this.load(source, 0, times, callback);
@@ -229,7 +229,7 @@ export class InterpolationSortService {
     }
 
     private async save(source: SortDataModel[], index: number, min: number, max: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        for (let item of source) {
+        for (const item of source) {
             index = Math.floor((source.length - 1) * (item.value - min) / (max - min));
 
             if (!this.cache[index]) {
@@ -252,8 +252,8 @@ export class InterpolationSortService {
     }
 
     private async load(source: SortDataModel[], index: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        for (let key of Object.keys(this.cache)) {
-            for (let item of this.cache[key]) {
+        for (const key of Object.keys(this.cache)) {
+            for (const item of this.cache[key]) {
                 times += 1;
                 source[index].color = ACCENT_TWO_COLOR;
                 source[index].value = item;
@@ -286,7 +286,7 @@ export class PigeonholeSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { color: '', value: -1 };
+            const temp: SortDataModel = { color: '', value: -1 };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -299,7 +299,7 @@ export class PigeonholeSortService {
     }
 
     private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let values: [number, number] = this._service.findMinMaxValue(source), n: number = values[1] - values[0] + 1;
+        const values: [number, number] = this._service.findMinMaxValue(source);
         
         times = await this.save(source, values[0], times, callback);
         times = await this.load(source, 0, times, callback);
@@ -310,7 +310,7 @@ export class PigeonholeSortService {
     }
 
     private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let values: [number, number] = this._service.findMinMaxValue(source);
+        const values: [number, number] = this._service.findMinMaxValue(source);
 
         times = await this.save(source, values[1], times, callback);
         times = await this.load(source, 0, times, callback);
@@ -346,8 +346,8 @@ export class PigeonholeSortService {
     }
 
     private async load(source: SortDataModel[], index: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        for (let key of Object.keys(this.cache)) {
-            for (let item of this.cache[key]) {
+        for (const key of Object.keys(this.cache)) {
+            for (const item of this.cache[key]) {
                 times += 1;
                 source[index].color = ACCENT_TWO_COLOR;
                 source[index].value = item;

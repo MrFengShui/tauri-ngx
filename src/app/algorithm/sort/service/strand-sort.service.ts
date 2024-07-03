@@ -1,9 +1,8 @@
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
-import { random } from "lodash";
 
 import { SortDataModel, SortOrder, SortStateModel } from "../ngrx-store/sort.state";
-import { PRIMARY_COLOR, SECONDARY_COLOR, swap, SORT_DELAY_DURATION, CLEAR_COLOR, ACCENT_COLOR, complete, delay, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR } from "../sort.utils";
+import { PRIMARY_COLOR, SECONDARY_COLOR, SORT_DELAY_DURATION, CLEAR_COLOR, ACCENT_COLOR, complete, delay, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR } from "../sort.utils";
 
 /**
  * 股排序
@@ -24,8 +23,8 @@ export class StrandSortService {
     }
 
     private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let oldUnsorted: number[] = source.map(item => item.value), oldSorted: number[] = Array.from([]);
-        let newUnsorted: number[] = Array.from([]), newSorted: number[] = Array.from([]);
+        const oldUnsorted: number[] = source.map(item => item.value), oldSorted: number[] = Array.from([]);
+        const newUnsorted: number[] = Array.from([]), newSorted: number[] = Array.from([]);
         let fst: number, snd: number;
         
         while (oldUnsorted.length > 0) {
@@ -72,8 +71,8 @@ export class StrandSortService {
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        let oldUnsorted: number[] = source.map(item => item.value), oldSorted: number[] = Array.from([]);
-        let newUnsorted: number[] = Array.from([]), newSorted: number[] = Array.from([]);
+        const oldUnsorted: number[] = source.map(item => item.value), oldSorted: number[] = Array.from([]);
+        const newUnsorted: number[] = Array.from([]), newSorted: number[] = Array.from([]);
         let fst: number, snd: number;
         
         while (oldUnsorted.length > 0) {
@@ -122,7 +121,7 @@ export class StrandSortService {
     private async merge(source: SortDataModel[], newUnsorted: number[], newSorted: number[], oldSorted: number[], times: number, callback: (param: SortStateModel) => void): Promise<[number, number, number]> {
         let index: number = 0, fst: number, snd: number;
 
-        for (let item of newUnsorted) {
+        for (const item of newUnsorted) {
             times += 1;
 
             source[index].value = item;
@@ -140,7 +139,7 @@ export class StrandSortService {
         fst = index;
         await delay(SORT_DELAY_DURATION);
 
-        for (let item of newSorted) {
+        for (const item of newSorted) {
             times += 1;
 
             source[index].value = item;
@@ -158,7 +157,7 @@ export class StrandSortService {
         snd = index;
         await delay(SORT_DELAY_DURATION);
 
-        for (let item of oldSorted) {
+        for (const item of oldSorted) {
             times += 1;
 
             source[index].value = item;
@@ -177,9 +176,9 @@ export class StrandSortService {
     }
 
     private async mergeByAscent(source: SortDataModel[], fst: number, snd: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        let lhs: number = fst, rhs: number = source.length - 1, mid: number = snd - 1;
+        const lhs: number = fst, rhs: number = source.length - 1, mid: number = snd - 1;
         let i: number = fst, j: number = snd;
-        let array: number[] = Array.from([]);
+        const array: number[] = Array.from([]);
         
         while (i <= mid && j <= rhs) {
             source[i].color = PRIMARY_COLOR;
@@ -244,9 +243,9 @@ export class StrandSortService {
     }
 
     private async mergeByDescent(source: SortDataModel[], fst: number, snd: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        let lhs: number = fst, rhs: number = source.length - 1, mid: number = snd - 1;
+        const lhs: number = fst, rhs: number = source.length - 1, mid: number = snd - 1;
         let i: number = fst, j: number = snd;
-        let array: number[] = Array.from([]);
+        const array: number[] = Array.from([]);
         
         while (i <= mid && j <= rhs) {
             source[i].color = PRIMARY_COLOR;

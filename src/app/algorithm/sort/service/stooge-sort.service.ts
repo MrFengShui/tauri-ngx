@@ -12,7 +12,7 @@ export class StoogeSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -66,7 +66,7 @@ export class StoogeSortService {
         }
 
         if (rhs - lhs + 1 >= 3) {
-            let mid: number = Math.floor((rhs - lhs + 1)  / 3);
+            const mid: number = Math.floor((rhs - lhs + 1)  / 3);
             times = await this.sortByOrder(source, lhs, rhs - mid, temp, order, times, callback);
             times = await this.sortByOrder(source, lhs + mid, rhs, temp, order, times, callback);
             times = await this.sortByOrder(source, lhs, rhs - mid, temp, order, times, callback);

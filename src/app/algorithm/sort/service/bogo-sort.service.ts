@@ -15,7 +15,7 @@ export class BogoSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
+            const temp: SortDataModel = { value: 0, color: 'whitesmoke' };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, false, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -140,7 +140,7 @@ export class BogoBubbleSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
+            const temp: SortDataModel = { value: 0, color: 'whitesmoke' };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, false, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -266,7 +266,7 @@ export class BogoCocktailSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: 'whitesmoke' };
+            const temp: SortDataModel = { value: 0, color: 'whitesmoke' };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, false, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());

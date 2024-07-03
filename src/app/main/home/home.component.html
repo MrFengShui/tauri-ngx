@@ -6,22 +6,39 @@
     </ng-template>
     <ng-template pTemplate="end">
         <div class="flex align-items-center gap-3">
-            <p-dropdown [options]="styleNameList" optionLabel="text" placeholder="请选择一种样式" [(ngModel)]="styleNameSelect" (onChange)="styleOnChange()"></p-dropdown>
-            <p-dropdown [options]="styleColorList" optionLabel="text" placeholder="请选择一种色彩" [(ngModel)]="styleColorSelect" (onChange)="styleOnChange()">
+            <p-dropdown [options]="localeOptions" optionLabel="text" optionValue="name" placeholder="请选择一种语言" [(ngModel)]="localeID" (onChange)="localeOnChange()">
+                <ng-template pTemplate="item" let-locale>
+                    <div class="flex align-items-center gap-3">
+                        <img [src]="'assets/flags/flag.' + locale.flag + '.svg'" 
+                            [alt]="'flag.' + locale.flag + '.svg'" height="24">
+                        <span>{{locale.text}}</span>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="selectedItem" *ngIf="localeID">
+                    <div class="flex align-items-center gap-3">
+                        <img [src]="'assets/flags/flag.' + findLocaleOption(localeID)?.flag + '.svg'" 
+                            [alt]="'flag.' + findLocaleOption(localeID)?.flag + '.svg'" height="24">
+                        <span>{{findLocaleOption(localeID)?.text}}</span>
+                    </div>
+                </ng-template>
+            </p-dropdown>
+            <p-dropdown [options]="styleNameOptions" optionLabel="text" optionValue="name" placeholder="请选择一种样式" [(ngModel)]="styleName" (onChange)="styleOnChange()"></p-dropdown>
+            <p-dropdown [options]="styleColorOptions" optionLabel="text" optionValue="name" placeholder="请选择一种色彩" [(ngModel)]="styleColor" (onChange)="styleOnChange()">
                 <ng-template pTemplate="item" let-color>
                     <div class="flex align-items-center gap-3">
                         <span class="color-show-panel" [style]="{'background-color': color.code}"></span>
                         <span>{{color.text}}</span>
                     </div>
                 </ng-template>
-                <ng-template pTemplate="selectedItem" *ngIf="styleColorSelect">
+                <ng-template pTemplate="selectedItem" *ngIf="styleColor">
                     <div class="flex align-items-center gap-3">
-                        <span class="color-show-panel" [style]="{'background-color': styleColorSelect.code}"></span>
-                        <span>{{styleColorSelect.text}}</span>
+                        <span class="color-show-panel" 
+                            [style]="{'background-color': findColorOption(styleColor)?.code}"></span>
+                        <span>{{findColorOption(styleColor)?.text}}</span>
                     </div>
                 </ng-template>
             </p-dropdown>
-            <p-toggleButton [onLabel]="'夜晚'" [offLabel]="'白昼'" [onIcon]="'pi pi-moon'" [offIcon]="'pi pi-sun'" [(ngModel)]="styleThemeMode" (onChange)="styleOnChange()"/>
+            <p-toggleButton [onLabel]="'夜晚'" [offLabel]="'白昼'" [onIcon]="'pi pi-moon'" [offIcon]="'pi pi-sun'" [(ngModel)]="styleMode" (onChange)="styleOnChange()"/>
             <p-button icon="pi pi-user" [rounded]="true" [raised]="true" [routerLink]="['/authorization', 'login']"/>
         </div>
     </ng-template>

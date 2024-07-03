@@ -12,7 +12,7 @@ export class RecursiveQuickSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -56,7 +56,8 @@ export class RecursiveQuickSortService {
     }
 
     public async partitionByAscent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
-        let pivot: number = rhs, i: number = lhs - 1;
+        const pivot: number = rhs;
+        let i: number = lhs - 1;
         source[pivot].color = ACCENT_COLOR;
 
         for (let j = lhs; j < rhs; j++) {
@@ -91,7 +92,8 @@ export class RecursiveQuickSortService {
     }
 
     public async partitionByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
-        let pivot: number = rhs, i: number = lhs - 1;
+        const pivot: number = rhs;
+        let i: number = lhs - 1;
         source[pivot].color = ACCENT_COLOR;
 
         for (let j = lhs; j < rhs; j++) {
@@ -139,7 +141,7 @@ export class IterativeQuickSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -237,7 +239,7 @@ export class TwoWayRecursiveQuickSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -281,7 +283,8 @@ export class TwoWayRecursiveQuickSortService {
     }
 
     public async partitionByAscent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
-        let pivot: number = rhs, i: number = lhs, j: number = rhs;
+        const pivot: number = rhs;
+        let i: number = lhs, j: number = rhs;
         
         while (i < j) {
             source[pivot].color = ACCENT_COLOR;
@@ -329,7 +332,8 @@ export class TwoWayRecursiveQuickSortService {
     }
 
     public async partitionByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
-        let pivot: number = rhs, i: number = lhs, j: number = rhs;
+        const pivot: number = rhs;
+        let i: number = lhs, j: number = rhs;
         
         while (i < j) {
             source[pivot].color = ACCENT_COLOR;
@@ -390,7 +394,7 @@ export class TwoWayIterativeQuickSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -486,7 +490,7 @@ export class ThreeWayRecursiveQuickSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -530,7 +534,8 @@ export class ThreeWayRecursiveQuickSortService {
     }
 
     public async partitionByAscent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number, number]> {
-        let pivot: number = source[rhs].value, i: number = rhs - 1, fst: number = lhs, snd: number = rhs;
+        const pivot: number = source[rhs].value;
+        let i: number = rhs - 1, fst: number = lhs, snd: number = rhs;
         
         while (i >= fst) {
             source[rhs].color = ACCENT_COLOR;
@@ -582,7 +587,8 @@ export class ThreeWayRecursiveQuickSortService {
     }
 
     public async partitionByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number, number]> {
-        let pivot: number = source[rhs].value, i: number = rhs - 1, fst: number = lhs, snd: number = rhs;
+        const pivot: number = source[rhs].value;
+        let i: number = rhs - 1, fst: number = lhs, snd: number = rhs;
         
         while (i >= fst) {
             source[rhs].color = ACCENT_COLOR;
@@ -647,7 +653,7 @@ export class ThreeWayIterativeQuickSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -746,7 +752,7 @@ export class DualPivotRecursiveQuickSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -1009,7 +1015,7 @@ export class DualPivotIterativeQuickSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());

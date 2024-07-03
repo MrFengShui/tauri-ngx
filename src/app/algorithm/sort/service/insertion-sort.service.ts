@@ -3,7 +3,6 @@ import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
 import { ACCENT_COLOR, CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
-import { cloneDeep } from "lodash";
 
 /**
  * 插入排序
@@ -13,7 +12,7 @@ export class InsertionSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, temp, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -85,7 +84,7 @@ export class BinarySearchInserionSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, temp, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -197,7 +196,7 @@ export class ShellSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, 0, temp, param => subscriber.next(param)).then(() => subscriber.complete());

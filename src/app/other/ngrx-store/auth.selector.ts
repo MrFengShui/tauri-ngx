@@ -10,7 +10,7 @@ export interface AuthSelectorState {
 
 }
 
-export const AUTH_SELECTOR = createSelector(
+export const AUTH_REGISTER_SELECTOR = createSelector(
     createFeatureSelector(AUTH_FEATURE_KEY),
     (state: AuthSelectorState) => state.feature
 );

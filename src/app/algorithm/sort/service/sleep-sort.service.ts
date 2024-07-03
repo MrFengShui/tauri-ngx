@@ -24,7 +24,7 @@ export class SleepSortService {
     private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
         let model: SortDataModel, index: number;
 
-        for (let item of source) {
+        for (const item of source) {
             times += 1;
 
             item.color = PRIMARY_COLOR;
@@ -61,7 +61,7 @@ export class SleepSortService {
     private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
         let model: SortDataModel, index: number;
 
-        for (let item of source) {
+        for (const item of source) {
             times += 1;
 
             item.color = PRIMARY_COLOR;

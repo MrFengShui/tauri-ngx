@@ -20,6 +20,9 @@
 }
 
 * {
+    --alpha-100: 1.0;
+    --alpha-000: 0.0;
+
     ::-webkit-scrollbar {
         width: 0.75rem;
         height: 0.75rem;
@@ -28,7 +31,7 @@
     ::-webkit-scrollbar-thumb {
         background-color: var(--primary-color);
         border-radius: 0.125rem;
-
+        
         &:hover {
             background-color: var(--primary-400);
         }
@@ -52,8 +55,11 @@ html, body {
     user-select: none;
 }
 
+a {
+    cursor: pointer;
+}
+
 .p-component {
     font-family: 'global-font';
     font-size: 16px;
 }
-

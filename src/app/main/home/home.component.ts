@@ -1,39 +1,47 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, Renderer2, ViewEncapsulation } from "@angular/core";
-import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router, UrlSegment } from "@angular/router";
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Inject, LOCALE_ID, NgZone, OnDestroy, OnInit, Renderer2, ViewEncapsulation } from "@angular/core";
+import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router } from "@angular/router";
 import { Store } from "@ngrx/store";
 import { TreeNode } from "primeng/api";
 import { Subscription, filter, map } from "rxjs";
 import { cloneDeep } from "lodash";
 
-import { APP_CONFIG_STYLE_NAME_LOAD_ACTION, APP_CONFIG_STYLE_COLOR_LOAD_ACTION, APP_STYLE_CHANGE_ACTION, APP_NAVLIST_LOAD_ACTION } from "../../ngrx-store/app.action";
+import { HOME_LOCALE_OPTION_LOAD_ACTION, HONE_NAVLIST_LOAD_ACTION } from '../ngrx-store/main.action';
+import { AppStyleModel, ColorType } from "../../ngrx-store/app.state";
+import { LocaleIDType, LocaleOptionModel, StyleColorOptionModel } from "../ngrx-store/main.state";
+import { StyleNameOptionModel } from "../ngrx-store/main.state";
+import { HOME_NAVLIST_LOAD_FEATURE_SELECTOR, HOME_OPTION_LOAD_FEATURE_SELECTOR } from "../ngrx-store/main.selector";
+import { HOME_STYLE_COLOR_OPTION_LOAD_ACTION, HOME_STYLE_NAME_OPTION_LOAD_ACTION } from "../ngrx-store/main.action";
+import { RouteUrlParam } from "../ngrx-store/main.state";
+import { APP_STYLE_SAVE_ACTION } from "../../ngrx-store/app.action";
 import { APP_FEATURE_SELECTOR } from "../../ngrx-store/app.selector";
-import { AppStyleNameModel, AppStyleColorModel, ColorType, AppStyleModel, AppConfigReducerState, AppStyleReducerState } from "../../ngrx-store/app.state";
-
-type RouteUrlParam = { url?: string[], param?: string, mark?: boolean };
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     encapsulation: ViewEncapsulation.None,
-    selector: 'home-page',
+    selector: 'tauri-ngx-home-page',
     templateUrl: 'home.component.html',
     styleUrl: 'home.component.scss'
 })
 export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
-    datetime: number = Date.now();
-    styleThemeMode: boolean = true;
-    styleNameSelect: AppStyleNameModel = { name: 'lara', text: 'Aura主题样式' };
-    styleNameList: AppStyleNameModel[] = [];
-    styleColorSelect: AppStyleColorModel = { name: 'amber', text: '琥珀黄', code: '#fbbf24' };
-    styleColorList: AppStyleColorModel[] = [];
-    navlist: TreeNode<RouteUrlParam>[] = [];
-    navlistSelect: TreeNode = {};
 
+    localeOptions: LocaleOptionModel[] = [];
+    localeID: LocaleIDType = this._localeID as LocaleIDType;
+    styleNameOptions: StyleNameOptionModel[] = [];
+    styleName: string = 'aura';
+    styleColorOptions: StyleColorOptionModel[] = [];
+    styleColor: ColorType = 'amber';
+    styleMode: boolean = true;
+    navlist: TreeNode<RouteUrlParam>[] = [];
+
+    private readonly PORT: { [key: string]: number } = { 'en-US': 4200, 'zh-Hans': 5200, 'zh-Hant': 5300 };
+
+    private location:Location = window.location;
     private param: string = '';
 
-    private config$: Subscription | null = null;
+    private event$: Subscription | null = null;
     private style$: Subscription | null = null;
     private navlist$: Subscription | null = null;
-    private event$: Subscription | null = null;
+    private options$: Subscription | null = null;
     
     constructor(
         private _route: ActivatedRoute,
@@ -42,7 +50,10 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
         private _renderer: Renderer2,
         private _router: Router,
         private _ngZone: NgZone,
-        private _store: Store
+        private _store: Store,
+
+        @Inject(LOCALE_ID)
+        private _localeID: string
     ) { 
         this._ngZone.runOutsideAngular(() => {
             this.event$ = this._router.events
@@ -51,38 +62,61 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
                     map(() => this._route.snapshot)
                 )
                 .subscribe(snapshot => 
-                    this._ngZone.run(() => {
-                        this.parseRouteSnapshot(snapshot);
-                    }));
+                    this._ngZone.run(() => 
+                        this.parseRouteSnapshot(snapshot)));
         });
     }
 
     ngOnInit(): void {
-        this._store.dispatch(APP_CONFIG_STYLE_NAME_LOAD_ACTION());
-        this._store.dispatch(APP_CONFIG_STYLE_COLOR_LOAD_ACTION());
-        this._store.dispatch(APP_NAVLIST_LOAD_ACTION());
+        this._store.dispatch(HOME_LOCALE_OPTION_LOAD_ACTION({ localeID: this._localeID }));
+        this._store.dispatch(HOME_STYLE_NAME_OPTION_LOAD_ACTION({ localeID: this._localeID }));
+        this._store.dispatch(HOME_STYLE_COLOR_OPTION_LOAD_ACTION({ localeID: this._localeID }));
+        this._store.dispatch(HONE_NAVLIST_LOAD_ACTION({ localeID: this._localeID }));
     }
 
     ngOnDestroy(): void {
-        this.config$?.unsubscribe();
-        this.style$?.unsubscribe();
-        this.navlist$?.unsubscribe();
         this.event$?.unsubscribe();
+        this.style$?.unsubscribe();
+        this.options$?.unsubscribe();
+        this.navlist$?.unsubscribe();
     }
 
     ngAfterViewInit(): void {
         this.initHostLayout();
         this.listenNavlistChange();
-        this.listenConfigChange();
+        this.listenOptionChange();
         this.listenStyleChange();
     }
-
+    
     styleOnChange(): void {
-        this._store.dispatch(APP_STYLE_CHANGE_ACTION({
-            name: this.styleNameSelect?.name as string,
-            theme: this.styleThemeMode as boolean ? 'dark' : 'light',
-            color: this.styleColorSelect?.name as ColorType 
+        this._store.dispatch(APP_STYLE_SAVE_ACTION({
+            mode: this.styleMode,
+            name: this.styleName,
+            theme: this.styleMode ? 'dark' : 'light',
+            color: this.styleColor
         }));
+    }
+
+    localeOnChange(): void { 
+        let href: string;
+        
+        if (this.location.hostname === 'localhost' || this.location.hostname === '127.0.0.1') {
+            href = this.location.href
+                .replace(this.location.port, this.PORT[this.localeID].toString())
+                .replace(this._localeID, this.localeID);
+        } else {
+            href = this.location.href.replace(this._localeID, this.localeID);
+        }
+
+        this.location.replace(href);
+    }
+
+    findColorOption(name: ColorType): StyleColorOptionModel | undefined {
+        return this.styleColorOptions.find(item => item.name === name);
+    }
+
+    findLocaleOption(name: LocaleIDType): LocaleOptionModel | undefined {
+        return this.localeOptions.find(item => item.name === name);
     }
 
     private initHostLayout(): void {
@@ -92,65 +126,56 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
         this._renderer.addClass(this._element.nativeElement, 'h-screen');
     }
 
-    private renderStyle(model: AppStyleModel) {
-        this.styleThemeMode = model.mode;
-        this.styleColorSelect = this.styleColorList.find(item => item.name === model.struct.color) as AppStyleColorModel;
-        this.styleNameSelect = this.styleNameList.find(item => item.name === model.struct.name) as AppStyleNameModel;
-    }
-
-    private listenConfigChange(): void {
-        this._ngZone.runOutsideAngular(() => {
-            this.config$ = this._store.select(APP_FEATURE_SELECTOR)
-                .pipe(filter(state => state.configFeature.action.length > 0))
-                .subscribe(state => this._ngZone.run(() => {
-                    const feature: AppConfigReducerState = state.configFeature;
-                    
-                    if (feature.action === APP_CONFIG_STYLE_NAME_LOAD_ACTION.type) {
-                        this.styleNameList = feature.value as AppStyleNameModel[];
-                    }
-
-                    if (feature.action === APP_CONFIG_STYLE_COLOR_LOAD_ACTION.type) {
-                        this.styleColorList = feature.value as AppStyleColorModel[];
-                    }
-
-                    if (feature.action === APP_NAVLIST_LOAD_ACTION.type) {
-                        this.navlist = feature.value as TreeNode[];
-                    }
-
-                    this._cdr.detectChanges();
-                }));
-        });
-    }
-
     private listenStyleChange(): void {
         this._ngZone.runOutsideAngular(() => {
             this.style$ = this._store.select(APP_FEATURE_SELECTOR)
-                .pipe(filter(state => state.styleFeature.action === APP_STYLE_CHANGE_ACTION.type))
+                .pipe(filter(state => state.action.length > 0))
                 .subscribe(state => this._ngZone.run(() => {
-                    const feature: AppStyleReducerState = state.styleFeature;
-                    this.renderStyle(feature.value as AppStyleModel);
-                    this._cdr.detectChanges();
+                    const model: AppStyleModel = state.result as AppStyleModel;
+                    this.styleMode = model.mode;
+                    this.styleName = model.name;
+                    this.styleColor = model.color;
+                }))
+        });
+    }
+
+    private listenOptionChange(): void {
+        this._ngZone.runOutsideAngular(() => {
+            this.options$ = this._store.select(HOME_OPTION_LOAD_FEATURE_SELECTOR)
+                .pipe(filter(state => state.action.length > 0))
+                .subscribe(state => this._ngZone.run(() => {
+                    if (state.action === HOME_LOCALE_OPTION_LOAD_ACTION.type) {
+                        this.localeOptions = state.result as LocaleOptionModel[];
+                    }
+
+                    if (state.action === HOME_STYLE_NAME_OPTION_LOAD_ACTION.type) {
+                        this.styleNameOptions = state.result as StyleNameOptionModel[];
+                    }
+
+                    if (state.action === HOME_STYLE_COLOR_OPTION_LOAD_ACTION.type) {
+                        this.styleColorOptions = state.result as StyleColorOptionModel[];
+                    }
+
+                    this._cdr.markForCheck();
                 }));
         });
     }
 
     private listenNavlistChange(): void {
-        this._ngZone.runOutsideAngular(() => 
-            this.navlist$ = this._store.select(APP_FEATURE_SELECTOR)
-                .pipe(
-                    filter(state => state.navlistFeature.action === APP_NAVLIST_LOAD_ACTION.type),
-                    map(state => state.navlistFeature.value)
-                )
-                .subscribe(value => this._ngZone.run(() => {
-                    this.navlist = cloneDeep(value);
+        this._ngZone.runOutsideAngular(() => {
+            this.navlist$ = this._store.select(HOME_NAVLIST_LOAD_FEATURE_SELECTOR)
+                .pipe(filter(state => state.action.length > 0))
+                .subscribe(state => this._ngZone.run(() => {
+                    this.navlist = cloneDeep(state.result);
                     this.expandNavlistOnLoad(this.navlist);
                     this._cdr.markForCheck();
-                    this.navlist$?.unsubscribe();
-                })));
+                }));
+        });
     }
 
     private parseRouteSnapshot(snapshot: ActivatedRouteSnapshot): void {
-        let stack: ActivatedRouteSnapshot[] = [snapshot], path: string;
+        const stack: ActivatedRouteSnapshot[] = [snapshot];
+        let path: string;
 
         while (stack.length > 0) {
             snapshot = stack.pop() as ActivatedRouteSnapshot;
@@ -170,7 +195,8 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     private expandNavlistOnLoad(navlist: TreeNode<RouteUrlParam>[]): void {
-        let stack: TreeNode<RouteUrlParam>[] = [], queue: TreeNode<RouteUrlParam>[] = [], node: TreeNode<RouteUrlParam> = {};
+        const stack: TreeNode<RouteUrlParam>[] = [], queue: TreeNode<RouteUrlParam>[] = [];
+        let node: TreeNode<RouteUrlParam> = {};
 
         for (let i = navlist.length - 1; i >= 0; i--) {
             stack.push(navlist[i]);
@@ -189,7 +215,7 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
             }
         }
         
-        for (let item of queue) {
+        for (const item of queue) {
             if (!item.key || !node.key?.includes(item.key)) continue;
 
             if (item.leaf) {

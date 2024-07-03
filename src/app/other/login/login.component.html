@@ -1,29 +1,77 @@
-<div class="fixed flex align-items-center gap-5" [style.left]="calculateXAxisPosition(titleBox)" [style.top]="'20%'" #titleBox>
-    <p-image src="assets/tauri.svg" alt="logo" width="192" height="192"/>
-    <span class="font-bold text-primary" [style.font-size]="'11rem'">TauriNG</span>
-</div>
-<div class="card border-round-md border-2 surface-border fixed w-30rem" [style.backdrop-filter]="'blur(0.5rem)'" [style.height]="'fit-content'" [style.left]="calculateXAxisPosition(loginBox)" [style.bottom]="'30%'" #loginBox>
-    <div class="flex align-items-center px-3 pt-3 gap-3">
-        <i class="pi pi-prime text-5xl"></i>
-        <span class="font-bold text-4xl">用户登入</span>
+<div class="flex border-round-md overflow-hidden">
+    <div class="flex flex-auto bg-primary">
+        <img src="assets/images/login.svg" alt="login.svg" width="1024" height="1024" />
     </div>
-    <p-divider />
-    <form [formGroup]="loginFormGroup" class="formgrid grid px-3 gap-3">
-        <div class="field col-12 flex align-items-end gap-3">
-            <label for="username"><i class="pi pi-user text-2xl"></i></label>
-            <input type="text" pInputText placeholder="请输入账号" id="username" formControlName="usernameControl" class="flex-auto ng-invalid" 
-                [class.ng-dirty]="!loginFormGroup.controls['usernameControl'].valid"/>
+    <div class="flex flex-column" [style.width]="'40rem'">
+        <div class="tabview-navbar flex surface-ground">
+            <a class="flex flex-auto justify-content-center align-items-center no-underline p-4 gap-4" 
+                [class.bg-primary]="index === 0" [class.text-color]="index === 0" 
+                (click)="handleTabPanelSwitchEvent(0)">
+                <span class="pi pi-users text-4xl"></span>
+                <span class="font-bold text-3xl">{{TRANSLATION_MESSAGES[1]}}</span>
+            </a>
+            <a class="flex flex-auto justify-content-center align-items-center no-underline p-4 gap-4"
+                [class.bg-primary]="index === 1" [class.text-color]="index === 1" 
+                (click)="handleTabPanelSwitchEvent(1)">
+                <span class="pi pi-user text-3xl"></span>
+                <span class="font-bold text-3xl">{{TRANSLATION_MESSAGES[2]}}</span>
+            </a>
         </div>
-        <div class="field col-12 flex align-items-end gap-3">
-            <label for="password"><i class="pi pi-key text-2xl"></i></label>
-            <p-password promptLabel="当前密码强度" weakLabel="较弱" mediumLabel="中等" strongLabel="较强" placeholder="请输入密码" id="password" formControlName="passwordControl" class="flex-auto ng-invalid" 
-                [class.ng-dirty]="!loginFormGroup.controls['passwordControl'].valid" 
-                styleClass="w-full" inputStyleClass="w-full"/>
-        </div>
-    </form>
-    <p-divider />
-    <div class="flex justify-content-between px-3 pb-3">
-        <p-button label="忘记密码" [link]="true" styleClass="text-color"/>
-        <p-button icon="pi pi-sign-in" label="登入" (click)="invokeSubmitEvent()"/>
+        <p-tabView [activeIndex]="index" class="flex-auto" styleClass="flex flex-column h-full">
+            <p-tabPanel>
+                <div class="flex flex-column p-6 gap-4" >
+                    <article>
+                        <p>{{TRANSLATION_MESSAGES[31]}}</p>
+                        <p>{{TRANSLATION_MESSAGES[32]}}</p>
+                        <p>{{TRANSLATION_MESSAGES[33]}}</p>
+                        <p>{{TRANSLATION_MESSAGES[34]}}</p>
+                    </article>
+                    <form [formGroup]="usersFormGroup" class="formgrid grid my-8 gap-4">
+                        <div class="field col-12 flex align-items-end gap-4">
+                            <label for="usersUsername"><i class="pi pi-user text-2xl"></i></label>
+                            <input type="text" pInputText [placeholder]="TRANSLATION_MESSAGES[4]" id="usersUsername" formControlName="usernameControl"
+                                class="flex-auto ng-invalid" [class.ng-dirty]="!usersFormGroup.controls['usernameControl'].valid" />
+                        </div>
+                        <div class="field col-12 flex align-items-end gap-4">
+                            <label for="usersPassword"><i class="pi pi-key text-2xl"></i></label>
+                            <p-password [promptLabel]="TRANSLATION_MESSAGES[51]" [weakLabel]="TRANSLATION_MESSAGES[52]" [mediumLabel]="TRANSLATION_MESSAGES[53]" [strongLabel]="TRANSLATION_MESSAGES[54]" [placeholder]="TRANSLATION_MESSAGES[5]"
+                                id="usersPassword" formControlName="passwordControl" class="flex-auto ng-invalid"
+                                [class.ng-dirty]="!usersFormGroup.controls['passwordControl'].valid" styleClass="w-full"
+                                inputStyleClass="w-full" />
+                        </div>
+                    </form>
+                    <div class="flex justify-content-between">
+                        <p-button [label]="TRANSLATION_MESSAGES[6]" [link]="true" />
+                        <p-button [label]="TRANSLATION_MESSAGES[7]" (click)="handleUsersSubmitEvent()" />
+                    </div>
+                </div>
+            </p-tabPanel>
+            <p-tabPanel>
+                <div class="flex flex-column p-6 gap-4">
+                    <article>
+                        <p>{{TRANSLATION_MESSAGES[81]}}</p>
+                        <p>{{TRANSLATION_MESSAGES[82]}}</p>
+                        <p>{{TRANSLATION_MESSAGES[83]}}</p>
+                    </article>
+                    <form [formGroup]="adminFormGroup" class="formgrid grid my-8 gap-4">
+                        <div class="field col-12 flex align-items-end gap-4">
+                            <label for="adminUsername"><i class="pi pi-user text-2xl"></i></label>
+                            <input type="text" pInputText [placeholder]="TRANSLATION_MESSAGES[4]" id="adminUsername" formControlName="usernameControl"
+                                class="flex-auto ng-invalid" [class.ng-dirty]="!adminFormGroup.controls['usernameControl'].valid" />
+                        </div>
+                        <div class="field col-12 flex align-items-end gap-4">
+                            <label for="adminPassword"><i class="pi pi-key text-2xl"></i></label>
+                            <p-password [promptLabel]="TRANSLATION_MESSAGES[51]" [weakLabel]="TRANSLATION_MESSAGES[52]" [mediumLabel]="TRANSLATION_MESSAGES[53]" [strongLabel]="TRANSLATION_MESSAGES[54]" [placeholder]="TRANSLATION_MESSAGES[5]"
+                                id="adminPassword" formControlName="passwordControl" class="flex-auto ng-invalid"
+                                [class.ng-dirty]="!adminFormGroup.controls['passwordControl'].valid" styleClass="w-full"
+                                inputStyleClass="w-full" />
+                        </div>
+                    </form>
+                    <div class="flex justify-content-end">
+                        <p-button [label]="TRANSLATION_MESSAGES[7]" (click)="handleAdminSubmitEvent()" />
+                    </div>
+                </div>
+            </p-tabPanel>
+        </p-tabView>
     </div>
 </div>

@@ -1,0 +1,38 @@
+.tauri-ngx-empty-holder {
+    > div {
+        backdrop-filter: blur(0.5rem);
+    }
+}
+
+.tauri-ngx-tree-list {
+    &::-webkit-scrollbar-thumb {
+        visibility: hidden;
+    }
+
+    &:hover {
+        &::-webkit-scrollbar-thumb {
+            visibility: visible;
+        }
+    }
+
+    .tauri-ngx-tree-node {
+        &.visible {
+            display: flex;
+        }
+
+        &.hidden {
+            display: none;
+        }
+
+        .control-button {
+            min-width: 1.5rem;
+            min-height: 1.5rem;
+            max-width: 1.5rem;
+            max-height: 1.5rem;
+
+            &.hidden {
+                visibility: hidden;
+            }
+        }
+    }
+}

@@ -1,19 +1,13 @@
-<div class="fixed border-round-md grid nested-grid p-3 gap-6" [style.backdrop-filter]="'blur(0.25rem)'" [style.top]="calculateYAxisPosition(container)" [style.left]="calculateXAxisPosition(container)" [style.width]="'50rem'" [style.height]="'fit-content'" #container>
-    <div class="col-12">
-        <div class="grid nested-grid">
-            <div class="col-fixed">
-                <p-image src="assets/tauri.svg" alt="logo" width="192" height="192"/>
-            </div>
-            <div class="col-8">
-                <div class="grid">
-                    <div class="col-12 font-bold text-primary text-8xl">{{code}}</div>
-                    <div class="col-12 font-bold text-primary text-4xl">该页面根本不存在，嚯嚯嚯</div>
-                </div>
-            </div>
-        </div>
+<div class="flex border-3 surface-border w-10 p-8 gap-8" [style.backdrop-filter]="'blur(0.5rem)'">
+    <div class="border-circle border-3 border-500 bg-primary w-4 p-3">
+        <img src="assets/images/error.404.svg" alt="error.404.svg" width="100%"/>
     </div>
-    <div class="col flex justify-content-between align-items-center">
-        <p-button icon="pi pi-home" label="返回首页" size="large" [rounded]="true" [routerLink]="['/playground']"/>
-        <p-button icon="pi pi-question" label="关于本站" size="large" [rounded]="true" [routerLink]="['/abount']"/>
+    <div class="flex flex-column w-8 gap-4">
+        <div class="font-bold text-primary text-8xl">页面未找到</div>
+        <div class="flex-auto font-bold text-primary text-4xl">该页面根本不存在，嚯嚯嚯</div>
+        <div class="flex justify-content-between align-items-center">
+            <p-button label="返回首页" [routerLink]="['/playground', 'dashboard']"/>
+            <p-button label="关于本站" [routerLink]="['/abount']"/>
+        </div>
     </div>
 </div>

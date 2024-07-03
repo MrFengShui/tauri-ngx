@@ -1,13 +1,5 @@
 export const CRYPTO_SECRET_KEY: string = window.btoa('tauri-app');
 
-export interface AuthResponseModel {
-
-    status: 'success' | 'failure';
-    subject: string;
-    message: string;
-
-}
-
 export interface AuthAccountModel {
 
     username: string;
@@ -26,7 +18,6 @@ export interface AuthProfileAvatarModel {
 
 export interface AuthProfileModel {
 
-    id: string;
     avatar: AuthProfileAvatarModel;
     nickname: string;
     createTime: number;
@@ -36,23 +27,23 @@ export interface AuthProfileModel {
 
 export interface AuthAccountProfileModel {
 
+    id: string;
     account: AuthAccountModel;
     profile: AuthProfileModel;
 
 }
 
-export interface AuthDialogDataPassModel {
+export interface AuthAccountProfileFormModel {
 
-    action: 'create' | 'update' | null;
-    account: AuthAccountModel;
-    profile: AuthProfileModel;
+    state: 'create' | 'update' | null;
+    value: AuthAccountProfileModel;
 
 }
 
-export interface AuthReducerState {
+export interface AuthReducerState<T = any> {
 
     action: string;
-    value?: AuthAccountProfileModel[] | AuthAccountProfileModel;
-    response?: AuthResponseModel;
+    result: T | null;
+    message: string;
 
 }

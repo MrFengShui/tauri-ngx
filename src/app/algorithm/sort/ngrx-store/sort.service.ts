@@ -5,7 +5,7 @@ import { random } from 'lodash';
 
 import { SortDataModel, SortStateModel, SortOrder, SortRadix, SortOrderOptionModel, SortRadixOptionModel, SortMergeWayOptionModel } from "../ngrx-store/sort.state";
 
-import { CLEAR_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR, SORT_DELAY_DURATION, delay } from "../sort.utils";
+import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, SORT_DELAY_DURATION, delay, swap } from "../sort.utils";
 
 import { BubbleSortService, CooktailSortService } from "../service/bubble-sort.service";
 import { BinarySearchInserionSortService, InsertionSortService, ShellSortService } from "../service/insertion-sort.service";
@@ -33,25 +33,25 @@ import { BottomUpOddEvenMergeSortService, TopDownOddEvenMergeSortService } from 
 import { PatienceSortService } from "../service/patience-sort.service";
 import { StrandSortService } from "../service/strand-sort.service";
 import { TimSortService } from "../service/tim-sort.service";
+import { LocaleIDType } from "../../../main/ngrx-store/main.state";
 
 @Injectable()
 export class SortLoadConfigService {
 
     constructor(private _http: HttpClient) {}
 
-    public loadSortOrderOptions(): Observable<SortOrderOptionModel[]> {
-        return this._http.get<{ list: SortOrderOptionModel[] }>('config/sort.order.option.json', { responseType: 'json' })
-            .pipe(map(value => value.list))
+    public loadSortOrderOptions(localeID: LocaleIDType | string): Observable<SortOrderOptionModel[]> {
+        return this._http.get<{ list: SortOrderOptionModel[] }>(`config/algorithm/sort/order/order.${localeID}.json`, 
+            { responseType: 'json' }).pipe(map(value => value.list));
     }
 
-    public loadSortRadixOptions(): Observable<SortRadixOptionModel[]> {
-        return this._http.get<{ list: SortRadixOptionModel[] }>('config/sort.radix.option.json', { responseType: 'json' })
-            .pipe(map(value => value.list))
+    public loadSortRadixOptions(localeID: LocaleIDType | string): Observable<SortRadixOptionModel[]> {
+        return this._http.get<{ list: SortRadixOptionModel[] }>(`config/algorithm/sort/radix/radix.${localeID}.json`, 
+            { responseType: 'json' }).pipe(map(value => value.list));
     }
 
-    public loadSortMergeWayOptions(): Observable<SortMergeWayOptionModel[]> {
-        return this._http.get<{ list: SortMergeWayOptionModel[] }>('config/sort.merge-way.option.json', { responseType: 'json' })
-            .pipe(map(value => value.list))
+    public loadSortMergeWayOptions(localeID: LocaleIDType | string): Observable<SortMergeWayOptionModel[]> {
+        return this._http.get<{ list: SortMergeWayOptionModel[] }>(`config/algorithm/sort/merge-way/merge-way.${localeID}.json`, { responseType: 'json' }).pipe(map(value => value.list));
     }
 
 }
@@ -61,11 +61,11 @@ export class SortUtilsService {
 
     public createDataList(size: number, name: string): Observable<SortDataModel[]> {
         return new Observable(subscriber => {
-            let list: SortDataModel[] = Array.from([]);
-            let binMaxLength: number = size.toString(2).length;
-            let octMaxLength: number = size.toString(8).length;
-            let decMaxLength: number = size.toString(10).length;
-            let hexMaxLength: number = size.toString(16).length;
+            const list: SortDataModel[] = Array.from([]);
+            const binMaxLength: number = size.toString(2).length;
+            const octMaxLength: number = size.toString(8).length;
+            const decMaxLength: number = size.toString(10).length;
+            const hexMaxLength: number = size.toString(16).length;
     
             for(let i = 0; i < size; i++) {
                 list.push({ 
@@ -84,47 +84,44 @@ export class SortUtilsService {
         });
     }
 
-    public shuffleDataList(list: SortDataModel[]): Observable<SortStateModel> {
+    public shuffleDataList(source: SortDataModel[]): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            this.shuffle(list, param => subscriber.next(param)).then(() => subscriber.complete());
+            this.shuffle(source, param => subscriber.next(param)).then(() => subscriber.complete());
         });
     }
 
-    private async shuffle(list: SortDataModel[], callback: (param: SortStateModel) => void): Promise<void> {
-        let i: number = 0, j: number = list.length - 1, m: number, n: number, temp: SortDataModel;
+    private async shuffle(source: SortDataModel[], callback: (param: SortStateModel) => void): Promise<void> {
+        const threshold: number = source.length - 1, temp: SortDataModel = { color: '', value: Number.NaN };
+        let m: number = Number.NaN, n: number = Number.NaN;
 
-        while(i < j) {
-            m = random(i + 1, j, false);
-            n = random(i, j - 1, false);
+        for (let i = 0, j = threshold; i <= threshold && j >= 0; i++, j--) {
+            if (i < j) {
+                m = random(i + 1, j, false);
+                n = random(i, j - 1, false);
+            }
 
-            list[i].color = PRIMARY_ONE_COLOR;
-            list[j].color = SECONDARY_ONE_COLOR;
-            list[m].color = PRIMARY_TWO_COLOR;
-            list[n].color = SECONDARY_TWO_COLOR;
-            callback({ times: 0, datalist: list });
+            if (i > j) {
+                m = random(j + 1, i - 1, false);
+                n = random(j + 1, i - 1, false);
+            }            
 
+            source[i].color = PRIMARY_COLOR;
+            source[j].color = SECONDARY_COLOR;
+            callback({ times: 0, datalist: source });
+
+            await swap(source, i, m, temp);
+            await swap(source, j, n, temp);
             await delay(SORT_DELAY_DURATION);
             
-            temp = list[i];
-            list[i] = list[m];
-            list[m] = temp;
-            
-            temp = list[j];
-            list[j] = list[n];
-            list[n] = temp;
-
-            list[i].color = CLEAR_COLOR;
-            list[j].color = CLEAR_COLOR;
-            list[m].color = CLEAR_COLOR;
-            list[n].color = CLEAR_COLOR;
-            callback({ times: 0, datalist: list });
-
-            i += 1;
-            j -= 1;
+            source[i].color = CLEAR_COLOR;
+            source[j].color = CLEAR_COLOR;
+            source[m].color = CLEAR_COLOR;
+            source[n].color = CLEAR_COLOR;
+            callback({ times: 0, datalist: source });
         }
 
         await delay(SORT_DELAY_DURATION);
-        callback({ times: 0, datalist: list });
+        callback({ times: 0, datalist: source });
     }
 
 }
@@ -135,7 +132,7 @@ export class SortToolsService {
     public findMinMaxValue(source: SortDataModel[]): [number, number] {
         let min: number = Number.MAX_SAFE_INTEGER, max: number = Number.MIN_SAFE_INTEGER;
         
-        for (let item of source) {
+        for (const item of source) {
             if (item.value < min) {
                 min = item.value;
             }

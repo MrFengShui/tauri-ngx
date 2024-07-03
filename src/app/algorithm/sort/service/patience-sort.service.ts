@@ -11,8 +11,6 @@ export class PatienceSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
-
             if (order === 'ascent') {
                 this.sortByAscent(array, false, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }

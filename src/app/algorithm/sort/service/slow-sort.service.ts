@@ -12,7 +12,7 @@ export class SlowSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            let temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
                 this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -38,7 +38,7 @@ export class SlowSortService {
 
     private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, order: SortOrder, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
         if (rhs > lhs) {
-            let mid: number = Math.floor((rhs - lhs) * 0.5 + lhs);
+            const mid: number = Math.floor((rhs - lhs) * 0.5 + lhs);
             times = await this.sortByOrder(source, lhs, mid, temp, order, times, callback);
             times = await this.sortByOrder(source, mid + 1, rhs, temp, order, times, callback);
 

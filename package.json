@@ -9,10 +9,10 @@
         "tslint-help": "tslint --help",
         "ng": "ng",
         "start": "ng serve",
-        "start:zhs": "ng serve --serve-path /tauri-ngx/web/zh-hans/ --configuration=production,locale-zh-hans",
-        "start:zht": "ng serve --serve-path /tauri-ngx/web/zh-hant/ --configuration=production,locale-zh-hant",
+        "start:zhs": "ng serve --configuration=locale-zh-hans",
+        "start:zht": "ng serve --configuration=locale-zh-hant",
         "build": "ng build",
-        "lint": "ng lint",
+        "lint": "ng lint --fix",
         "i18n:extract": "ng extract-i18n",
         "watch": "ng build --watch --configuration development"
     },

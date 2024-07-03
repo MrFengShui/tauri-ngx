@@ -4,14 +4,19 @@
         border: none;
     }
 
+    .p-dataview-header, .p-paginator {
+        height: 5rem !important;
+    }
+
     .p-dataview-content, .p-dataview-emptymessage {
+        $width: 1px;
         border-color: var(--surface-border);
-        border-top-width: 1px;
-        border-bottom-width: 1px;
+        border-top-width: $width;
+        border-bottom-width: $width;
         border-left-width: 0;
         border-right-width: 0;
         border-style: solid;
-        height: calc(45rem - 2px - 80px - 70px);
+        height: calc(100vh - 2 * $width - 2 * 5rem);
     }
 }
 

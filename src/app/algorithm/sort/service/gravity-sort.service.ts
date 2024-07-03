@@ -3,7 +3,7 @@ import { Observable } from "rxjs";
 import { cloneDeep } from "lodash";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { ACCENT_COLOR, CLEAR_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { ACCENT_COLOR, CLEAR_COLOR, SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
 
 @Injectable()
 export class GravitySortService {
@@ -21,8 +21,8 @@ export class GravitySortService {
     }
 
     private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let totalRow: number = source.length, totalCol: number = this.findMaxValue(source, 0, source.length - 1), count: number;
-        let grid: boolean[][] = Array.from([]);
+        const totalRow: number = source.length, totalCol: number = this.findMaxValue(source, 0, source.length - 1), grid: boolean[][] = Array.from([]);
+        let count: number;
 
         for (let i = 0; i < totalRow; i++) {
             times += 1;
@@ -35,7 +35,7 @@ export class GravitySortService {
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
 
-            let list: boolean[] = Array.from([]);
+            const list: boolean[] = Array.from([]);
 
             for (let j = 0; j < totalCol; j++) {
                 list.push(j < totalCol - source[i].value ? false : true);
@@ -77,8 +77,8 @@ export class GravitySortService {
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        let totalRow: number = source.length, totalCol: number = this.findMaxValue(source, 0, source.length - 1), count: number;
-        let grid: boolean[][] = Array.from([]);
+        const totalRow: number = source.length, totalCol: number = this.findMaxValue(source, 0, source.length - 1), grid: boolean[][] = Array.from([]);
+        let count: number;
 
         for (let i = 0; i < totalRow; i++) {
             times += 1;
@@ -91,7 +91,7 @@ export class GravitySortService {
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
 
-            let list: boolean[] = Array.from([]);
+            const list: boolean[] = Array.from([]);
 
             for (let j = 0; j < totalCol; j++) {
                 list.push(j < source[i].value ? true : false);

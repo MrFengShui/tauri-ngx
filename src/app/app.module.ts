@@ -27,7 +27,14 @@ import { AlgorithmModule } from "./algorithm/algo.module";
 import { MainModule } from "./main/main.module";
 import { OtherModule } from "./other/other.module";
 
-import { AppConfigService, AppNavlistService, AppStyleService } from "./ngrx-store/app.service";
+import { AppStyleService } from "./ngrx-store/app.service";
+import { IDBDatabaseService, IDBObjectStoreService } from "./public/indexeddb/indexeddb.service";
+import { AppStyleEffect } from "./ngrx-store/app.effect";
+import { APP_FEATURE_KEY } from "./ngrx-store/app.selector";
+import { APP_STYLE_REDUCER } from "./ngrx-store/app.reducer";
+import { IDBDatabaseEffect, IDBObjectStoreEffect } from "./public/indexeddb/indexeddb.effect";
+import { IDB_OBJECT_STORE_REDUCER } from "./public/indexeddb/indexeddb.reducer";
+import { IDB_FEATURE_KEY } from "./public/indexeddb/indexeddb.selector";
 
 @NgModule({
     declarations: [
@@ -42,8 +49,18 @@ import { AppConfigService, AppNavlistService, AppStyleService } from "./ngrx-sto
         RouterModule,
         AppRouteModule,
 
-        EffectsModule.forRoot(),
-        StoreModule.forRoot(),
+        EffectsModule.forRoot(AppStyleEffect, IDBDatabaseEffect, IDBObjectStoreEffect),
+        StoreModule.forRoot([], {
+            runtimeChecks: {
+                strictActionImmutability: true,
+                strictActionSerializability: true,
+                strictActionTypeUniqueness: true,
+                strictStateImmutability: true,
+                strictStateSerializability: true,
+                strictActionWithinNgZone: true
+            }
+        }),
+        StoreModule.forFeature(APP_FEATURE_KEY, { 'feature': APP_STYLE_REDUCER }),
         StoreDevtoolsModule.instrument({
             autoPause: true,
             connectInZone: true,
@@ -68,7 +85,7 @@ import { AppConfigService, AppNavlistService, AppStyleService } from "./ngrx-sto
         OtherModule
     ],
     providers: [
-        AppConfigService, AppStyleService, AppNavlistService
+        AppStyleService, IDBDatabaseService, IDBObjectStoreService
     ],
     bootstrap: [AppComponent]
 })

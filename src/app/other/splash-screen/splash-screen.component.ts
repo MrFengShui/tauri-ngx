@@ -5,7 +5,7 @@ import { random } from 'lodash';
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
-    selector: 'tauri-app-splash-screen-page',
+    selector: 'tauri-ngx-splash-screen-page',
     templateUrl: './splash-screen.component.html',
     styleUrl: './splash-screen.component.scss'
 })
