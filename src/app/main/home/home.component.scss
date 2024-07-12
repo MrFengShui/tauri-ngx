@@ -14,3 +14,25 @@
     }
 }
 
+.tauri-ngx-navlist {
+    &.visible {
+        display: flex;
+    }
+
+    &.hidden {
+        display: none;
+    }
+
+    a {
+        .control-button {
+            min-width: 1.5rem;
+            min-height: 1.5rem;
+            max-width: 1.5rem;
+            max-height: 1.5rem;
+    
+            &.hidden {
+                visibility: hidden;
+            }
+        }
+    }
+}

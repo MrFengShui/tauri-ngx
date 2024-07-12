@@ -27,7 +27,7 @@ export class SelectionSortService {
     private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
         let pivot: number;
         
-        for (let i = 0; i < source.length; i++) {
+        for (let i = 0, length = source.length; i < length; i++) {
             pivot = i;
             
             for (let j = pivot + 1; j < source.length; j++) {
@@ -71,7 +71,7 @@ export class SelectionSortService {
     private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
         let pivot: number;
         
-        for (let i = 0; i < source.length; i++) {
+        for (let i = 0, length = source.length; i < length; i++) {
             pivot = i;
             
             for (let j = pivot + 1; j < source.length; j++) {
@@ -118,29 +118,30 @@ export class SelectionSortService {
  * 选择排序（双向）
  */
 @Injectable()
-export class BiSelectionSortService {
+export class ShakerSelectionSortService {
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
             const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
 
             if (order === 'ascent') {
-                this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByAscent(array, temp, false, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }
     
             if (order === 'descent') {
-                this.sortByDescent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByDescent(array, temp, false, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }
         });
     }
 
-    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, flag: boolean, times: number, callback: (param: SortStateModel) => void): Promise<void> {
         let i: number, j: number, k: number, pivot: number;
         
-        for (i = 0; i < source.length; i++) {
+        for (i = 0, length = source.length; i < length; i++) {
             pivot = i;
+            flag = false;
             
-            for (j = pivot + 1; j < source.length - i; j++) {
+            for (j = pivot + 1; j < length - i; j++) {
                 source[i].color = PRIMARY_ONE_COLOR;
                 source[j].color = SECONDARY_ONE_COLOR;
                 source[pivot].color = ACCENT_ONE_COLOR;
@@ -149,6 +150,7 @@ export class BiSelectionSortService {
                 if (source[j].value < source[pivot].value) {
                     source[pivot].color = CLEAR_COLOR;
                     pivot = j;
+                    flag = true;
                 }
 
                 await delay(SORT_DELAY_DURATION);
@@ -176,7 +178,7 @@ export class BiSelectionSortService {
             source[pivot].color = CLEAR_COLOR;
             callback({ times, datalist: source});
 
-            k = source.length - i - 1;
+            k = length - i - 1;
             pivot = k;
 
             for (j = pivot - 1; j > i; j--) {
@@ -188,6 +190,7 @@ export class BiSelectionSortService {
                 if (source[j].value > source[pivot].value) {
                     source[pivot].color = CLEAR_COLOR;
                     pivot = j;
+                    flag = true;
                 }
 
                 await delay(SORT_DELAY_DURATION);
@@ -213,19 +216,22 @@ export class BiSelectionSortService {
             source[k].color = CLEAR_COLOR;
             source[pivot].color = CLEAR_COLOR;
             callback({ times, datalist: source});
+
+            if (!flag) break;
         }
 
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
+    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, flag: boolean, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
         let i: number, j: number, k: number, pivot: number;
         
-        for (i = 0; i < source.length; i++) {
+        for (i = 0, length = source.length; i < length; i++) {
             pivot = i;
+            flag = false;
             
-            for (j = pivot + 1; j < source.length - i; j++) {
+            for (j = pivot + 1; j < length - i; j++) {
                 source[i].color = PRIMARY_ONE_COLOR;
                 source[j].color = SECONDARY_ONE_COLOR;
                 source[pivot].color = ACCENT_ONE_COLOR;
@@ -234,6 +240,7 @@ export class BiSelectionSortService {
                 if (source[j].value > source[pivot].value) {
                     source[pivot].color = CLEAR_COLOR;
                     pivot = j;
+                    flag = true;
                 }
 
                 await delay(SORT_DELAY_DURATION);
@@ -260,7 +267,7 @@ export class BiSelectionSortService {
             source[pivot].color = CLEAR_COLOR;
             callback({ times, datalist: source});
 
-            k = source.length - i - 1;
+            k = length - i - 1;
             pivot = k;
 
             for (j = pivot - 1; j > i; j--) {
@@ -272,6 +279,7 @@ export class BiSelectionSortService {
                 if (source[j].value < source[pivot].value) {
                     source[pivot].color = CLEAR_COLOR;
                     pivot = j;
+                    flag = true;
                 }
 
                 await delay(SORT_DELAY_DURATION);
@@ -296,6 +304,8 @@ export class BiSelectionSortService {
             source[k].color = CLEAR_COLOR;
             source[pivot].color = CLEAR_COLOR;
             callback({ times, datalist: source});
+
+            if (!flag) break;
         }
 
         await delay(SORT_DELAY_DURATION);

@@ -3,12 +3,16 @@ import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
 import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { SortToolsService } from "../ngrx-store/sort.service";
 
+const THRESHOLD: number = 16;
 /**
  * 单路快速排序（递归）
  */
 @Injectable()
 export class RecursiveQuickSortService {
+
+    constructor(private _service: SortToolsService) {}
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
@@ -40,16 +44,26 @@ export class RecursiveQuickSortService {
         let mid: number = -1;
 
         if (lhs < rhs) {
-            if (order === 'ascent') {
-                [times, mid] = await this.partitionByAscent(source, lhs, rhs, temp, times, callback);
+            if (rhs - lhs < THRESHOLD) {
+                if (order === 'ascent') {
+                    times = await this._service.stableSortByAscent(source, lhs, rhs, temp, times, callback);
+                }
+                
+                if (order === 'descent') {
+                    times = await this._service.stableSortByDescent(source, lhs, rhs, temp, times, callback);
+                }
+            } else {
+                if (order === 'ascent') {
+                    [times, mid] = await this.partitionByAscent(source, lhs, rhs, temp, times, callback);
+                }
+    
+                if (order === 'descent') {
+                    [times, mid] = await this.partitionByDescent(source, lhs, rhs, temp, times, callback);
+                }
+                
+                times = await this.sortByOrder(source, lhs, mid - 1, temp, order, times, callback);
+                times = await this.sortByOrder(source, mid + 1, rhs, temp, order, times, callback);
             }
-
-            if (order === 'descent') {
-                [times, mid] = await this.partitionByDescent(source, lhs, rhs, temp, times, callback);
-            }
-            
-            times = await this.sortByOrder(source, lhs, mid - 1, temp, order, times, callback);
-            times = await this.sortByOrder(source, mid + 1, rhs, temp, order, times, callback);
         }
 
         return times;
@@ -137,7 +151,10 @@ export class IterativeQuickSortService {
 
     private stack: number[] = Array.from([]);
 
-    constructor(private _service: RecursiveQuickSortService) {}
+    constructor(
+        private _sortService: RecursiveQuickSortService,
+        private _toolsService: SortToolsService
+    ) {}
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
@@ -163,18 +180,22 @@ export class IterativeQuickSortService {
             lhs = this.stack.pop() as number;
             rhs = this.stack.pop() as number;
             
-            [times, mid] = await this._service.partitionByAscent(source, lhs, rhs, temp, times, callback);
+            if (rhs - lhs < THRESHOLD) {
+                times = await this._toolsService.stableSortByAscent(source, lhs, rhs, temp, times, callback);
+            } else {
+                [times, mid] = await this._sortService.partitionByAscent(source, lhs, rhs, temp, times, callback);
 
-            if (mid + 1 < rhs) {
-                this.stack.push(rhs);
-                this.stack.push(mid + 1);
+                if (mid + 1 < rhs) {
+                    this.stack.push(rhs);
+                    this.stack.push(mid + 1);
+                }
+    
+                if (lhs < mid - 1) {
+                    this.stack.push(mid - 1);
+                    this.stack.push(lhs);
+                }
             }
-
-            if (lhs < mid - 1) {
-                this.stack.push(mid - 1);
-                this.stack.push(lhs);
-            }
-
+            
             source[lhs].color = PRIMARY_COLOR;
             source[rhs].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
@@ -201,18 +222,22 @@ export class IterativeQuickSortService {
             lhs = this.stack.pop() as number;
             rhs = this.stack.pop() as number;
 
-            [times, mid] = await this._service.partitionByDescent(source, lhs, rhs, temp, times, callback);
+            if (rhs - lhs < THRESHOLD) {
+                times = await this._toolsService.stableSortByDescent(source, lhs, rhs, temp, times, callback);
+            } else {
+                [times, mid] = await this._sortService.partitionByDescent(source, lhs, rhs, temp, times, callback);
 
-            if (mid + 1 < rhs) {
-                this.stack.push(rhs);
-                this.stack.push(mid + 1);
+                if (mid + 1 < rhs) {
+                    this.stack.push(rhs);
+                    this.stack.push(mid + 1);
+                }
+    
+                if (lhs < mid - 1) {
+                    this.stack.push(mid - 1);
+                    this.stack.push(lhs);
+                }
             }
-
-            if (lhs < mid - 1) {
-                this.stack.push(mid - 1);
-                this.stack.push(lhs);
-            }
-
+            
             source[lhs].color = PRIMARY_COLOR;
             source[rhs].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
@@ -743,7 +768,6 @@ export class ThreeWayIterativeQuickSortService {
 
 }
 
-
 /**
  * 双轴快速排序（递归）
  */
@@ -1001,7 +1025,6 @@ export class DualPivotRecursiveQuickSortService {
     }
 
 }
-
 
 /**
  * 双轴快速排序（递归）

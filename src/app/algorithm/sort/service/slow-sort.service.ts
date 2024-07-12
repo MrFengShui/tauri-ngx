@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { ACCENT_COLOR, CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
 
 /**
  * 慢速排序
@@ -46,15 +46,17 @@ export class SlowSortService {
             source[rhs].color = SECONDARY_COLOR;
 
             if (order === 'ascent' && source[mid].value > source[rhs].value) {
-                source[mid].color = 'dodgerblue';
-                await swap(source, mid, rhs, temp);
                 times += 1;
+
+                source[mid].color = ACCENT_COLOR;
+                await swap(source, mid, rhs, temp);
             }
 
             if (order === 'descent' && source[mid].value < source[rhs].value) {
-                source[mid].color = 'dodgerblue';
-                await swap(source, mid, rhs, temp);
                 times += 1;
+
+                source[mid].color = ACCENT_COLOR;
+                await swap(source, mid, rhs, temp);
             }
 
             callback({ times, datalist: source });

@@ -5,6 +5,7 @@ import { catchError, exhaustMap, map } from "rxjs";
 import { SortLoadConfigService } from "../ngrx-store/sort.service";
 
 import { 
+    SORT_HEAP_NODE_OPTION_LOAD_ACTION, SORT_HEAP_NODE_OPTION_LOAD_DONE_ACTION,
     SORT_MERGE_WAY_OPTION_LOAD_ACTION, SORT_MERGE_WAY_OPTION_LOAD_DONE_ACTION, 
     SORT_ORDER_OPTION_LOAD_ACTION, SORT_ORDER_OPTION_LOAD_DONE_ACTION, 
     SORT_RADIX_OPTION_LOAD_ACTION, SORT_RADIX_OPTION_LOAD_DONE_ACTION 
@@ -46,6 +47,18 @@ export class SortOrderOptionLoadEffect {
                         SORT_MERGE_WAY_OPTION_LOAD_DONE_ACTION({ action: action.type, result: value, message: '' })),
                     catchError(async () => 
                         SORT_MERGE_WAY_OPTION_LOAD_DONE_ACTION({ action: action.type, result: [], message: '' }))
+                ))
+        ));
+
+    loadHeapNodeOptions$ = createEffect(() => this._actions
+        .pipe(
+            ofType(SORT_HEAP_NODE_OPTION_LOAD_ACTION),
+            exhaustMap(action => this._service.loadSortHeapNodeOptions(action.localeID)
+                .pipe(
+                    map(value => 
+                        SORT_HEAP_NODE_OPTION_LOAD_DONE_ACTION({ action: action.type, result: value, message: '' })),
+                    catchError(async () => 
+                        SORT_HEAP_NODE_OPTION_LOAD_DONE_ACTION({ action: action.type, result: [], message: '' }))
                 ))
         ));
 

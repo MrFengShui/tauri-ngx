@@ -3,8 +3,9 @@
     "translations": {
         "sort_component_ts_1": "Quantity",
         "sort_component_ts_2": "Order",
-        "sort_component_ts_3": "Radix Base",
-        "sort_component_ts_4": "Merge Way",
+        "sort_component_ts_3_1": "Radix Base",
+        "sort_component_ts_3_2": "Merge Way",
+        "sort_component_ts_3_3": "Heap Node",
         "sort_component_ts_5": "Swapping/Writing Count",
         "sort_component_ts_6": "Time",
         "sort_component_ts_7": "Shuffle",

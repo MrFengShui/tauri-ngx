@@ -5,7 +5,79 @@ import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.sta
 import { CLEAR_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
 
 /**
- * 单向冒泡排序
+ * 交換排序
+ */
+@Injectable()
+export class ExchangeSortService {
+
+    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
+        return new Observable(subscriber => {
+            const temp: SortDataModel = { value: 0, color: '' };
+
+            if (order === 'ascent') {
+                this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+            }
+    
+            if (order === 'descent') {
+                this.sortByDescent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+            }
+        });
+    }
+
+    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        for (let i = 0, length = source.length; i < length; i++) {
+            for (let j = 0; j < length - 1; j++) {
+                source[j].color = PRIMARY_COLOR;
+
+                if (source[j + 1].value < source[j].value) {
+                    source[j + 1].color = SECONDARY_COLOR;
+                    await swap(source, j + 1, j, temp);
+                    times += 1;
+                }
+
+                callback({ times, datalist: source});
+
+                await delay(SORT_DELAY_DURATION);
+                
+                source[j].color = CLEAR_COLOR;
+                source[j + 1].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+            }
+        }
+
+        await delay(SORT_DELAY_DURATION);
+        await complete(source, times, callback);
+    }
+
+    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        for (let i = 0, length = source.length; i < length; i++) {
+            for (let j = 0; j < length - 1; j++) {
+                source[j].color = PRIMARY_COLOR;
+
+                if (source[j + 1].value > source[j].value) {
+                    source[j + 1].color = SECONDARY_COLOR;
+                    await swap(source, j + 1, j, temp);
+                    times += 1;
+                }
+
+                callback({ times, datalist: source});
+
+                await delay(SORT_DELAY_DURATION);
+                
+                source[j].color = CLEAR_COLOR;
+                source[j + 1].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+            }
+        }
+
+        await delay(SORT_DELAY_DURATION);
+        await complete(source, times, callback);
+    }
+
+}
+
+/**
+ * 冒泡排序（单向）
  */
 @Injectable()
 export class BubbleSortService {
@@ -25,10 +97,10 @@ export class BubbleSortService {
     }
 
     private async sortByAscent(source: SortDataModel[], temp: SortDataModel, flag: boolean, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        for (let i = 0; i < source.length; i++) {
+        for (let i = 0, length = source.length; i < length; i++) {
             flag = false;
 
-            for (let j = 0; j < source.length - i - 1; j++) {
+            for (let j = 0; j < length - i - 1; j++) {
                 source[j].color = PRIMARY_COLOR;
 
                 if (source[j + 1].value < source[j].value) {
@@ -54,11 +126,11 @@ export class BubbleSortService {
         await complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, flag: boolean, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        for (let i = 0; i < source.length; i++) {
+    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, flag: boolean, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        for (let i = 0, length = source.length; i < length; i++) {
             flag = false;
             
-            for (let j = 0; j < source.length - i - 1; j++) {
+            for (let j = 0; j < length - i - 1; j++) {
                 source[j].color = PRIMARY_COLOR;
 
                 if (source[j + 1].value > source[j].value) {
@@ -87,7 +159,7 @@ export class BubbleSortService {
 }
 
 /**
- * 双向冒泡排序
+ * 冒泡排序（双向）
  */
 @Injectable()
 export class CooktailSortService {
@@ -109,10 +181,10 @@ export class CooktailSortService {
     private async sortByAscent(source: SortDataModel[], temp: SortDataModel, flag: boolean, times: number, callback: (param: SortStateModel) => void): Promise<void> {
         let i: number, j: number, pivot: number = 0;
 
-        for (i = 0; i < source.length; i++) {
+        for (i = 0, length = source.length; i < length; i++) {
             flag = false;
 
-            for (j = pivot; j < source.length - i - 1; j++) {
+            for (j = pivot; j < length - i - 1; j++) {
                 source[j].color = PRIMARY_ONE_COLOR;
 
                 if (source[j + 1].value < source[j].value) {
@@ -161,13 +233,13 @@ export class CooktailSortService {
         await complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, flag: boolean, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
+    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, flag: boolean, times: number, callback: (param: SortStateModel) => void): Promise<void> {
         let i: number, j: number, pivot: number = 0;
 
-        for (i = 0; i < source.length; i++) {
+        for (i = 0, length = source.length; i < length; i++) {
             flag = false;
 
-            for (j = pivot; j < source.length - i - 1; j++) {
+            for (j = pivot; j < length - i - 1; j++) {
                 source[j].color = PRIMARY_ONE_COLOR;
 
                 if (source[j + 1].value > source[j].value) {
@@ -241,10 +313,10 @@ export class CombSortService {
     private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
         let flag: boolean = false;
 
-        for (let gap = source.length; gap > 1 || !flag; gap = Math.floor(gap * 0.8)) {
+        for (let gap = source.length, length = source.length; gap > 1 || !flag; gap = Math.floor(gap * 0.8)) {
             flag = true;
 
-            for (let j = 0; j < source.length - gap; j++) {
+            for (let j = 0; j < length - gap; j++) {
                 source[j].color = PRIMARY_COLOR;
                 
                 if (source[j + gap].value < source[j].value) {
@@ -268,13 +340,13 @@ export class CombSortService {
         await complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
+    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
         let flag: boolean = false;
 
-        for (let gap = source.length; gap > 1 || !flag; gap = Math.floor(gap * 0.8)) {
+        for (let gap = source.length, length = source.length; gap > 1 || !flag; gap = Math.floor(gap * 0.8)) {
             flag = true;
 
-            for (let j = 0; j < source.length - gap; j++) {
+            for (let j = 0; j < length - gap; j++) {
                 source[j].color = PRIMARY_COLOR;
 
                 if (source[j + gap].value > source[j].value) {
@@ -323,10 +395,10 @@ export class OddEvenSortService {
     private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
         let flag: boolean = false;
 
-        for (let i = 0; !flag; i = (i + 1) % 2) {
+        for (let i = 0, length = source.length; !flag; i = (i + 1) % 2) {
             flag = true;
 
-            for (let j = i; j < source.length - 1; j += 2) {
+            for (let j = i; j < length - 1; j += 2) {
                 source[j].color = PRIMARY_ONE_COLOR;
                 callback({ times, datalist: source });
 
@@ -351,13 +423,13 @@ export class OddEvenSortService {
         await complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
+    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
         let flag: boolean = false;
 
-        for (let i = 0; !flag; i = (i + 1) % 2) {
+        for (let i = 0, length = source.length; !flag; i = (i + 1) % 2) {
             flag = true;
 
-            for (let j = i; j < source.length - 1; j += 2) {
+            for (let j = i; j < length - 1; j += 2) {
                 source[j].color = PRIMARY_ONE_COLOR;
                 callback({ times, datalist: source });
 

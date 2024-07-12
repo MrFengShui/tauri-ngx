@@ -3,6 +3,8 @@ import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder, SortDataRadixModel, SortRadix } from "../ngrx-store/sort.state";
 import { ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { cloneDeep } from "lodash";
+import { SortToolsService } from "../ngrx-store/sort.service";
 
 const matchKeyByRadix = (model: SortDataRadixModel, radix: SortRadix, digit: number): string => {
     if (radix === 2) {
@@ -68,37 +70,30 @@ export class RadixLSDSortService {
     }
 
     private async sortByAscent(source: SortDataModel[], radix: SortRadix, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        const length: number = matchLengthByRadix(source[0].radix as SortDataRadixModel, radix);
-        let index: number, key: string = '';
+        const matchLength: number = matchLengthByRadix(source[0].radix as SortDataRadixModel, radix);
+        let index: number, key: string = '', keys: string[];
         
-        for (let i = length - 1; i >= 0; i--) {
-            for (const item of source) {
-                times += 1;
-
-                key = matchKeyByRadix(item.radix as SortDataRadixModel, radix, i);
-
-                item.color = ACCENT_ONE_COLOR;
-                callback({ times, datalist: source});
-
-                await delay(SORT_DELAY_DURATION);
-                
-                item.color = CLEAR_COLOR;
-                callback({ times, datalist: source});
-
-                this.cache[key].push(item);
-            }
+        for (let digit = matchLength - 1; digit >= 0; digit--) {
+            times = await this.save(source, digit, radix, times, callback);
             
+            keys = Object.keys(this.cache);
             index = 0;
 
-            for (const key of Object.keys(this.cache)) {
-                if (this.cache[key].length === 0) continue;
+            for (let i = 0; i < keys.length; i++) {
+                if (this.cache[keys[i]].length === 0) continue;
 
-                for (let i = 0; i < this.cache[key].length; i++) {
-                    source[index] = this.cache[key][i];
+                for (let j = 0, length = this.cache[keys[i]].length; j < length; j++) {
+                    times += 1;
+
+                    source[index] = this.cache[keys[i]][j];
                     source[index].color = ACCENT_TWO_COLOR;
-                    await delay(SORT_DELAY_DURATION);
                     callback({ times, datalist: source });
+
+                    await delay(SORT_DELAY_DURATION);
+
                     source[index].color = CLEAR_COLOR;
+                    callback({ times, datalist: source });
+                    
                     index += 1;
                 }
             }
@@ -112,29 +107,29 @@ export class RadixLSDSortService {
 
     private async sortByDescent(source: SortDataModel[], radix: SortRadix, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
         const length: number = matchLengthByRadix(source[0].radix as SortDataRadixModel, radix);
-        let index: number, key: string = '';
+        let index: number, keys: string[];
         
-        for (let i = length - 1; i >= 0; i--) {
-            for (const item of source) {
-                key = matchKeyByRadix(item.radix as SortDataRadixModel, radix, i);
-                item.color = ACCENT_ONE_COLOR;
-                await delay(SORT_DELAY_DURATION);
-                callback({ times, datalist: source});
-                item.color = CLEAR_COLOR;
-                this.cache[key].push(item);
-            }
+        for (let digit = length - 1; digit >= 0; digit--) {
+            times = await this.save(source, digit, radix, times, callback);
             
+            keys = Object.keys(this.cache);
             index = 0;
 
-            for (const key of Object.keys(this.cache).reverse()) {
-                if (this.cache[key].length === 0) continue;
+            for (let i = keys.length - 1; i >= 0; i--) {
+                if (this.cache[keys[i]].length === 0) continue;
 
-                for (let i = 0; i < this.cache[key].length; i++) {
-                    source[index] = this.cache[key][i];
+                for (let j = 0, length = this.cache[keys[i]].length; j < length; j++) {
+                    times += 1;
+
+                    source[index] = this.cache[keys[i]][j];
                     source[index].color = ACCENT_TWO_COLOR;
-                    await delay(SORT_DELAY_DURATION);
                     callback({ times, datalist: source });
+
+                    await delay(SORT_DELAY_DURATION);
+
                     source[index].color = CLEAR_COLOR;
+                    callback({ times, datalist: source });
+                    
                     index += 1;
                 }
             }
@@ -144,6 +139,28 @@ export class RadixLSDSortService {
         
         await delay(SORT_DELAY_DURATION);
         await complete(source, 0, callback);
+    }
+
+    private async save(source: SortDataModel[], digit: number, radix: SortRadix, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
+        let key: string;
+
+        for (let i = 0, length = source.length; i < length; i++) {
+            key = matchKeyByRadix(source[i].radix as SortDataRadixModel, radix, digit);
+            
+            times += 1;
+
+            source[i].color = ACCENT_ONE_COLOR;
+            callback({ times, datalist: source});
+
+            await delay(SORT_DELAY_DURATION);
+            
+            source[i].color = CLEAR_COLOR;
+            callback({ times, datalist: source});
+
+            this.cache[key].push(source[i]);
+        }
+
+        return times;
     }
 
     private async clear(): Promise<void> {
@@ -168,19 +185,18 @@ export class RadixMSDSortService {
 
     public sort(array: SortDataModel[], order: SortOrder, radix: SortRadix): Observable<SortStateModel> {
         return new Observable(subscriber => {
-            const cache: { [key: string | number]: SortDataModel[] } = JSON.parse(JSON.stringify(this.cache));
-
             if (order === 'ascent') {
-                this.sortByAscent(array, radix, cache, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByAscent(array, radix, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }
     
             if (order === 'descent') {
-                this.sortByDescent(array, radix, cache, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByDescent(array, radix, 0, param => subscriber.next(param)).then(() => subscriber.complete());
             }
         });
     }
 
-    private async sortByAscent(source: SortDataModel[], radix: SortRadix, cache: { [key: string | number]: SortDataModel[] }, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+    private async sortByAscent(source: SortDataModel[], radix: SortRadix, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        const cache: { [key: string | number]: SortDataModel[] } = JSON.parse(JSON.stringify(this.cache));
         const length: number = matchLengthByRadix(source[0].radix as SortDataRadixModel, radix);
 
         times = await this.ascent(source, 0, source.length - 1, radix, 0, length, cache, times, callback);
@@ -189,26 +205,27 @@ export class RadixMSDSortService {
         await this.clear();
     }
 
-    private async sortByDescent(source: SortDataModel[], radix: SortRadix, cache: { [key: string | number]: SortDataModel[] }, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+    private async sortByDescent(source: SortDataModel[], radix: SortRadix, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        const cache: { [key: string | number]: SortDataModel[] } = JSON.parse(JSON.stringify(this.cache));
         const length: number = matchLengthByRadix(source[0].radix as SortDataRadixModel, radix);
 
         times = await this.descent(source, 0, source.length - 1, radix, 0, length, cache, times, callback);
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
-        await this.clear()
+        await this.clear();
     }
 
     private async ascent(source: SortDataModel[], lhs: number, rhs: number, radix: SortRadix, digit: number, length: number, cache: { [key: string | number]: SortDataModel[] }, 
         times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        let key: string | number;
+        let index: number, key: string | number, keys: string[];
 
         if (digit === length) return times;
 
         for (let i = lhs; i <= rhs; i++) {
-            times += 1;
-
             key = matchKeyByRadix(source[i].radix as SortDataRadixModel, radix, digit);
             
+            times += 1;
+
             source[i].color = ACCENT_ONE_COLOR;
             callback({ times, datalist: source});
 
@@ -220,15 +237,16 @@ export class RadixMSDSortService {
             cache[key].push(source[i]);
         }
         
-        let index: number = lhs;
+        keys = Object.keys(cache);
+        index = lhs;
 
-        for (const key of Object.keys(cache)) {
-            if (cache[key].length === 0) continue;
+        for (let i = 0; i < keys.length; i++) {
+            if (cache[keys[i]].length === 0) continue;
 
-            for (let i = 0; i < cache[key].length; i++) {
+            for (let j = 0; j < cache[keys[i]].length; j++) {
                 times += 1;
 
-                source[index] = cache[key][i];
+                source[index] = cache[keys[i]][j];
                 source[index].color = ACCENT_TWO_COLOR;
                 callback({ times, datalist: source });
 
@@ -240,9 +258,9 @@ export class RadixMSDSortService {
                 index += 1;
             }
 
-            rhs = lhs + cache[key].length - 1;
+            rhs = lhs + cache[keys[i]].length - 1;
 
-            times = await this.ascent(source, lhs, rhs, radix, digit + 1, length, JSON.parse(JSON.stringify(this.cache)), times, callback);
+            times = await this.ascent(source, lhs, rhs, radix, digit + 1, length, cloneDeep(this.cache), times, callback);
 
             lhs = rhs + 1;
             this.caches.push(cache);
@@ -253,14 +271,14 @@ export class RadixMSDSortService {
 
     private async descent(source: SortDataModel[], lhs: number, rhs: number, radix: SortRadix, digit: number, length: number, cache: { [key: string | number]: SortDataModel[] }, 
         times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        let key: string | number;
+        let index: number, key: string | number, keys: string[];
 
         if (digit === length) return times;
         
         for (let i = lhs; i <= rhs; i++) {
-            times += 1;
-
             key = matchKeyByRadix(source[i].radix as SortDataRadixModel, radix, digit);
+
+            times += 1;
 
             source[i].color = ACCENT_ONE_COLOR;
             callback({ times, datalist: source});
@@ -273,15 +291,16 @@ export class RadixMSDSortService {
             cache[key].push(source[i]);
         }
         
-        let index: number = lhs;
+        keys = Object.keys(cache);
+        index = lhs;
 
-        for (const key of Object.keys(cache).reverse()) {
-            if (cache[key].length === 0) continue;
+        for (let i = keys.length - 1; i >= 0; i--) {
+            if (cache[keys[i]].length === 0) continue;
 
-            for (let i = 0; i < cache[key].length; i++) {
+            for (let j = 0; j < cache[keys[i]].length; j++) {
                 times += 1;
 
-                source[index] = cache[key][i];
+                source[index] = cache[keys[i]][j];
                 source[index].color = ACCENT_TWO_COLOR;
                 callback({ times, datalist: source });
 
@@ -293,9 +312,9 @@ export class RadixMSDSortService {
                 index += 1;
             }
 
-            rhs = lhs + cache[key].length - 1;
+            rhs = lhs + cache[keys[i]].length - 1;
 
-            times = await this.descent(source, lhs, rhs, radix, digit + 1, length, JSON.parse(JSON.stringify(this.cache)), times, callback);
+            times = await this.descent(source, lhs, rhs, radix, digit + 1, length, cloneDeep(this.cache), times, callback);
 
             lhs = rhs + 1;
             this.caches.push(cache);
@@ -305,13 +324,13 @@ export class RadixMSDSortService {
     }
 
     private async clear(): Promise<void> {
-        while (this.caches.length > 0) {
-            const cache: { [key: string | number]: SortDataModel[] } | undefined = this.caches.pop();
+        let keys: string[];
 
-            if (cache) {
-                for (const key of Object.keys(cache)) {
-                    cache[key].splice(0);
-                }
+        for (let i = 0; i < this.caches.length; i++) {
+            keys = Object.keys(this.caches[i]);
+
+            for (let j = 0; j < keys.length; j++) {
+                this.caches[i][keys[j]].splice(0);
             }
         }
     }

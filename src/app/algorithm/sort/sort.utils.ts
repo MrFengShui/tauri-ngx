@@ -48,6 +48,7 @@ export class SortCanvasUtils {
     private canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D | null = null;
     private source: SortDataModel[] = [];
+    private maxValue: number = -1;
     private width: number = 0;
     private height: number = 0;
 
@@ -65,6 +66,12 @@ export class SortCanvasUtils {
         this.source = source;
     }
 
+    public setMaxValue(value: number): void {
+        if (this.maxValue !== value) {
+            this.maxValue = value;
+        }
+    }
+
     public clear(): void {
         if (this.context) {
             this.context.clearRect(0, 0, this.width, this.height);
@@ -74,13 +81,13 @@ export class SortCanvasUtils {
 
     public draw(length: number): void {
         if (this.context) {
-            const width: number = this.width / this.source.length;
+            const width: number = this.width / length;
             let height: number = 0;
             
             this.context.clearRect(0, 0, this.width, this.height);
-
+            
             for(let i = 0; i < length; i++) {
-                height = (this.source[i].value === 0 || this.source[i].value === Number.MAX_SAFE_INTEGER || this.source[i].value === Number.MIN_SAFE_INTEGER) ? 0 : this.source[i].value * this.height / length;
+                height = (this.source[i].value === 0 || this.source[i].value === Number.MAX_SAFE_INTEGER || this.source[i].value === Number.MIN_SAFE_INTEGER) ? 0 : this.source[i].value * this.height / this.maxValue;
                 this.drawColumn(this.source[i], i, width, height);
             }
         }

@@ -4,9 +4,15 @@ import { cloneDeep } from "lodash";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
 import { ACCENT_COLOR, CLEAR_COLOR, SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { SortToolsService } from "../ngrx-store/sort.service";
 
+/**
+ * 重力排序
+ */
 @Injectable()
 export class GravitySortService {
+
+    constructor(private _service: SortToolsService) {}
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
@@ -21,7 +27,7 @@ export class GravitySortService {
     }
 
     private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        const totalRow: number = source.length, totalCol: number = this.findMaxValue(source, 0, source.length - 1), grid: boolean[][] = Array.from([]);
+        const totalRow: number = source.length, totalCol: number = this._service.indexOfMaxValue(source, 0, source.length - 1), grid: boolean[][] = Array.from([]);
         let count: number;
 
         for (let i = 0; i < totalRow; i++) {
@@ -38,7 +44,7 @@ export class GravitySortService {
             const list: boolean[] = Array.from([]);
 
             for (let j = 0; j < totalCol; j++) {
-                list.push(j < totalCol - source[i].value ? false : true);
+                list.push(j > totalCol - source[i].value);
             }
 
             grid.push(cloneDeep(list));
@@ -77,7 +83,7 @@ export class GravitySortService {
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        const totalRow: number = source.length, totalCol: number = this.findMaxValue(source, 0, source.length - 1), grid: boolean[][] = Array.from([]);
+        const length: number = source.length, totalRow: number = source.length, totalCol: number = this._service.indexOfMaxValue(source, 0, length - 1), grid: boolean[][] = Array.from([]);
         let count: number;
 
         for (let i = 0; i < totalRow; i++) {
@@ -94,7 +100,7 @@ export class GravitySortService {
             const list: boolean[] = Array.from([]);
 
             for (let j = 0; j < totalCol; j++) {
-                list.push(j < source[i].value ? true : false);
+                list.push(j < source[i].value);
             }
 
             grid.push(cloneDeep(list));
@@ -119,7 +125,7 @@ export class GravitySortService {
                         }
                     }
     
-                    source[source.length - i - 1].value = count;
+                    source[length - i - 1].value = count;
                     times += 1;
                 }
             }
@@ -130,17 +136,6 @@ export class GravitySortService {
 
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
-    }
-
-    private findMaxValue(source: SortDataModel[], lhs: number, rhs: number): number {
-        if (rhs - lhs <= 1) {
-            return source[lhs].value > source[rhs].value ? source[lhs].value : source[rhs].value;
-        }
-
-        const mid: number = Math.floor((rhs - lhs) * 0.5 + lhs);
-        const fst: number = this.findMaxValue(source, lhs, mid);
-        const snd: number = this.findMaxValue(source, mid + 1, rhs);
-        return fst > snd ? fst : snd;
     }
 
 }

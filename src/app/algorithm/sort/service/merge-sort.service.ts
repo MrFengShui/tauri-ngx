@@ -2,7 +2,8 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { ACCENT_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { SortToolsService } from "../ngrx-store/sort.service";
 
 /**
  * 归并排序（自顶向下）
@@ -10,7 +11,7 @@ import { ACCENT_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, PRIMARY_COLOR, PRIMARY_ONE
 @Injectable()
 export class TopDownMergeSortService {
 
-    private array: SortDataModel[] = Array.from([]);
+    constructor(private _service: SortToolsService) {}
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
@@ -43,158 +44,14 @@ export class TopDownMergeSortService {
             times = await this.sortByOrder(source, mid + 1, rhs, order, times, callback);
 
             if (order === 'ascent') {
-                times = await this.mergeByAscent(source, lhs, mid, rhs, times, callback);
+                times = await this._service.mergeByAscent(source, lhs, mid, rhs, times, callback);
             }
             
             if (order === 'descent') {
-                times = await this.mergeByDescent(source, lhs, mid, rhs, times, callback);
+                times = await this._service.mergeByDescent(source, lhs, mid, rhs, times, callback);
             }
         }
 
-        return times;
-    }
-
-    public async mergeByAscent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        let i: number = lhs, j: number = mid + 1;
-
-        while (i <= mid && j <= rhs) {
-            times += 1;
-
-            source[i].color = PRIMARY_COLOR;
-            source[j].color = SECONDARY_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-            
-            source[i].color = CLEAR_COLOR;
-            source[j].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
-
-            if (source[i].value < source[j].value) {
-                this.array.push(source[i]);
-                i += 1;
-            } else {
-                this.array.push(source[j]);
-                j += 1;
-            }
-        }
-
-        while (i <= mid) {
-            times += 1;
-
-            source[i].color = PRIMARY_COLOR;
-            callback({ times, datalist: source });
-            
-            await delay(SORT_DELAY_DURATION);
-            
-            source[i].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
-
-            this.array.push(source[i]);
-            i += 1;
-        }
-
-        while (j <= rhs) {
-            times += 1;
-
-            source[j].color = SECONDARY_COLOR;
-            callback({ times, datalist: source });
-            
-            await delay(SORT_DELAY_DURATION);
-            
-            source[j].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
-
-            this.array.push(source[j]);
-            j += 1;
-        }
-
-        for (let k = 0; k < this.array.length; k++) {
-            times += 1;
-
-            source[lhs + k].color = ACCENT_TWO_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-            
-            source[lhs + k].color = CLEAR_COLOR;
-            source[lhs + k] = this.array[k];
-            callback({ times, datalist: source });
-        }
-
-        this.array.splice(0);
-        return times;
-    }
-
-    public async mergeByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        let i: number = lhs, j: number = mid + 1;
-
-        while (i <= mid && j <= rhs) {
-            times += 1;
-
-            source[i].color = PRIMARY_COLOR;
-            source[j].color = SECONDARY_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-            
-            source[i].color = CLEAR_COLOR;
-            source[j].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
-
-            if (source[i].value > source[j].value) {
-                this.array.push(source[i]);
-                i += 1;
-            } else {
-                this.array.push(source[j]);
-                j += 1;
-            }
-        }
-
-        while (i <= mid) {
-            times += 1;
-
-            source[i].color = PRIMARY_COLOR;
-            callback({ times, datalist: source });
-            
-            await delay(SORT_DELAY_DURATION);
-            
-            source[i].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
-
-            this.array.push(source[i]);
-            i += 1;
-        }
-
-        while (j <= rhs) {
-            times += 1;
-
-            source[j].color = SECONDARY_COLOR;
-            callback({ times, datalist: source });
-            
-            await delay(SORT_DELAY_DURATION);
-            
-            source[j].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
-
-            this.array.push(source[j]);
-            j += 1;
-        }
-
-        for (let k = 0; k < this.array.length; k++) {
-            times += 1;
-
-            source[lhs + k].color = ACCENT_TWO_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-
-            source[lhs + k].color = CLEAR_COLOR;
-            source[lhs + k] = this.array[k];
-            callback({ times, datalist: source });
-        }
-
-        this.array.splice(0);
         return times;
     }
 
@@ -206,7 +63,7 @@ export class TopDownMergeSortService {
 @Injectable()
 export class BottomUpMergeSortService {
 
-    constructor(private _service: TopDownMergeSortService) {}
+    constructor(private _service: SortToolsService) {}
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
@@ -223,10 +80,10 @@ export class BottomUpMergeSortService {
     private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
         let lhs: number, rhs: number, mid: number;
 
-        for (let i = 1; i < source.length; i = i + i) {
-            for (let j = 0; j < source.length - i; j += i + i) {
+        for (let i = 1, length = source.length; i < length; i = i + i) {
+            for (let j = 0; j < length - i; j += i + i) {
                 lhs = j;
-                rhs = Math.min(j + i + i - 1, source.length - 1);
+                rhs = Math.min(j + i + i - 1, length - 1);
                 mid = Math.floor((rhs - lhs) * 0.5 + lhs);
                 times = await this._service.mergeByAscent(source, lhs, mid, rhs, times, callback );
             }
@@ -239,10 +96,10 @@ export class BottomUpMergeSortService {
     private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
         let lhs: number, rhs: number, mid: number;
 
-        for (let i = 1; i < source.length; i = i + i) {
-            for (let j = 0; j < source.length - i; j += i + i) {
+        for (let i = 1, length = source.length; i < length; i = i + i) {
+            for (let j = 0; j < length - i; j += i + i) {
                 lhs = j;
-                rhs = Math.min(j + i + i - 1, source.length - 1);
+                rhs = Math.min(j + i + i - 1, length - 1);
                 mid = Math.floor((rhs - lhs) * 0.5 + lhs);
                 times = await this._service.mergeByDescent(source, lhs, mid, rhs, times, callback );
             }
@@ -310,28 +167,29 @@ export class InPlaceMergeSortService {
         while (i <= mid && j <= rhs) {
             times += 1;
 
-            source[i].color = SECONDARY_ONE_COLOR;
-            source[j].color = SECONDARY_TWO_COLOR;
+            source[i].color = ACCENT_ONE_COLOR;
+            source[j].color = ACCENT_TWO_COLOR;
             callback({ times, datalist: source });
 
             await delay(SORT_DELAY_DURATION);
             
             if (source[i].value < source[j].value) {
                 source[i].color = CLEAR_COLOR;
+                source[j].color = CLEAR_COLOR;
                 callback({ times, datalist: source });
 
                 i += 1;
             } else {
                 for (let k = j; k > i; k--) {
-                    source[k].color = PRIMARY_COLOR;
-                    source[k - 1].color = SECONDARY_COLOR;
+                    source[j].color = ACCENT_TWO_COLOR;
+                    source[k].color = ACCENT_COLOR;
                     callback({ times, datalist: source });
 
                     await swap(source, k, k - 1, temp);
                     await delay(SORT_DELAY_DURATION);
 
+                    source[j].color = ACCENT_TWO_COLOR;
                     source[k].color = CLEAR_COLOR;
-                    source[k - 1].color = CLEAR_COLOR;
                     callback({ times, datalist: source });
                 }
 
@@ -344,11 +202,6 @@ export class InPlaceMergeSortService {
                 mid += 1;
             }
         }
-
-        await delay(SORT_DELAY_DURATION);
-
-        source[rhs].color = CLEAR_COLOR;
-        callback({ times, datalist: source });
 
         return times;
     }
@@ -359,28 +212,28 @@ export class InPlaceMergeSortService {
         while (i <= mid && j <= rhs) {
             times += 1;
 
-            source[i].color = SECONDARY_ONE_COLOR;
-            source[j].color = SECONDARY_TWO_COLOR;
+            source[i].color = ACCENT_ONE_COLOR;
             callback({ times, datalist: source });
 
             await delay(SORT_DELAY_DURATION);
             
             if (source[i].value > source[j].value) {
                 source[i].color = CLEAR_COLOR;
+                source[j].color = CLEAR_COLOR;
                 callback({ times, datalist: source });
 
                 i += 1;
             } else {
                 for (let k = j; k > i; k--) {
-                    source[k].color = PRIMARY_COLOR;
-                    source[k - 1].color = SECONDARY_COLOR;
+                    source[j].color = ACCENT_TWO_COLOR;
+                    source[k].color = ACCENT_COLOR;
                     callback({ times, datalist: source });
 
                     await swap(source, k, k - 1, temp);
                     await delay(SORT_DELAY_DURATION);
 
+                    source[j].color = ACCENT_COLOR;
                     source[k].color = CLEAR_COLOR;
-                    source[k - 1].color = CLEAR_COLOR;
                     callback({ times, datalist: source });
                 }
 
@@ -394,11 +247,6 @@ export class InPlaceMergeSortService {
             }
         }
 
-        await delay(SORT_DELAY_DURATION);
-
-        source[rhs].color = CLEAR_COLOR;
-        callback({ times, datalist: source });
-        
         return times;
     }
 
@@ -529,7 +377,7 @@ export class MultiWayMergeSortService {
             this.group[index].splice(this.final[index].index, 1);
         }
 
-        for (let i = 0; i < array.length; i++) {
+        for (let i = 0, length = array.length; i < length; i++) {
             times += 1;
 
             source[lhs + i].value = array[i];
@@ -586,7 +434,7 @@ export class MultiWayMergeSortService {
             this.group[index].splice(this.final[index].index, 1);
         }
 
-        for (let i = 0; i < array.length; i++) {
+        for (let i = 0, length = array.length; i < length; i++) {
             times += 1;
 
             source[lhs + i].value = array[i];
@@ -605,7 +453,7 @@ export class MultiWayMergeSortService {
     private async findMaxInGroup(list: number[]): Promise<number> {
         let index: number = -1, value: number = Number.MIN_SAFE_INTEGER;
 
-        for (let i = 0; i < list.length; i++) {
+        for (let i = 0, length = list.length; i < length; i++) {
             if (list[i] > value) {
                 index = i;
                 value = list[i];
@@ -618,7 +466,7 @@ export class MultiWayMergeSortService {
     private async findMinInGroup(list: number[]): Promise<number> {
         let index: number = -1, value: number = Number.MAX_SAFE_INTEGER;
 
-        for (let i = 0; i < list.length; i++) {
+        for (let i = 0, length = list.length; i < length; i++) {
             if (list[i] < value) {
                 index = i;
                 value = list[i];

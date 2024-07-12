@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Inject, LOCALE_ID, NgZone, OnDestroy, OnInit, Renderer2, ViewEncapsulation } from "@angular/core";
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, ElementRef, EventEmitter, Inject, Input, LOCALE_ID, NgZone, OnDestroy, OnInit, Output, Renderer2, TemplateRef, ViewContainerRef, ViewEncapsulation } from "@angular/core";
 import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router } from "@angular/router";
 import { Store } from "@ngrx/store";
 import { TreeNode } from "primeng/api";
@@ -227,6 +227,70 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
 
         queue.splice(0);
         stack.splice(0);
+    }
+
+}
+
+@Component({
+    selector: 'tauri-ngx-navlist',
+    template: `
+        <ng-container *ngFor="let item of list">
+            <a [routerLink]="item.data?.url" routerLinkActive="text-primary" [queryParams]="{ name: item.data?.param }"
+                class="flex align-items-center text-color hover:bg-primary hover:text-primary min-w-full p-2 gap-2" 
+                [class.no-underline]="item.leaf" [class.cursor-pointer]="item.leaf" [class.hover:text-primary]="item.leaf"
+                [style.padding-left]="(depth * 0.5) + 'rem !important'" (click)="handleExpandCollapseEvent(item)">
+                <span class="control-button flex justify-content-center align-items-center"
+                    [class.hidden]="item?.leaf">
+                    <i [class]="item?.expanded ? collapsedIcon : expandedIcon"></i>
+                </span>
+                <i [class]="item?.icon" *ngIf="showIcon"></i>
+                <span class="flex-auto white-space-nowrap" [class.font-bold]="!item.leaf">{{item?.label}}</span>
+            </a>
+            <tauri-ngx-navlist [navlist]="item.children" [showIcon]="showIcon" [depth]="depth + 1" 
+                (selectedChange)="selectedChange.emit($event)"
+                [class.visible]="item?.expanded" [class.hidden]="!item?.expanded"></tauri-ngx-navlist>
+        </ng-container>
+    `
+})
+export class NavlistComponent {
+    
+    @Input('navlist') list: TreeNode<RouteUrlParam>[] | undefined = [];
+
+    @Input('showIcon') showIcon: boolean = false;
+
+    @Input('depth')
+    protected depth: number = 1;
+
+    @Output('selectedChange') selectedChange: EventEmitter<any> = new EventEmitter();
+
+    protected expandedIcon: string = 'pi pi-plus-circle';
+    protected collapsedIcon: string = 'pi pi-minus-circle';
+
+    constructor(
+        private _element: ElementRef,
+        private _renderer: Renderer2,
+    ) {}
+
+    ngOnInit(): void {
+        this.initHostLayout();
+    }
+
+    ngOnDestroy(): void {
+        this.list?.splice(0);
+        this.selectedChange.complete();
+    }
+
+    protected handleExpandCollapseEvent(node: TreeNode): void {
+        if (!node.leaf) {
+            node.expanded = !node.expanded;
+            this.selectedChange.emit(node);
+        }
+    }
+
+    private initHostLayout(): void {
+        this._renderer.addClass(this._element.nativeElement, 'tauri-ngx-navlist');
+        this._renderer.addClass(this._element.nativeElement, 'flex-column');
+        this._renderer.addClass(this._element.nativeElement, 'w-full');
     }
 
 }

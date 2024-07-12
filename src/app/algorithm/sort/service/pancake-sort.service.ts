@@ -38,16 +38,16 @@ export class PancakeSortService {
                 await swap(source, j, k, temp);
                 await delay(SORT_DELAY_DURATION);
 
+                source[index].color = ACCENT_COLOR;
                 source[j].color = CLEAR_COLOR;
                 source[k].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
             }
 
-            source[index].color = CLEAR_COLOR;
-
             if (source[i].value < source[0].value) {
                 times += 1;
 
+                source[index].color = ACCENT_COLOR;
                 source[i].color = PRIMARY_TWO_COLOR;
                 source[0].color = SECONDARY_TWO_COLOR;
                 callback({ times, datalist: source});
@@ -55,6 +55,7 @@ export class PancakeSortService {
                 await swap(source, i, 0, temp);
                 await delay(SORT_DELAY_DURATION);
 
+                source[index].color = ACCENT_COLOR;
                 source[i].color = CLEAR_COLOR;
                 source[0].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
@@ -65,6 +66,7 @@ export class PancakeSortService {
             for (let j = i - 1, k = 1; j > k; j--, k++) {
                 times += 1;
 
+                source[index].color = ACCENT_COLOR;
                 source[j].color = PRIMARY_TWO_COLOR;
                 source[k].color = SECONDARY_TWO_COLOR;
                 callback({ times, datalist: source});
@@ -72,10 +74,13 @@ export class PancakeSortService {
                 await swap(source, j, k, temp);
                 await delay(SORT_DELAY_DURATION);
 
+                source[index].color = ACCENT_COLOR;
                 source[j].color = CLEAR_COLOR;
                 source[k].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
             }
+
+            source[index].color = CLEAR_COLOR;
         }
 
         await delay(SORT_DELAY_DURATION);
@@ -99,16 +104,16 @@ export class PancakeSortService {
                 await swap(source, j, k, temp);
                 await delay(SORT_DELAY_DURATION);
 
+                source[index].color = ACCENT_COLOR;
                 source[j].color = CLEAR_COLOR;
                 source[k].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
             }
 
-            source[index].color = CLEAR_COLOR;
-
             if (source[i].value > source[0].value) {
                 times += 1;
 
+                source[index].color = ACCENT_COLOR;
                 source[i].color = PRIMARY_TWO_COLOR;
                 source[0].color = SECONDARY_TWO_COLOR;
                 callback({ times, datalist: source});
@@ -116,6 +121,7 @@ export class PancakeSortService {
                 await swap(source, i, 0, temp);
                 await delay(SORT_DELAY_DURATION);
 
+                source[index].color = ACCENT_COLOR;
                 source[i].color = CLEAR_COLOR;
                 source[0].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
@@ -126,6 +132,7 @@ export class PancakeSortService {
             for (let j = i - 1, k = 1; j > k; j--, k++) {
                 times += 1;
                 
+                source[index].color = ACCENT_COLOR;
                 source[j].color = PRIMARY_TWO_COLOR;
                 source[k].color = SECONDARY_TWO_COLOR;
                 callback({ times, datalist: source});
@@ -133,10 +140,13 @@ export class PancakeSortService {
                 await swap(source, j, k, temp);
                 await delay(SORT_DELAY_DURATION);
 
+                source[index].color = ACCENT_COLOR;
                 source[j].color = CLEAR_COLOR;
                 source[k].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
             }
+            
+            source[index].color = CLEAR_COLOR;
         }
 
         await delay(SORT_DELAY_DURATION);

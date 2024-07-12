@@ -25,44 +25,27 @@ export class CountSortService {
     }
 
     private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let i: number = 0, index: number;
+        let index: number, keys: string[];
 
-        for (const item of source) {
-            if (this.cache[item.value]) {
-                this.cache[item.value] += 1;  
-            } else {
-                this.cache[item.value] = 1;  
-            } 
+        times = await this.save(source, times, callback);
 
-            times += 1;
+        keys = Object.keys(this.cache);
+        index = 0;
 
-            item.color = ACCENT_ONE_COLOR;
-            callback({ times, datalist: source});
-            
-            await delay(SORT_DELAY_DURATION);
-            
-            item.color = CLEAR_COLOR;
-            callback({ times, datalist: source});
-        }
-
-        await delay(SORT_DELAY_DURATION);
-
-        for (const key of Object.keys(this.cache)) {
-            index = Number.parseInt(key);
-
-            for (let j = 0; j < this.cache[index]; j++) {
-                source[i].value = index;
+        for (let i = 0, length = keys.length; i < length; i++) {
+            for (let j = 0; j < this.cache[keys[i]]; j++) {
                 times += 1;
 
-                source[i].color = ACCENT_TWO_COLOR;
+                source[index].value = Number.parseInt(keys[i]);
+                source[index].color = ACCENT_TWO_COLOR;
                 callback({ times, datalist: source});
 
                 await delay(SORT_DELAY_DURATION);
                 
-                source[i].color = CLEAR_COLOR;
+                source[index].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
 
-                i += 1;
+                index += 1;
             }
         }
         
@@ -72,50 +55,55 @@ export class CountSortService {
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        let i: number = 0, index: number;
+        let index: number, keys: string[];
 
-        for (const item of source) {
-            if (this.cache[item.value]) {
-                this.cache[item.value] += 1;  
-            } else {
-                this.cache[item.value] = 1;  
-            } 
+        times = await this.save(source, times, callback);
 
-            times += 1;
+        keys = Object.keys(this.cache);
+        index = 0;
 
-            item.color = ACCENT_ONE_COLOR;
-            callback({ times, datalist: source});
-
-            await delay(SORT_DELAY_DURATION);
-            
-            item.color = CLEAR_COLOR;
-            callback({ times, datalist: source});
-        }
-
-        await delay(SORT_DELAY_DURATION);
-
-        for (const key of Object.keys(this.cache).reverse()) {
-            index = Number.parseInt(key);
-
-            for (let j = 0; j < this.cache[index]; j++) {
-                source[i].value = index;
+        for (let i = keys.length - 1; i >= 0; i--) {
+            for (let j = 0; j < this.cache[keys[i]]; j++) {
                 times += 1;
 
-                source[i].color = ACCENT_TWO_COLOR;
+                source[index].value = Number.parseInt(keys[i]);
+                source[index].color = ACCENT_TWO_COLOR;
                 callback({ times, datalist: source});
 
                 await delay(SORT_DELAY_DURATION);
                 
-                source[i].color = CLEAR_COLOR;
+                source[index].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
 
-                i += 1;
+                index += 1;
             }
         }
         
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
         await this.clear();
+    }
+
+    private async save(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<number> {
+        for (let i = 0, length = source.length; i < length; i++) {
+            if (this.cache[source[i].value]) {
+                this.cache[source[i].value] += 1;  
+            } else {
+                this.cache[source[i].value] = 1;  
+            } 
+
+            times += 1;
+
+            source[i].color = ACCENT_ONE_COLOR;
+            callback({ times, datalist: source});
+            
+            await delay(SORT_DELAY_DURATION);
+            
+            source[i].color = CLEAR_COLOR;
+            callback({ times, datalist: source});
+        }
+
+        return times;
     }
 
     private async clear(): Promise<void> {

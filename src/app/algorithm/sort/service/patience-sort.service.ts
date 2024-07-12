@@ -2,12 +2,15 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { ACCENT_COLOR, CLEAR_COLOR, SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { SortToolsService } from "../ngrx-store/sort.service";
 
 @Injectable()
 export class PatienceSortService {
 
     private piles: { [key: string | number]: number[] } = {};
+
+    constructor(private _service: SortToolsService) {}
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
@@ -22,13 +25,15 @@ export class PatienceSortService {
     }
 
     private async sortByAscent(source: SortDataModel[], flag: boolean, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let pile: number[], index: number = 0, count: number, exist: boolean;
+        let pile: number[], index: number = 0, exist: boolean, keys: string[];
         
         while (!flag) {
-            for (let i = 0; i < source.length; i++) {
+            flag = true;
+
+            for (let i = 0, length = source.length; i < length; i++) {
                 times += 1;
 
-                source[i].color = ACCENT_COLOR;
+                source[i].color = ACCENT_ONE_COLOR;
                 callback({ times, datalist: source});
 
                 await delay(SORT_DELAY_DURATION);
@@ -37,10 +42,11 @@ export class PatienceSortService {
                 callback({ times, datalist: source});
 
                 exist = false;
+                keys = Object.keys(this.piles);
 
-                for (const key of Object.keys(this.piles)) {
-                    pile = this.piles[key];
-
+                for (let j = 0, keyLength = keys.length; j < keyLength; j++) {
+                    pile = this.piles[keys[j]];
+                    
                     if (source[i].value < pile[pile.length - 1]) {
                         pile.push(source[i].value);
                         exist = true;
@@ -56,18 +62,17 @@ export class PatienceSortService {
             }
             
             index = 0;
-            count = 0;
-            
-            for (const key of Object.keys(this.piles)) {
-                pile = this.piles[key];
+            keys = Object.keys(this.piles);
 
-                if (pile.length === 1) count += 1;
+            for (let i = 0, length = keys.length; i < length; i++) {
+                pile = this.piles[keys[i]];
+                flag &&= pile.length === 1;
 
-                for (let i = pile.length - 1; i >= 0; i--) {
+                for (let j = pile.length - 1; j >= 0; j--) {
                     times+= 1;
 
-                    source[index].color = ACCENT_COLOR;
-                    source[index].value = pile[i];
+                    source[index].color = ACCENT_TWO_COLOR;
+                    source[index].value = pile[j];
                     callback({ times, datalist: source});
 
                     await delay(SORT_DELAY_DURATION);
@@ -79,8 +84,7 @@ export class PatienceSortService {
                 }
             }
 
-            flag = count === source.length;
-            await this.clear();
+            await this._service.clear(this.piles);
         }
 
         await delay(SORT_DELAY_DURATION);
@@ -88,13 +92,15 @@ export class PatienceSortService {
     }
 
     private async sortByDescent(source: SortDataModel[], flag: boolean, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        let pile: number[], index: number = 0, count: number, exist: boolean;
+        let pile: number[], index: number = 0, exist: boolean, keys: string[];
         
         while (!flag) {
-            for (let i = 0; i < source.length; i++) {
+            flag = true;
+
+            for (let i = 0, length = source.length; i < length; i++) {
                 times += 1;
 
-                source[i].color = ACCENT_COLOR;
+                source[i].color = ACCENT_ONE_COLOR;
                 callback({ times, datalist: source});
 
                 await delay(SORT_DELAY_DURATION);
@@ -103,9 +109,10 @@ export class PatienceSortService {
                 callback({ times, datalist: source});
 
                 exist = false;
+                keys = Object.keys(this.piles);
 
-                for (const key of Object.keys(this.piles)) {
-                    pile = this.piles[key];
+                for (let j = 0, keyLength = keys.length; j < keyLength; j++) {
+                    pile = this.piles[keys[j]];
 
                     if (source[i].value > pile[pile.length - 1]) {
                         pile.push(source[i].value);
@@ -122,18 +129,17 @@ export class PatienceSortService {
             }
             
             index = 0;
-            count = 0;
+            keys = Object.keys(this.piles);
             
-            for (const key of Object.keys(this.piles)) {
-                pile = this.piles[key];
+            for (let i = 0, length = keys.length; i < length; i++) {
+                pile = this.piles[keys[i]];
+                flag &&= pile.length === 1;
 
-                if (pile.length === 1) count += 1;
-
-                for (let i = pile.length - 1; i >= 0; i--) {
+                for (let j = pile.length - 1; j >= 0; j--) {
                     times+= 1;
 
-                    source[index].color = ACCENT_COLOR;
-                    source[index].value = pile[i];
+                    source[index].color = ACCENT_TWO_COLOR;
+                    source[index].value = pile[j];
                     callback({ times, datalist: source});
 
                     await delay(SORT_DELAY_DURATION);
@@ -145,19 +151,11 @@ export class PatienceSortService {
                 }
             }
 
-            flag = count === source.length;
-            await this.clear();
+            await this._service.clear(this.piles);
         }
 
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
-    }
-
-    private async clear(): Promise<void> {
-        for (const key of Object.keys(this.piles)) {
-            this.piles[key].splice(0);
-            delete this.piles[key];
-        }
     }
 
 }

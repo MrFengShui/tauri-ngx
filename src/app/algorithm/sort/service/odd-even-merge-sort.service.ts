@@ -163,9 +163,9 @@ export class BottomUpOddEvenMergeSortService {
     }
 
     private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        for (let size = 1; size < source.length; size *= 2) {
+        for (let size = 1, length = source.length; size < length; size *= 2) {
             for (let span = size; span > 0; span >>= 1) {
-                for (let low = span % size; low <= source.length - span - 1; low += span + span) {
+                for (let low = span % size; low <= length - span - 1; low += span + span) {
                     times = await this.mergeByAscent(source, low, size, span, temp, times, callback);
                 }
             }
@@ -176,9 +176,9 @@ export class BottomUpOddEvenMergeSortService {
     }
 
     private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        for (let size = 1; size < source.length; size *= 2) {
+        for (let size = 1, length = source.length; size < length; size *= 2) {
             for (let span = size; span > 0; span >>= 1) {
-                for (let low = span % size; low <= source.length - span - 1; low += span + span) {
+                for (let low = span % size; low <= length - span - 1; low += span + span) {
                     times = await this.mergeByDescent(source, low, size, span, temp, times, callback);
                 }
             }
@@ -191,7 +191,7 @@ export class BottomUpOddEvenMergeSortService {
     private async mergeByAscent(source: SortDataModel[], low: number, size: number, span: number, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
         let fst: number, snd: number;
 
-        for (let i = 0; i <= Math.min(span - 1, source.length - span - 1); i++) {
+        for (let i = 0, length = source.length; i <= Math.min(span - 1, length - span - 1); i++) {
             fst = Math.floor((i + low) / (size + size));
             snd = Math.floor((i + low + span) / (size + size));
 
@@ -217,7 +217,7 @@ export class BottomUpOddEvenMergeSortService {
     private async mergeByDescent(source: SortDataModel[], low: number, size: number, span: number, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
         let fst: number, snd: number;
 
-        for (let i = 0; i <= Math.min(span - 1, source.length - span - 1); i++) {
+        for (let i = 0, length = source.length; i <= Math.min(span - 1, length - span - 1); i++) {
             fst = Math.floor((i + low) / (size + size));
             snd = Math.floor((i + low + span) / (size + size));
 

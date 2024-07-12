@@ -124,7 +124,10 @@ export class TreeNodeComponent implements OnInit, OnDestroy {
     }
 
     protected handleExpandCollapseEvent(node: TreeNode): void {
-        node.expanded = !node.expanded;
+        if (node.type === 'node') {
+            node.expanded = !node.expanded;
+        }
+        
         this.selectedChange.emit(node);
     }
 

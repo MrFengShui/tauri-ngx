@@ -19,7 +19,7 @@
             "children": [
                 {
                     "key": "2-1",
-                    "label": "交换排序",
+                    "label": "比较排序",
                     "leaf": false,
                     "children": [
                         {
@@ -75,43 +75,76 @@
                             "leaf": true
                         },
                         {
-                            "key": "2-1-20",
+                            "key": "2-1-14",
+                            "label": "交換排序",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "sort"
+                                ],
+                                "param": "exchange-sort"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "2-1-2",
                             "label": "插入排序",
-                            "data": {
-                                "url": [
-                                    "/playground",
-                                    "algorithm",
-                                    "sort"
-                                ],
-                                "param": "insertion-sort"
-                            },
-                            "leaf": true
-                        },
-                        {
-                            "key": "2-1-21",
-                            "label": "二分插入排序",
-                            "data": {
-                                "url": [
-                                    "/playground",
-                                    "algorithm",
-                                    "sort"
-                                ],
-                                "param": "bs-insertion-sort"
-                            },
-                            "leaf": true
-                        },
-                        {
-                            "key": "2-1-22",
-                            "label": "希尔排序",
-                            "data": {
-                                "url": [
-                                    "/playground",
-                                    "algorithm",
-                                    "sort"
-                                ],
-                                "param": "shell-sort"
-                            },
-                            "leaf": true
+                            "leaf": false,
+                            "children": [
+                                {
+                                    "key": "2-1-2-10",
+                                    "label": "插入排序",
+                                    "data": {
+                                        "url": [
+                                            "/playground",
+                                            "algorithm",
+                                            "sort"
+                                        ],
+                                        "param": "insertion-sort"
+                                    },
+                                    "leaf": true
+                                },
+                                {
+                                    "key": "2-1-2-20",
+                                    "label": "二分插入排序",
+                                    "data": {
+                                        "url": [
+                                            "/playground",
+                                            "algorithm",
+                                            "sort"
+                                        ],
+                                        "param": "bs-insertion-sort"
+                                    },
+                                    "leaf": true
+                                },
+                                {
+                                    "key": "2-1-2-30",
+                                    "label": "希尔排序",
+                                    "data": {
+                                        "url": [
+                                            "/playground",
+                                            "algorithm",
+                                            "sort"
+                                        ],
+                                        "param": "shell-sort"
+                                    },
+                                    "leaf": true
+                                },
+                                {
+                                    "key": "2-1-2-40",
+                                    "label": "图书馆排序",
+                                    "data": {
+                                        "url": [
+                                            "/playground",
+                                            "algorithm",
+                                            "sort"
+                                        ],
+                                        "param": "library-sort"
+                                    },
+                                    "leaf": true
+                                }
+                            ]
                         },
                         {
                             "key": "2-1-30",
@@ -273,7 +306,20 @@
                                     "algorithm",
                                     "sort"
                                 ],
-                                "param": "k-node-heap-sort"
+                                "param": "kn-heap-sort"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "2-1-62",
+                            "label": "平滑排序",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "sort"
+                                ],
+                                "param": "smooth-sort"
                             },
                             "leaf": true
                         }
@@ -281,7 +327,7 @@
                 },
                 {
                     "key": "2-2",
-                    "label": "空间排序",
+                    "label": "分布排序",
                     "leaf": false,
                     "children": [
                         {
@@ -497,7 +543,7 @@
                 },
                 {
                     "key": "2-4",
-                    "label": "奇异排序",
+                    "label": "趣味排序",
                     "leaf": false,
                     "children": [
                         {
@@ -593,14 +639,27 @@
                         },
                         {
                             "key": "2-4-60",
-                            "label": "臭皮匠排序",
+                            "label": "臭皮匠排序（递归）",
                             "data": {
                                 "url": [
                                     "/playground",
                                     "algorithm",
                                     "sort"
                                 ],
-                                "param": "stooge-sort"
+                                "param": "recu-stooge-sort"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "2-4-61",
+                            "label": "臭皮匠排序（迭代）",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "sort"
+                                ],
+                                "param": "iter-stooge-sort"
                             },
                             "leaf": true
                         },
@@ -657,19 +716,6 @@
                             "leaf": true
                         },
                         {
-                            "key": "2-4-110",
-                            "label": "图书馆排序",
-                            "data": {
-                                "url": [
-                                    "/playground",
-                                    "algorithm",
-                                    "sort"
-                                ],
-                                "param": "library-sort"
-                            },
-                            "leaf": true
-                        },
-                        {
                             "key": "2-4-120",
                             "label": "股排序",
                             "data": {
@@ -679,6 +725,32 @@
                                     "sort"
                                 ],
                                 "param": "strand-sort"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "2-4-121",
+                            "label": "股排序（优化）",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "sort"
+                                ],
+                                "param": "opt-strand-sort"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "2-4-130",
+                            "label": "二叉树排序",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "sort"
+                                ],
+                                "param": "bst-sort"
                             },
                             "leaf": true
                         }

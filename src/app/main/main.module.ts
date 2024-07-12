@@ -11,7 +11,7 @@ import { ToggleButtonModule } from "primeng/togglebutton";
 import { ToolbarModule } from "primeng/toolbar";
 import { TreeModule } from "primeng/tree";
 
-import { HomePageComponent } from "./home/home.component";
+import { HomePageComponent, NavlistComponent } from "./home/home.component";
 import { DashboardPageComponent } from "./dashboard/dashboard.component";
 
 import { HomeNavListLoadService, HomeOptionLoadService } from "./ngrx-store/main.service";
@@ -23,6 +23,8 @@ import { HOME_NAVLIST_LOAD_REDUCER, HOME_OPTION_LOAD_REDUCER } from "./ngrx-stor
 
 @NgModule({
     declarations: [
+        NavlistComponent,
+        
         DashboardPageComponent,
         HomePageComponent
     ],

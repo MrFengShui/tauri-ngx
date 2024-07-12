@@ -3,8 +3,9 @@
     "translations": {
         "sort_component_ts_1": "數量",
         "sort_component_ts_2": "順序",
-        "sort_component_ts_3": "進制",
-        "sort_component_ts_4": "歸并路數",
+        "sort_component_ts_3_1": "進制",
+        "sort_component_ts_3_2": "歸并路數",
+        "sort_component_ts_3_3": "堆節點",
         "sort_component_ts_5": "交換/寫入次數",
         "sort_component_ts_6": "計時",
         "sort_component_ts_7": "洗牌",

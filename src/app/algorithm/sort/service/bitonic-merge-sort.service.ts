@@ -133,7 +133,7 @@ export class BottomUpBitonicMergeSortService {
     }
 
     private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        for (let i = 2; i <= source.length; i *= 2) {
+        for (let i = 2, length = source.length; i <= length; i *= 2) {
             for (let j = i >> 1; j > 0; j >>= 1) {
                 times = await this.mergeByAscent(source, i, j, temp, times, callback);
             }
@@ -144,7 +144,7 @@ export class BottomUpBitonicMergeSortService {
     }
 
     private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        for (let i = 2; i <= source.length; i *= 2) {
+        for (let i = 2, length = source.length; i <= length; i *= 2) {
             for (let j = i >> 1; j > 0; j >>= 1) {
                 times = await this.mergeByDescent(source, i, j, temp, times, callback);
             }
@@ -157,7 +157,7 @@ export class BottomUpBitonicMergeSortService {
     private async mergeByAscent(source: SortDataModel[], scale: number, gap: number, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
         let and: number, xor: number;
 
-        for (let i = 0; i < source.length; i++) {
+        for (let i = 0, length = source.length; i < length; i++) {
             xor = gap ^ i;
 
             if (xor > i) {
@@ -186,7 +186,7 @@ export class BottomUpBitonicMergeSortService {
     private async mergeByDescent(source: SortDataModel[], scale: number, gap: number, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
         let and: number, xor: number;
 
-        for (let i = 0; i < source.length; i++) {
+        for (let i = 0, length = source.length; i < length; i++) {
             xor = gap ^ i;
 
             if (xor > i) {

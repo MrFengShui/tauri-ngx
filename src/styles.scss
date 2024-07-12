@@ -20,9 +20,6 @@
 }
 
 * {
-    --alpha-100: 1.0;
-    --alpha-000: 0.0;
-
     ::-webkit-scrollbar {
         width: 0.75rem;
         height: 0.75rem;
@@ -48,6 +45,11 @@
     }
 }
 
+:root {
+    font-family: 'global-font';
+    font-size: 16px;
+}
+
 html, body {
     margin: 0;
     padding: 0;
@@ -55,11 +57,18 @@ html, body {
     user-select: none;
 }
 
-a {
-    cursor: pointer;
+.p-component {
+    font-family: 'global-font' !important;
 }
 
-.p-component {
-    font-family: 'global-font';
-    font-size: 16px;
+.scrollbar-visible-hidden {
+    &::-webkit-scrollbar-thumb {
+        visibility: hidden;
+    }
+
+    &:hover {
+        &::-webkit-scrollbar-thumb {
+            visibility: visible;
+        }
+    }
 }

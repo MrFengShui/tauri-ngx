@@ -1,0 +1,20 @@
+{
+    "list": [
+        {
+            "label": "Three-Node",
+            "value": 3
+        },
+        {
+            "label": "Four-Node",
+            "value": 4
+        },
+        {
+            "label": "Six-Node",
+            "value": 6
+        },
+        {
+            "label": "Eight-Node",
+            "value": 8
+        }
+    ]
+}

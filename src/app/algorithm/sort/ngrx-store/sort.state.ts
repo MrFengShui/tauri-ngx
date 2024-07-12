@@ -1,6 +1,7 @@
 export type SortOrder = 'ascent' | 'descent';
 export type SortRadix = 2 | 8 | 10 | 16;
 export type SortMergeWay = 3 | 4 | 6 | 8;
+export type SortHeapNode = 3 | 4 | 6 | 8;
 export type SortStateModel = { times: number, datalist: SortDataModel[] };
 
 export interface SortDataRadixModel {
@@ -30,6 +31,13 @@ export interface SortMergeWayOptionModel {
 
     label: string;
     value: SortMergeWay;
+
+}
+
+export interface SortHeapNodeOptionModel {
+
+    label: string;
+    value: SortHeapNode;
 
 }
 
