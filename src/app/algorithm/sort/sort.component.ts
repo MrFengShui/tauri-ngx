@@ -14,7 +14,7 @@ import { SORT_OPTION_LOAD_SELECTOR } from "./ngrx-store/sourt.selector";
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'tauri-ngx-sort-page',
-    templateUrl: './sort.component.html'
+    templateUrl: 'sort.component.html'
 })
 export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
@@ -33,6 +33,8 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
 
     readonly TRANSLATION_MESSAGES: { [key: string | number] : string } = {
         1: $localize `:@@sort_component_ts_1:sort_component_ts_1`,
+        11: $localize `:@@sort_component_ts_1:sort_component_ts_1_1`,
+        12: $localize `:@@sort_component_ts_1:sort_component_ts_1_1`,
         2: $localize `:@@sort_component_ts_2:sort_component_ts_2`,
         31: $localize `:@@sort_component_ts_3_1:sort_component_ts_3_1`,
         32: $localize `:@@sort_component_ts_3_2:sort_component_ts_3_2`,

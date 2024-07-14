@@ -2,7 +2,8 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { PRIMARY_COLOR, SECONDARY_COLOR, CLEAR_COLOR } from "../../../public/values.utils";
 
 /**
  * 奇偶归并排序（自顶向下）

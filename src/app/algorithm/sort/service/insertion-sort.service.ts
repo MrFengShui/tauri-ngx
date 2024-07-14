@@ -2,8 +2,9 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
 import { SortToolsService } from "../ngrx-store/sort.service";
+import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
 
 /**
  * 插入排序
@@ -157,6 +158,7 @@ export class ShellSortService {
                 for (let j = i - gap; j >= 0 && source[j].value > source[j + gap].value; j -= gap) {
                     times += 1;
 
+                    source[i].color = ACCENT_COLOR;
                     source[j].color = PRIMARY_COLOR;
                     source[j + gap].color = SECONDARY_COLOR;
                     callback({ times, datalist: source});
@@ -164,10 +166,14 @@ export class ShellSortService {
                     await swap(source, j, j + gap, temp);
                     await delay(SORT_DELAY_DURATION);
 
+                    source[i].color = ACCENT_COLOR;
                     source[j].color = CLEAR_COLOR;
                     source[j + gap].color = CLEAR_COLOR;
                     callback({ times, datalist: source});
                 }
+
+                source[i].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
             }
         }
         
@@ -181,6 +187,7 @@ export class ShellSortService {
                 for (let j = i - gap; j >= 0 && source[j].value < source[j + gap].value; j -= gap) {
                     times += 1;
 
+                    callback({ times, datalist: source});
                     source[j].color = PRIMARY_COLOR;
                     source[j + gap].color = SECONDARY_COLOR;
                     callback({ times, datalist: source});
@@ -188,10 +195,14 @@ export class ShellSortService {
                     await swap(source, j, j + gap, temp);
                     await delay(SORT_DELAY_DURATION);
 
+                    callback({ times, datalist: source});
                     source[j].color = CLEAR_COLOR;
                     source[j + gap].color = CLEAR_COLOR;
                     callback({ times, datalist: source});
                 }
+
+                source[i].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
             }
         }
 
@@ -443,6 +454,94 @@ export class LibrarySortService {
         }
 
         return lhs > threshold ? -1 : lhs;
+    }
+
+}
+
+/**
+ * 侏儒排序
+ */
+
+
+@Injectable()
+export class GnomeSortService {
+
+    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
+        return new Observable(subscriber => {
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+
+            if (order === 'ascent') {
+                this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+            }
+
+            if (order === 'descent') {
+                this.sortByDescent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+            }
+        });
+    }
+
+    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        let pivot: number = 1, index: number;
+        const length: number = source.length;
+
+        while (pivot < length) {
+            index = pivot;
+            source[pivot].color = PRIMARY_COLOR;
+
+            if (pivot > 0 && source[pivot - 1].value > source[pivot].value) {
+                times += 1;
+
+                source[pivot - 1].color = SECONDARY_COLOR;
+                await swap(source, pivot - 1, pivot, temp);
+
+                pivot -= 1;
+            } else {
+                pivot += 1;
+            }
+
+            callback({ times, datalist: source });
+
+            await delay(SORT_DELAY_DURATION);
+
+            source[index].color = CLEAR_COLOR;
+            source[Math.max(index - 1, 0)].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+        }
+
+        await delay(SORT_DELAY_DURATION);
+        await complete(source, times, callback);
+    }
+
+    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
+        let pivot: number = 1, index: number;
+        const length: number = source.length;
+
+        while (pivot < length) {
+            index = pivot;
+            source[pivot].color = PRIMARY_COLOR;
+
+            if (pivot > 0 && source[pivot - 1].value < source[pivot].value) {
+                times += 1;
+
+                source[pivot - 1].color = SECONDARY_COLOR;
+                await swap(source, pivot - 1, pivot, temp);
+
+                pivot -= 1;
+            } else {
+                pivot += 1;
+            }
+
+            callback({ times, datalist: source });
+
+            await delay(SORT_DELAY_DURATION);
+
+            source[index].color = CLEAR_COLOR;
+            source[Math.max(index - 1, 0)].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+        }
+
+        await delay(SORT_DELAY_DURATION);
+        await complete(source, times, callback);
     }
 
 }

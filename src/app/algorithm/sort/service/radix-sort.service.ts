@@ -1,10 +1,10 @@
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
+import { cloneDeep } from "lodash";
 
 import { SortDataModel, SortStateModel, SortOrder, SortDataRadixModel, SortRadix } from "../ngrx-store/sort.state";
-import { ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
-import { cloneDeep } from "lodash";
-import { SortToolsService } from "../ngrx-store/sort.service";
+import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { ACCENT_TWO_COLOR, CLEAR_COLOR, ACCENT_ONE_COLOR } from "../../../public/values.utils";
 
 const matchKeyByRadix = (model: SortDataRadixModel, radix: SortRadix, digit: number): string => {
     if (radix === 2) {

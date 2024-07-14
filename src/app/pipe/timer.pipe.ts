@@ -11,17 +11,17 @@ export class TimerPipe implements PipeTransform {
     private mod: number = 0;
 
     transform(value: number, flag: boolean = false): string {
-        this.hour = Math.floor(value / 3600);
-        this.mod = value % 3600; 
-
-        this.minute = Math.floor(this.mod / 60);
-        this.second = this.mod % 60;
-
         if (flag) {
+            this.hour = Math.floor(value / 3600);
+            this.mod = value % 3600; 
+            this.minute = Math.floor(this.mod / 60);
+            this.second = this.mod % 60;
             return `${this.hour}`.padStart(2, '0') + ':' + `${this.minute}`.padStart(2, '0') + ':' + `${this.second}`.padStart(2, '0');
+        } else {
+            this.minute = Math.floor(value / 60);
+            this.second = value % 60;
+            return `${this.minute}`.padStart(2, '0') + ':' + `${this.second}`.padStart(2, '0');
         }
-        
-        return `${this.minute}`.padStart(2, '0') + ':' + `${this.second}`.padStart(2, '0');
     }
     
 }

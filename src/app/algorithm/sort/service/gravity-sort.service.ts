@@ -3,8 +3,9 @@ import { Observable } from "rxjs";
 import { cloneDeep } from "lodash";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { ACCENT_COLOR, CLEAR_COLOR, SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
 import { SortToolsService } from "../ngrx-store/sort.service";
+import { ACCENT_COLOR, CLEAR_COLOR } from "../../../public/values.utils";
 
 /**
  * 重力排序

@@ -2,18 +2,9 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
 import { SortToolsService } from "../ngrx-store/sort.service";
-
-const clear = (cache: {[key: string | number]: number[]}): Promise<void> => 
-    new Promise(resolve => {
-        for (const key of Object.keys(cache)) {
-            cache[key].splice(0);
-            delete cache[key];
-        }
-
-        resolve();
-    });
+import { ACCENT_TWO_COLOR, CLEAR_COLOR, ACCENT_ONE_COLOR } from "../../../public/values.utils";
 
 /**
  * 桶排序
@@ -74,7 +65,7 @@ export class BucketSortService {
 
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
-        await clear(this.cache);
+        await this._service.clear(this.cache);
     }
 
     private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
@@ -111,7 +102,7 @@ export class BucketSortService {
         
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
-        await clear(this.cache);
+        await this._service.clear(this.cache);
     }
 
     private async classify(source: SortDataModel[], index: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
@@ -169,7 +160,7 @@ export class InterpolationSortService {
         
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
-        await clear(this.cache);
+        await this._service.clear(this.cache);
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
@@ -180,7 +171,7 @@ export class InterpolationSortService {
         
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
-        await clear(this.cache);
+        await this._service.clear(this.cache);
     }
 
     private async save(source: SortDataModel[], index: number, min: number, max: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
@@ -260,7 +251,7 @@ export class PigeonholeSortService {
 
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
-        await clear(this.cache);
+        await this._service.clear(this.cache);
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
@@ -271,7 +262,7 @@ export class PigeonholeSortService {
         
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
-        await clear(this.cache);
+        await this._service.clear(this.cache);
     }
 
     private async save(source: SortDataModel[], threshold: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {

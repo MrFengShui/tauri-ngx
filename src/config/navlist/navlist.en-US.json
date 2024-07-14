@@ -173,6 +173,19 @@
                             "leaf": true
                         },
                         {
+                            "key": "2-1-32",
+                            "label": "Two-Way Selection Sort",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "sort"
+                                ],
+                                "param": "2w-selection-sort"
+                            },
+                            "leaf": true
+                        },
+                        {
                             "key": "2-1-5",
                             "label": "Quick Sort",
                             "leaf": false,
@@ -488,7 +501,7 @@
                     "children": [
                         {
                             "key": "2-3-10",
-                            "label": "奇偶归并排序（自顶向下）",
+                            "label": "Odd-Even Merge Sort（Top Down）",
                             "data": {
                                 "url": [
                                     "/playground",
@@ -501,7 +514,7 @@
                         },
                         {
                             "key": "2-3-11",
-                            "label": "奇偶归并排序（自底向上）",
+                            "label": "Odd-Even Merge Sort（Bottom Up）",
                             "data": {
                                 "url": [
                                     "/playground",
@@ -514,7 +527,7 @@
                         },
                         {
                             "key": "2-3-20",
-                            "label": "双调归并排序（自顶向下）",
+                            "label": "Bitonic Merge Sort（Top Down）",
                             "data": {
                                 "url": [
                                     "/playground",
@@ -527,7 +540,7 @@
                         },
                         {
                             "key": "2-3-21",
-                            "label": "双调归并排序（自底向上）",
+                            "label": "Bitonic Merge Sort（Bottom Up）",
                             "data": {
                                 "url": [
                                     "/playground",
@@ -535,6 +548,32 @@
                                     "sort"
                                 ],
                                 "param": "bu-bitonic-merge-sort"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "2-3-30",
+                            "label": "Shear Sort",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "sort"
+                                ],
+                                "param": "shear-sort"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "2-3-31",
+                            "label": "Optimal Shear Sort",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "sort"
+                                ],
+                                "param": "opt-shear-sort"
                             },
                             "leaf": true
                         }

@@ -5,8 +5,8 @@
     <span class="font-bold text-xl text-primary white-space-nowrap">{{ TRANSLATION_MESSAGES[1] }}</span>
     <p-slider [disabled]="locked" [animate]="true" [min]="0" [max]="maxValue" [step]="32" [(ngModel)]="count" class="w-full" (onSlideEnd)="handleCountSelectChange()"/>
     <span class="font-bold text-xl text-primary">{{count}}</span>
-    <p-button [disabled]="locked" [raised]="true" icon="pi pi-sync" label="洗牌" class="white-space-nowrap" (onClick)="handleShuffleSourceEvent()"/>
-    <p-button [disabled]="locked" [raised]="true" icon="pi pi-play" label="运行" class="white-space-nowrap" (onClick)="handleRunSortEvent()"/>
+    <p-button [disabled]="locked" [raised]="true" icon="pi pi-sync" [label]="TRANSLATION_MESSAGES[7]" class="white-space-nowrap" (onClick)="handleShuffleSourceEvent()"/>
+    <p-button [disabled]="locked" [raised]="true" icon="pi pi-play" [label]="TRANSLATION_MESSAGES[8]" class="white-space-nowrap" (onClick)="handleRunSortEvent()"/>
 </div>
 <div class="flex justify-content-between align-items-center surface-border border-round-sm border-1 p-3 gap-4" #ctrlBox_2>
     <div class="flex align-items-center gap-4">

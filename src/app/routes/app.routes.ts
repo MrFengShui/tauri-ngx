@@ -3,6 +3,8 @@ import { Routes } from "@angular/router";
 import { permitToRegisterPage } from "../other/login/login.service";
 
 import { AlgorithmSortPageComponent } from "../algorithm/sort/sort.component";
+import { AlgorithmMazePageComponent } from "../algorithm/maze/maze.component";
+
 import { ErrorPageComponent } from "../other/error/error.component";
 import { SplashScreenPageComponent } from "../other/splash-screen/splash-screen.component";
 import { LoginPageComponent } from "../other/login/login.component";
@@ -18,7 +20,8 @@ export const routes: Routes = [
         children: [
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
             { path: 'dashboard', component: DashboardPageComponent, title: '项目导航' },
-            { path: 'algorithm/sort', component: AlgorithmSortPageComponent, title: '排序算法' }
+            { path: 'algorithm/sort', component: AlgorithmSortPageComponent, title: '排序算法' },
+            { path: 'algorithm/maze/:type', component: AlgorithmMazePageComponent, title: '迷宫算法' }
         ]
     },
     { path: 'splash-screen', component: SplashScreenPageComponent, pathMatch: 'full', title: '欢迎页面' },
