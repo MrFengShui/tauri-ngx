@@ -1,7 +1,5 @@
+import { CLEAR_COLOR } from "../../public/values.utils";
 import { MazeCellModel } from "./ngrx-store/maze.state";
-
-export type MazeGenerationName = 'random-backtracker' | undefined;
-export type NeighborAccordionate = { row: number, col: number };
 
 export const delay = (duration: number = 10): Promise<void> => new Promise<void>(resolve => setTimeout(resolve, duration));
 
@@ -36,63 +34,111 @@ export class MazeCanvasUtils {
         }
     }
 
+    // public draw(rows: number, cols: number, lineWidth: number): void {
+    //     if (this.context) {
+    //         const xSize: number = Number.parseFloat(((this.width - lineWidth) / cols).toFixed(3));
+    //         const ySize: number = Number.parseFloat(((this.height - lineWidth) / rows).toFixed(3));
+    //         let x: number = lineWidth * 0.5, y: number = lineWidth * 0.5, col: number, row: number;
+    //         let cell: MazeCellModel, innerPath: Path2D, outerPath: Path2D;
+
+    //         this.context.clearRect(0, 0, this.width, this.height);
+
+    //         this.context.lineWidth = lineWidth;
+    //         this.context.lineJoin = 'round';
+    //         this.context.lineCap = 'round';
+    //         this.context.strokeStyle = CLEAR_COLOR;
+            
+    //         for (let row = 0; row < rows; row++) {
+    //             for (let col = 0; col < cols; col++) {
+    //                 const cell = this.source[row][col];
+
+    //                 this.context.fillStyle = cell.color;
+
+    //                 innerPath = this.drawCellInnerPath(cell, x, y, xSize, ySize);
+    //                 outerPath = this.drawCellOuterPath(lineWidth, x, y, xSize, ySize);
+                    
+    //                 this.context.stroke(innerPath);
+    //                 this.context.fill(outerPath);
+
+    //                 x += xSize;
+    //             }
+
+    //             x = lineWidth * 0.5;
+    //             y += ySize;
+    //         }
+    //     }
+    // }
+
     public draw(rows: number, cols: number, lineWidth: number): void {
         if (this.context) {
-            const xSize: number = Number.parseFloat(((this.width - lineWidth * rows) / rows).toFixed(3));
-            const ySize: number = Number.parseFloat(((this.height - lineWidth * cols) / cols).toFixed(3));
+            const xSize: number = Number.parseFloat(((this.width - lineWidth) / cols).toFixed(3));
+            const ySize: number = Number.parseFloat(((this.height - lineWidth) / rows).toFixed(3));
+            let x: number = 0, y: number = lineWidth * 0.5, col: number, row: number;
+            let cell: MazeCellModel, innerPath: Path2D, outerPath: Path2D;
 
             this.context.clearRect(0, 0, this.width, this.height);
 
             this.context.lineWidth = lineWidth;
             this.context.lineJoin = 'round';
             this.context.lineCap = 'round';
-            
-            for (let row = 0; row < rows; row++) {
-                for (let col = 0; col < cols; col++) {
-                    const cell = this.source[row][col];
+            this.context.strokeStyle = CLEAR_COLOR;
+      
+            for (let i = 0, length = rows * cols; i < length; i++) {
+                col = i % cols;
+                row = Math.floor(i / cols);
+                cell = this.source[row][col];
 
-                    this.context.strokeStyle = cell.bdcolor;
-                    this.context.fillStyle = cell.bgcolor;
+                x = col === 0 ? lineWidth * 0.5 : x + xSize;
+                y = col === 0 ? (i > 0 ? y + ySize : y) : y;
 
-                    const region = this.drawCell(cell, row * xSize + row * lineWidth + this.context.lineWidth * 0.5, col * ySize + col * lineWidth + this.context.lineWidth * 0.5, xSize, ySize);
-                    
-                    this.context.stroke(region);
-                    this.context.fill(region);
-                }
+                this.context.fillStyle = cell.color;
+                
+                innerPath = this.drawCellInnerPath(cell, x, y, xSize, ySize);
+                outerPath = this.drawCellOuterPath(lineWidth, x, y, xSize, ySize);
+
+                this.context.stroke(innerPath);
+                this.context.fill(outerPath);
             }
         }
     }
 
-    private drawCell(cell: MazeCellModel, x: number, y: number, xSize: number, ySize: number): Path2D {
-        const region = new Path2D();
+    private drawCellInnerPath(cell: MazeCellModel, x: number, y: number, xSize: number, ySize: number): Path2D {
+        const path = new Path2D();
 
-        region.moveTo(x, y);
+        path.moveTo(x, y);
         /* 画上边 */
         if (cell.walls.top) {
-            region.lineTo(x + xSize, y);
+            path.lineTo(x + xSize, y);
         } else {
-            region.moveTo(x + xSize, y);
+            path.moveTo(x + xSize, y);
         }
         /* 画右边 */
         if (cell.walls.right) {
-            region.lineTo(x + xSize, y + ySize);
+            path.lineTo(x + xSize, y + ySize);
         } else {
-            region.moveTo(x + xSize, y + ySize);
+            path.moveTo(x + xSize, y + ySize);
         }
         /* 画下边 */
         if (cell.walls.bottom) {
-            region.lineTo(x, y + ySize);
+            path.lineTo(x, y + ySize);
         } else {
-            region.moveTo(x, y + ySize);
+            path.moveTo(x, y + ySize);
         }
         /* 画左边 */
         if (cell.walls.left) {
-            region.lineTo(x, y);
+            path.lineTo(x, y);
         } else {
-            region.moveTo(x, y);
+            path.moveTo(x, y);
         }
+        
+        return path;
+    }
 
-        return region;
+    private drawCellOuterPath(lineWidth: number, x: number, y: number, xSize: number, ySize: number): Path2D {
+        const path = new Path2D();
+        path.moveTo(x, y);
+        path.rect(x + lineWidth * 0.5, y + lineWidth * 0.5, xSize - lineWidth, ySize - lineWidth);
+        return path;
     }
 
 }

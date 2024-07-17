@@ -17,7 +17,7 @@ import { DualPivotIterativeQuickSortService, DualPivotRecursiveQuickSortService,
 import { CountSortService } from "../service/count-sort.service";
 import { BucketSortService, InterpolationSortService, PigeonholeSortService } from "../service/bucket-sort.service";
 import { RadixLSDSortService, RadixMSDSortService } from "../service/radix-sort.service";
-import { SleepSortService } from "../service/sleep-sort.service";
+import { AsyncSleepSortService, SyncSleepSortService } from "../service/sleep-sort.service";
 import { CycleSortService } from "../service/cycle-sort.service";
 import { HeapSortService, TernaryHeapSortService } from "../service/heap-sort.service";
 import { TopDownMergeSortService, MultiWayMergeSortService, BottomUpMergeSortService, InPlaceMergeSortService } from "../service/merge-sort.service";
@@ -523,7 +523,8 @@ export class SortMatchService {
         private _gravity: GravitySortService,
         private _pancake: PancakeSortService,
         private _patience: PatienceSortService,
-        private _sleep: SleepSortService,
+        private _syncSleep: SyncSleepSortService,
+        private _asyncSleep: AsyncSleepSortService,
         private _recrStooge: RecursiveStoogeSortService,
         private _iterStooge: IterativeStoogeSortService,
         private _slow: SlowSortService,
@@ -737,7 +738,11 @@ export class SortMatchService {
         }
 
         if (name === 'sleep-sort') {
-            return this._sleep.sort(array, order);
+            return this._syncSleep.sort(array, order);
+        }
+
+        if (name === 'async-sleep-sort') {
+            return this._asyncSleep.sort(array, order);
         }
 
         if (name === 'slow-sort') {

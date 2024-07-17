@@ -5,6 +5,7 @@ import { HttpClientModule } from "@angular/common/http";
 import { EffectsModule } from "@ngrx/effects";
 import { StoreModule } from "@ngrx/store";
 import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { FieldsetModule } from 'primeng/fieldset';
 import { InputGroupModule } from 'primeng/inputgroup';
@@ -34,7 +35,7 @@ import { DualPivotIterativeQuickSortService, DualPivotRecursiveQuickSortService,
 import { CountSortService } from "./sort/service/count-sort.service";
 import { BucketSortService, InterpolationSortService, PigeonholeSortService } from "./sort/service/bucket-sort.service";
 import { RadixLSDSortService, RadixMSDSortService } from "./sort/service/radix-sort.service";
-import { SleepSortService } from "./sort/service/sleep-sort.service";
+import { AsyncSleepSortService, SyncSleepSortService } from "./sort/service/sleep-sort.service";
 import { CycleSortService } from "./sort/service/cycle-sort.service";
 import { HeapSortService, SmoothSortService, TernaryHeapSortService } from "./sort/service/heap-sort.service";
 import { BottomUpMergeSortService, MultiWayMergeSortService, InPlaceMergeSortService, TopDownMergeSortService } from "./sort/service/merge-sort.service";
@@ -55,7 +56,8 @@ import { BinarySearchTreeSortService } from "./sort/service/tree-sort.service";
 import { OptimalShearSortService, ShearSortService } from "./sort/service/shear-sort.service";
 
 import { MazeMatchService, MazeToolsService, MazeUtilsService } from "./maze/ngrx-store/maze.service";
-import { MazeGenerationRandomBacktrackerService } from "./maze/service/backtracker-maze.service";
+import { MazeGenerationRandomizedBacktrackerService, MazeGenerationParallelRandomizedBacktrackerService } from "./maze/service/backtracker-maze.service";
+import { MazeGenerationParallelPrimService, MazeGenerationRandomizedPrimService } from "./maze/service/prim-maze.service";
 
 @NgModule({
     declarations: [
@@ -68,6 +70,7 @@ import { MazeGenerationRandomBacktrackerService } from "./maze/service/backtrack
         FormsModule,
         HttpClientModule,
         ButtonModule,
+        ConfirmDialogModule,
         DropdownModule,
         FieldsetModule,
         InputGroupModule,
@@ -89,10 +92,10 @@ import { MazeGenerationRandomBacktrackerService } from "./maze/service/backtrack
         BubbleSortService, CooktailSortService, TwoWayBubbleSortService, CombSortService, OddEvenSortService, ExchangeSortService, InsertionSortService, BinarySearchInserionSortService, ShellSortService, SelectionSortService, ShakerSelectionSortService, TwoWaySelectionSortService, RecursiveQuickSortService, IterativeQuickSortService, TwoWayRecursiveQuickSortService, TwoWayIterativeQuickSortService, ThreeWayRecursiveQuickSortService, ThreeWayIterativeQuickSortService, DualPivotRecursiveQuickSortService, DualPivotIterativeQuickSortService, HeapSortService, TernaryHeapSortService, SmoothSortService,
         BucketSortService, CountSortService, InterpolationSortService, PigeonholeSortService, RadixLSDSortService, RadixMSDSortService, TopDownMergeSortService, BottomUpMergeSortService, MultiWayMergeSortService, InPlaceMergeSortService, TimSortService, 
         TopDownBitonicMergeSortService, BottomUpBitonicMergeSortService, TopDownOddEvenMergeSortService, BottomUpOddEvenMergeSortService, ShearSortService, OptimalShearSortService,
-        BogoSortService, BogoBubbleSortService, BogoCocktailSortService, CycleSortService, GnomeSortService, GravitySortService, SleepSortService, RecursiveStoogeSortService, IterativeStoogeSortService, SlowSortService, TournamentSortService, PancakeSortService, PatienceSortService, LibrarySortService, StrandSortService, OptimalStrandSortService, BinarySearchTreeSortService,
+        BogoSortService, BogoBubbleSortService, BogoCocktailSortService, CycleSortService, GnomeSortService, GravitySortService, SyncSleepSortService, AsyncSleepSortService, RecursiveStoogeSortService, IterativeStoogeSortService, SlowSortService, TournamentSortService, PancakeSortService, PatienceSortService, LibrarySortService, StrandSortService, OptimalStrandSortService, BinarySearchTreeSortService,
 
         MazeMatchService, MazeUtilsService, MazeToolsService,
-        MazeGenerationRandomBacktrackerService
+        MazeGenerationRandomizedBacktrackerService, MazeGenerationParallelRandomizedBacktrackerService, MazeGenerationRandomizedPrimService, MazeGenerationParallelPrimService
     ]
 })
 export class AlgorithmModule {}

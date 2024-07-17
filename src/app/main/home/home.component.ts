@@ -1,5 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, ElementRef, EventEmitter, Inject, Input, LOCALE_ID, NgZone, OnDestroy, OnInit, Output, Renderer2, TemplateRef, ViewContainerRef, ViewEncapsulation } from "@angular/core";
-import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router } from "@angular/router";
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, LOCALE_ID, NgZone, OnDestroy, OnInit, Output, Renderer2, ViewEncapsulation } from "@angular/core";
+import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router, UrlSegment } from "@angular/router";
 import { Store } from "@ngrx/store";
 import { TreeNode } from "primeng/api";
 import { Subscription, filter, map } from "rxjs";
@@ -36,7 +36,7 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
     private readonly PORT: { [key: string]: number } = { 'en-US': 4200, 'zh-Hans': 5200, 'zh-Hant': 5300 };
 
     private location:Location = window.location;
-    private param: string = '';
+    private idSplit: string[] = [];
 
     private event$: Subscription | null = null;
     private style$: Subscription | null = null;
@@ -62,8 +62,15 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
                     map(() => this._route.snapshot)
                 )
                 .subscribe(snapshot => 
-                    this._ngZone.run(() => 
-                        this.parseRouteSnapshot(snapshot)));
+                    this._ngZone.run(() => {
+                        if (Object.keys(snapshot.queryParams).includes('id')) {
+                            const split = (snapshot.queryParams['id'] as string).split('-');
+
+                            for (let i = 1; i <= split.length; i++) {
+                                this.idSplit.push(split.slice(0, i).join('-'));
+                            }
+                        }
+                    }));
         });
     }
 
@@ -173,29 +180,8 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
         });
     }
 
-    private parseRouteSnapshot(snapshot: ActivatedRouteSnapshot): void {
-        const stack: ActivatedRouteSnapshot[] = [snapshot];
-        let path: string;
-
-        while (stack.length > 0) {
-            snapshot = stack.pop() as ActivatedRouteSnapshot;
-            path = snapshot.url[snapshot.url.length - 1].path;
-
-            if (path === 'sort') {
-                this.param = snapshot.queryParams['name'];
-                break;
-            } else {
-                this.param = path;
-            }
-
-            snapshot.children.forEach(child => stack.push(child));
-        }
-
-        stack.splice(0);
-    }
-
     private expandNavlistOnLoad(navlist: TreeNode<RouteUrlParam>[]): void {
-        const stack: TreeNode<RouteUrlParam>[] = [], queue: TreeNode<RouteUrlParam>[] = [];
+        const stack: TreeNode<RouteUrlParam>[] = [];
         let node: TreeNode<RouteUrlParam> = {};
 
         for (let i = navlist.length - 1; i >= 0; i--) {
@@ -204,9 +190,14 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
 
         while (stack.length > 0) {
             node = stack.pop() as TreeNode<RouteUrlParam>;
-            queue.push(node);
             
-            if (node.data && (node.data.param === this.param || (node.data.url && node.data.url[node.data.url.length - 1] === this.param))) break;
+            if (node.key && this.idSplit.includes(node.key)) {
+                if (node.leaf) {
+                    node.data = { ...node.data, mark: true }
+                } else {
+                    node.expanded = true;
+                }
+            }
             
             if (node.children) {
                 for (let i = node.children.length - 1; i >= 0; i--) {
@@ -214,19 +205,9 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
             }
         }
-        
-        for (const item of queue) {
-            if (!item.key || !node.key?.includes(item.key)) continue;
 
-            if (item.leaf) {
-                item.data = { ...item.data, mark: true };
-            } else {
-                item.expanded = true;
-            }
-        }
-
-        queue.splice(0);
         stack.splice(0);
+        this.idSplit.splice(0);
     }
 
 }
@@ -235,7 +216,7 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
     selector: 'tauri-ngx-navlist',
     template: `
         <ng-container *ngFor="let item of list">
-            <a [routerLink]="item.data?.url" routerLinkActive="text-primary" [queryParams]="{ name: item.data?.param }"
+            <a [routerLink]="item.data?.url" routerLinkActive="text-primary" [queryParams]="{ id: item.key, name: item.data?.param }"
                 class="flex align-items-center text-color hover:bg-primary hover:text-primary min-w-full p-2 gap-2" 
                 [class.no-underline]="item.leaf" [class.cursor-pointer]="item.leaf" [class.hover:text-primary]="item.leaf"
                 [style.padding-left]="(depth * 0.5) + 'rem !important'" (click)="handleExpandCollapseEvent(item)">

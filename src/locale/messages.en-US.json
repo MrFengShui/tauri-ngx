@@ -1,6 +1,20 @@
 {
     "locale": "en-US",
     "translations": {
+        "global_message_0_1": "Success",
+        "global_message_0_2": "Warning",
+        "global_message_0_3": "Failure",
+        "global_message_0_4": "Error",
+        "global_message_0_5": "Help",
+        "global_message_0_6": "Yes",
+        "global_message_0_7": "No",
+        "global_message_0_8": "Confirm",
+        "global_message_0_9": "Cancel",
+        "global_message_0_10": "Done",
+
+        "global_message_1": "",
+        "global_message_1_1": "A task is running. Do you terminate current task and redirect to next page?",
+
         "sort_component_ts_1": "Quantity",
         "sort_component_ts_2": "Order",
         "sort_component_ts_3_1": "Radix Base",

@@ -1,12 +1,14 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Inject, LOCALE_ID, NgZone, OnDestroy, OnInit, Renderer2, ViewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngrx/store";
-import { map, Observer, Subscription, timer } from "rxjs";
+import { combineLatest, map, Observable, Observer, Subscription, timer } from "rxjs";
 import { cloneDeep } from "lodash";
 
-import { MazeCellModel, MazeWallModel } from "./ngrx-store/maze.state";
+import { MazeCellModel } from "./ngrx-store/maze.state";
 import { MazeMatchService, MazeUtilsService } from "./ngrx-store/maze.service";
-import { MazeCanvasUtils, MazeGenerationName } from "./maze.utils";
+import { MazeCanvasUtils } from "./maze.utils";
+import { MazeActionType, MazeActionmName } from "./ngrx-store/maze.state";
+import { ConfirmationService } from "primeng/api";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,7 +27,17 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
 
     @HostListener('window:resize', ['$event'])
     private async hostListenWindowResize(): Promise<void> {
+        this.ngOnDestroy();
         await this.update();
+    }
+
+    locked: boolean = false;
+
+    protected readonly TRANSLATION_MESSAGES: { [key: string | number] : string } = {
+        111: $localize `:@@global_message_0_2:global_message_0_2`,
+        112: $localize `:@@global_message_1_1:global_message_1_1`,
+        113: $localize `:@@global_message_0_8:global_message_0_8`,
+        114: $localize `:@@global_message_0_9:global_message_0_9`,
     }
 
     protected rows: number = 0;
@@ -33,11 +45,11 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
     protected cols: number = 0;
     protected maxCols: number = 0;
     protected timer: number = 0;
-    protected locked: boolean = false;
-    
+
     private utils: MazeCanvasUtils | null = null;
     private source: MazeCellModel[][] = Array.from([]);
-    private name: MazeGenerationName = undefined;
+    private type: MazeActionType = undefined;
+    private name: MazeActionmName = undefined;
     private lineWidth: number = 1;
 
     private create$: Subscription | null = null;
@@ -52,6 +64,7 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
         private _renderer: Renderer2,
         private _ngZone: NgZone,
         private _store: Store,
+        private _service: ConfirmationService,
 
         @Inject(LOCALE_ID)
         private _localeID: string,
@@ -73,8 +86,28 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
 
     ngAfterViewInit(): void {
         this.initHostLayout();
-        this.listenQueryParamsChange();
+        this.listenParamsAndQueryParamsChange();
         // this.listenLoadConfigChange();
+    }
+
+    showConfirmDialog(): Observable<boolean> {
+        return new Observable(subscriber => {
+            this._service.confirm({
+                icon: 'pi pi-exclamation-triangle', 
+                header: this.TRANSLATION_MESSAGES[111], message: this.TRANSLATION_MESSAGES[112],
+                acceptIcon: 'none', rejectIcon: 'none',
+                acceptButtonStyleClass: 'p-button-success p-button-raised', rejectButtonStyleClass: 'p-button-danger p-button-raised',
+                acceptLabel: this.TRANSLATION_MESSAGES[113], rejectLabel: this.TRANSLATION_MESSAGES[114],
+                accept: () => {
+                    subscriber.next(true);
+                    subscriber.complete();
+                },
+                reject: () => {
+                    subscriber.next(false);
+                    subscriber.complete();
+                }
+            });
+        });
     }
 
     protected handleGridRowColumnSelectChange(): void {
@@ -85,6 +118,16 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
                     .subscribe(this.acceptDataAndShow());
             });
         }   
+    }
+
+    protected handleExportDataEvent(): void {
+        const element: HTMLAnchorElement = this._renderer.createElement('a');
+        element.download = 'maze.data.json';
+
+        const blob = new Blob([JSON.stringify(this.source)], { type: 'application/json' });
+        element.href = window.URL.createObjectURL(blob);
+
+        element.click();
     }
 
     protected handleResetEvent(): void {
@@ -101,7 +144,7 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
     private initHostLayout(): void {
         this._renderer.addClass(this._element.nativeElement, 'flex');
         this._renderer.addClass(this._element.nativeElement, 'flex-column');
-        this._renderer.addClass(this._element.nativeElement, 'gap-3');
+        this._renderer.addClass(this._element.nativeElement, 'gap-2');
         this._renderer.addClass(this._element.nativeElement, 'w-full');
         this._renderer.addClass(this._element.nativeElement, 'h-full');
     }
@@ -137,8 +180,8 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
     private async update(): Promise<void> {
         const size: { width: number, height: number } = await this.fetchCanvasDimension();
 
-        this.maxRows = Math.floor(size.width * 0.1);
-        this.maxCols = Math.floor(size.height * 0.1);
+        this.maxCols = Math.floor(size.width * 0.1);
+        this.maxRows = Math.floor(size.height * 0.1);
 
         this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${size.width}`);
         this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${size.height}`);
@@ -160,7 +203,7 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
         return {
             next: state => this._ngZone.run(() => {
                 this.source = cloneDeep(state as MazeCellModel[][]);
-                
+
                 if (this.utils) {
                     this.utils.loadData(this.source);
                     this.utils.draw(this.rows, this.cols, this.lineWidth);
@@ -182,7 +225,7 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
     private listenToMazeProcess(): void {
         this._ngZone.runOutsideAngular(() => {
             this.locked = true;
-            this.match$ = this._matchService.match(this.name, this.source, this.rows, this.cols)
+            this.match$ = this._matchService.match(this.type, this.name, this.source, this.rows, this.cols)
                 .subscribe(this.acceptDataAndShow());
         });
     }
@@ -201,18 +244,25 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
         });
     }
 
-    private listenQueryParamsChange(): void {
+    private listenParamsAndQueryParamsChange(): void {
         this._ngZone.runOutsideAngular(() => {
-            this.route$ = this._route.queryParams
-                .pipe(map(params => params['name']))
-                .subscribe(name => 
-                    this._ngZone.run(async () => {
-                        this.name = name;
+            let count: number = 0;
+            this.route$ = combineLatest([this._route.params, this._route.queryParams])
+                    .pipe(map(param => ({ type: param[0]['type'], name: param[1]['name'] })))
+                    .subscribe(value => this._ngZone.run(async () => {
+                        count += 1;
 
-                        await this.update();
+                        this.type = value.type;
+                        this.name = value.name;
+                        
+                        if (count === 1) {
+                            await this.update();
+                            
+                            this.timer$?.unsubscribe();
+                            this.match$?.unsubscribe();
 
-                        this.timer$?.unsubscribe();
-                        this.match$?.unsubscribe();
+                            count = 0;
+                        }
                     }));
         });
     }

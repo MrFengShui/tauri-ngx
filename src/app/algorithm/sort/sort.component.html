@@ -1,14 +1,14 @@
-<div class="flex flex-auto" [style.height]="'calc(100% - ' + ctrlBox_1.clientHeight + 'px - ' + ctrlBox_2.clientHeight + 'px - 3rem)'" #container>
+<div class="flex flex-auto" [style.height]="'calc(100% - 5rem * 2)'">
     <canvas class="surface-400 surface-border border-3 w-full h-full" #canvas></canvas>
 </div>
-<div class="flex align-items-center border-solid surface-border border-round-sm border-1 p-3 gap-4" #ctrlBox_1>
+<div class="flex align-items-center border-solid surface-border border-round-sm border-1 p-3 gap-4 h-5rem">
     <span class="font-bold text-xl text-primary white-space-nowrap">{{ TRANSLATION_MESSAGES[1] }}</span>
     <p-slider [disabled]="locked" [animate]="true" [min]="0" [max]="maxValue" [step]="32" [(ngModel)]="count" class="w-full" (onSlideEnd)="handleCountSelectChange()"/>
     <span class="font-bold text-xl text-primary">{{count}}</span>
     <p-button [disabled]="locked" [raised]="true" icon="pi pi-sync" [label]="TRANSLATION_MESSAGES[7]" class="white-space-nowrap" (onClick)="handleShuffleSourceEvent()"/>
     <p-button [disabled]="locked" [raised]="true" icon="pi pi-play" [label]="TRANSLATION_MESSAGES[8]" class="white-space-nowrap" (onClick)="handleRunSortEvent()"/>
 </div>
-<div class="flex justify-content-between align-items-center surface-border border-round-sm border-1 p-3 gap-4" #ctrlBox_2>
+<div class="flex justify-content-between align-items-center surface-border border-round-sm border-1 p-3 gap-4 h-5rem">
     <div class="flex align-items-center gap-4">
         <span class="font-bold text-xl text-primary white-space-nowrap">{{ TRANSLATION_MESSAGES[2] }}</span>
         <p-selectButton [disabled]="locked" [options]="orderOptions" optionLabel="label" optionValue="value" [(ngModel)]="order"/>

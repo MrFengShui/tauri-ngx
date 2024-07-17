@@ -149,7 +149,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     private initHostLayout(): void {
         this._renderer.addClass(this._element.nativeElement, 'flex');
         this._renderer.addClass(this._element.nativeElement, 'flex-column');
-        this._renderer.addClass(this._element.nativeElement, 'gap-3');
+        this._renderer.addClass(this._element.nativeElement, 'gap-2');
         this._renderer.addClass(this._element.nativeElement, 'w-full');
         this._renderer.addClass(this._element.nativeElement, 'h-full');
     }

@@ -1,3 +1,7 @@
+export type MazeActionType = 'generation' | 'path-finder' | undefined;
+export type MazeActionmName = 'rbt' | 'para-rbt' | 'prim' | 'para-prim' | undefined;
+export type MazeGridXY = { row: number; col: number; };
+
 export interface MazeWallModel {
 
     top: boolean;
@@ -9,8 +13,7 @@ export interface MazeWallModel {
 
 export interface MazeCellModel {
 
-    bdcolor: string;
-    bgcolor: string;
+    color: string;
     visited: boolean;
     walls: MazeWallModel;
 

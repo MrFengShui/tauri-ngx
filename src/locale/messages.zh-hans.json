@@ -1,6 +1,20 @@
 {
     "locale": "zh-Hans",
     "translations": {
+        "global_message_0_1": "成功",
+        "global_message_0_2": "警告",
+        "global_message_0_3": "失败",
+        "global_message_0_4": "错误",
+        "global_message_0_5": "帮助",
+        "global_message_0_6": "是",
+        "global_message_0_7": "否",
+        "global_message_0_8": "同意",
+        "global_message_0_9": "取消",
+        "global_message_0_10": "完成",
+
+        "global_message_1": "",
+        "global_message_1_1": "程序正在运行，是否强制终止当前任务並跳转下一个页面？",
+
         "sort_component_ts_1": "数量",
         "sort_component_ts_2": "顺序",
         "sort_component_ts_3_1": "进制",

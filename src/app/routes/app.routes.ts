@@ -21,7 +21,18 @@ export const routes: Routes = [
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
             { path: 'dashboard', component: DashboardPageComponent, title: '项目导航' },
             { path: 'algorithm/sort', component: AlgorithmSortPageComponent, title: '排序算法' },
-            { path: 'algorithm/maze/:type', component: AlgorithmMazePageComponent, title: '迷宫算法' }
+            { 
+                path: 'algorithm/maze/:type', component: AlgorithmMazePageComponent, title: '迷宫算法', 
+                canDeactivate: [
+                    (component: AlgorithmMazePageComponent) => {
+                        if (component.locked) {
+                            return component.showConfirmDialog();
+                        } else {
+                            return true;
+                        }
+                    }
+                ] 
+            }
         ]
     },
     { path: 'splash-screen', component: SplashScreenPageComponent, pathMatch: 'full', title: '欢迎页面' },

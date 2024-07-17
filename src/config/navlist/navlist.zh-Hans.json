@@ -698,7 +698,7 @@
                         },
                         {
                             "key": "2-4-50",
-                            "label": "睡眠排序",
+                            "label": "睡眠排序（同步）",
                             "data": {
                                 "url": [
                                     "/playground",
@@ -706,6 +706,19 @@
                                     "sort"
                                 ],
                                 "param": "sleep-sort"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "2-4-50",
+                            "label": "睡眠排序（异步）",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "sort"
+                                ],
+                                "param": "async-sleep-sort"
                             },
                             "leaf": true
                         },
@@ -828,7 +841,7 @@
                     "leaf": false,
                     "children": [
                         {
-                            "key": "3-1-1",
+                            "key": "3-1-10",
                             "label": "随机回溯算法",
                             "data": {
                                 "url": [
@@ -837,7 +850,21 @@
                                     "maze",
                                     "generation"
                                 ],
-                                "param": "random-backtracker"
+                                "param": "rbt"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "3-1-11",
+                            "label": "并行随机回溯算法",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "maze",
+                                    "generation"
+                                ],
+                                "param": "para-rbt"
                             },
                             "leaf": true
                         },
@@ -880,6 +907,34 @@
                                     "generation"
                                 ],
                                 "param": "hunt-kill"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "3-1-50",
+                            "label": "随机普里姆算法",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "maze",
+                                    "generation"
+                                ],
+                                "param": "prim"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "3-1-51",
+                            "label": "并行随机普里姆算法",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "maze",
+                                    "generation"
+                                ],
+                                "param": "para-prim"
                             },
                             "leaf": true
                         }
