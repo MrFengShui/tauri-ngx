@@ -33,7 +33,7 @@ export class MazeGenerationRandomizedBacktrackerService {
             currPoint = stack.pop() as MazeGridXY;
             source[currPoint.row][currPoint.col].visited = true;
             
-            neighbors = await this._service.findNeighbors(source, rows, cols, currPoint, neighbors);
+            neighbors = await this._service.findFitNeighbors(source, rows, cols, currPoint, neighbors);
             
             if (neighbors.length > 0) {
                 stack.push(currPoint);
@@ -90,7 +90,7 @@ export class MazeGenerationParallelRandomizedBacktrackerService {
         fstCurrPoint = { row: random(floor(rows * 0.25, 0), floor(rows * 0.75, 0)), col: random(floor(rows * 0.25, 0), floor(rows * 0.75, 0)) };
         source[fstCurrPoint.row][fstCurrPoint.col].visited = true;
 
-        neighbors = await this._service.findNeighbors(source, rows, cols, fstCurrPoint, neighbors);
+        neighbors = await this._service.findFitNeighbors(source, rows, cols, fstCurrPoint, neighbors);
 
         if (neighbors.length > 0) {
             sndCurrPoint = neighbors[random(0, neighbors.length - 1)];
@@ -107,7 +107,7 @@ export class MazeGenerationParallelRandomizedBacktrackerService {
                 fstCurrPoint = fstStack.pop() as MazeGridXY;
                 source[fstCurrPoint.row][fstCurrPoint.col].visited = true;
 
-                neighbors = await this._service.findNeighbors(source, rows, cols, fstCurrPoint, neighbors);
+                neighbors = await this._service.findFitNeighbors(source, rows, cols, fstCurrPoint, neighbors);
 
                 if (neighbors.length > 0) {
                     fstStack.push(fstCurrPoint);
@@ -120,7 +120,7 @@ export class MazeGenerationParallelRandomizedBacktrackerService {
                 }
             } else {
                 if (fstCurrPoint && sndCurrPoint) {
-                    neighbors = await this._service.findNeighbors(source, rows, cols, sndCurrPoint, neighbors);
+                    neighbors = await this._service.findFitNeighbors(source, rows, cols, sndCurrPoint, neighbors);
 
                     if (neighbors.length > 0) {
                         source[fstCurrPoint.row][fstCurrPoint.col].color = EMPTY_COLOR;
@@ -139,7 +139,7 @@ export class MazeGenerationParallelRandomizedBacktrackerService {
                 sndCurrPoint = sndStack.pop() as MazeGridXY;
                 source[sndCurrPoint.row][sndCurrPoint.col].visited = true;
 
-                neighbors = await this._service.findNeighbors(source, rows, cols, sndCurrPoint, neighbors);
+                neighbors = await this._service.findFitNeighbors(source, rows, cols, sndCurrPoint, neighbors);
 
                 if (neighbors.length > 0) {
                     sndStack.push(sndCurrPoint);
@@ -152,7 +152,7 @@ export class MazeGenerationParallelRandomizedBacktrackerService {
                 }
             } else {
                 if (fstCurrPoint && sndCurrPoint) {
-                    neighbors = await this._service.findNeighbors(source, rows, cols, fstCurrPoint, neighbors);
+                    neighbors = await this._service.findFitNeighbors(source, rows, cols, fstCurrPoint, neighbors);
                     
                     if (neighbors.length > 0) {
                         source[sndCurrPoint.row][sndCurrPoint.col].color = EMPTY_COLOR;

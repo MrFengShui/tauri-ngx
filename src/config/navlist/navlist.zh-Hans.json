@@ -842,7 +842,7 @@
                     "children": [
                         {
                             "key": "3-1-10",
-                            "label": "随机回溯算法",
+                            "label": "Aldous-Broder算法",
                             "data": {
                                 "url": [
                                     "/playground",
@@ -850,13 +850,13 @@
                                     "maze",
                                     "generation"
                                 ],
-                                "param": "rbt"
+                                "param": "aldous-broder"
                             },
                             "leaf": true
                         },
                         {
                             "key": "3-1-11",
-                            "label": "并行随机回溯算法",
+                            "label": "并行Aldous-Broder算法",
                             "data": {
                                 "url": [
                                     "/playground",
@@ -864,13 +864,77 @@
                                     "maze",
                                     "generation"
                                 ],
-                                "param": "para-rbt"
+                                "param": "parallel-aldous-broder"
                             },
                             "leaf": true
                         },
                         {
                             "key": "3-1-2",
-                            "label": "二叉树算法",
+                            "label": "增长树算法",
+                            "leaf": false,
+                            "children": [
+                                {
+                                    "key": "3-1-2-10",
+                                    "label": "广度优先",
+                                    "data": {
+                                        "url": [
+                                            "/playground",
+                                            "algorithm",
+                                            "maze",
+                                            "generation"
+                                        ],
+                                        "param": "breadth-first-growing-tree"
+                                    },
+                                    "leaf": true
+                                },
+                                {
+                                    "key": "3-1-2-11",
+                                    "label": "并行广度优先",
+                                    "data": {
+                                        "url": [
+                                            "/playground",
+                                            "algorithm",
+                                            "maze",
+                                            "generation"
+                                        ],
+                                        "param": "parallel-breadth-first-growing-tree"
+                                    },
+                                    "leaf": true
+                                },
+                                {
+                                    "key": "3-1-2-20",
+                                    "label": "深度优先",
+                                    "data": {
+                                        "url": [
+                                            "/playground",
+                                            "algorithm",
+                                            "maze",
+                                            "generation"
+                                        ],
+                                        "param": "depth-first-growing-tree"
+                                    },
+                                    "leaf": true
+                                },
+                                {
+                                    "key": "3-1-2-21",
+                                    "label": "并行深度优先",
+                                    "data": {
+                                        "url": [
+                                            "/playground",
+                                            "algorithm",
+                                            "maze",
+                                            "generation"
+                                        ],
+                                        "param": "parallel-depth-first-growing-tree"
+                                    },
+                                    "leaf": true
+                                }
+                                
+                            ]
+                        },
+                        {
+                            "key": "3-1-30",
+                            "label": "随机隔离算法（建墙）",
                             "data": {
                                 "url": [
                                     "/playground",
@@ -878,13 +942,13 @@
                                     "maze",
                                     "generation"
                                 ],
-                                "param": "bst"
+                                "param": "randomized-division-build"
                             },
                             "leaf": true
                         },
                         {
-                            "key": "3-1-3",
-                            "label": "随机隔离算法",
+                            "key": "3-1-31",
+                            "label": "随机隔离算法（拆墙）",
                             "data": {
                                 "url": [
                                     "/playground",
@@ -892,12 +956,26 @@
                                     "maze",
                                     "generation"
                                 ],
-                                "param": "random-divider"
+                                "param": "randomized-division-merge"
                             },
                             "leaf": true
                         },
                         {
-                            "key": "3-1-4",
+                            "key": "3-1-40",
+                            "label": "Eller算法",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "maze",
+                                    "generation"
+                                ],
+                                "param": "eller"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "3-1-60",
                             "label": "猎杀算法",
                             "data": {
                                 "url": [
@@ -906,12 +984,68 @@
                                     "maze",
                                     "generation"
                                 ],
-                                "param": "hunt-kill"
+                                "param": "hunt-and-kill"
                             },
                             "leaf": true
                         },
                         {
-                            "key": "3-1-50",
+                            "key": "3-1-61",
+                            "label": "并行猎杀算法",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "maze",
+                                    "generation"
+                                ],
+                                "param": "parallel-hunt-and-kill"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "3-1-70",
+                            "label": "随机回溯算法",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "maze",
+                                    "generation"
+                                ],
+                                "param": "randomized-backtracker"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "3-1-71",
+                            "label": "并行随机回溯算法",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "maze",
+                                    "generation"
+                                ],
+                                "param": "parallel-randomized-backtracker"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "3-1-80",
+                            "label": "随机克鲁斯卡尔算法",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "maze",
+                                    "generation"
+                                ],
+                                "param": "randomized-kruskal"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "3-1-90",
                             "label": "随机普里姆算法",
                             "data": {
                                 "url": [
@@ -920,12 +1054,12 @@
                                     "maze",
                                     "generation"
                                 ],
-                                "param": "prim"
+                                "param": "randomized-prim"
                             },
                             "leaf": true
                         },
                         {
-                            "key": "3-1-51",
+                            "key": "3-1-91",
                             "label": "并行随机普里姆算法",
                             "data": {
                                 "url": [
@@ -934,7 +1068,35 @@
                                     "maze",
                                     "generation"
                                 ],
-                                "param": "para-prim"
+                                "param": "parallel-randomized-prim"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "3-1-100",
+                            "label": "绕线机算法",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "maze",
+                                    "generation"
+                                ],
+                                "param": "sidewinder"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "3-1-110",
+                            "label": "Wilson算法",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "maze",
+                                    "generation"
+                                ],
+                                "param": "wilson"
                             },
                             "leaf": true
                         }
