@@ -5,7 +5,7 @@ import { floor, random } from "lodash";
 import { MazeToolsService } from "../ngrx-store/maze.service";
 import { MazeCellModel, MazeGridPoint, MazeRunType } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
-import { MazeGridXY } from "../ngrx-store/maze.state";
+import { MazeGridCell } from "../ngrx-store/maze.state";
 import { ACCENT_COLOR, EMPTY_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR } from "../../../public/values.utils";
 
 /**
@@ -14,12 +14,12 @@ import { ACCENT_COLOR, EMPTY_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TW
 @Injectable()
 export class MazeGenerationRandomizedPrimService {
 
-    private graph: MazeGridXY[] = Array.from([]);
-    private vertex: MazeGridXY[] = Array.from([]);
+    private graph: MazeGridCell[] = Array.from([]);
+    private vertex: MazeGridCell[] = Array.from([]);
     private point: MazeGridPoint[] = Array.from([]);
-    private neighbors: MazeGridXY[] = Array.from([]);
-    private newNeighbors: MazeGridXY[] = Array.from([]);
-    private oldNeighbors: MazeGridXY[] = Array.from([]);
+    private neighbors: MazeGridCell[] = Array.from([]);
+    private newNeighbors: MazeGridCell[] = Array.from([]);
+    private oldNeighbors: MazeGridCell[] = Array.from([]);
 
     constructor(private _service: MazeToolsService) {}
 
@@ -37,8 +37,8 @@ export class MazeGenerationRandomizedPrimService {
 
     private async runByOne(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
         const length: number = rows * cols;
-        let currPoint: MazeGridXY = { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, nextPoint: MazeGridXY = { row: -1, col: -1 };
-        let neighbors: MazeGridXY[] = Array.from([]), newNeighbors: MazeGridXY[] = Array.from([]), oldNeighbors: MazeGridXY[] = Array.from([]), index: number;
+        let currPoint: MazeGridCell = { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, nextPoint: MazeGridCell = { row: -1, col: -1 };
+        let neighbors: MazeGridCell[] = Array.from([]), newNeighbors: MazeGridCell[] = Array.from([]), oldNeighbors: MazeGridCell[] = Array.from([]), index: number;
 
         neighbors = await this._service.findFitNeighbors(source, rows, cols, currPoint, neighbors);
         this.vertex.push(...neighbors);
@@ -93,11 +93,11 @@ export class MazeGenerationRandomizedPrimService {
 
     private async runByAll(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
         const length: number = rows * cols, scale: number = floor(Math.log2(length)) * 3, count: number = Math.max(scale, 3);
-        const origin: MazeGridXY = { row: random(floor(rows * 0.25), floor(rows * 0.75), false), col: random(floor(cols * 0.25), floor(cols * 0.75), false) };
+        const origin: MazeGridCell = { row: random(floor(rows * 0.25), floor(rows * 0.75), false), col: random(floor(cols * 0.25), floor(cols * 0.75), false) };
         let threshold: number, index: number;
 
         for (let i = 0; i < count; i++) {
-            this.point.push({ currPoint: { row: -1, col: -1 }, nextPoint: { row: -1, col: -1 } });
+            this.point.push({ currCell: { row: -1, col: -1 }, nextCell: { row: -1, col: -1 } });
         }
 
         this.neighbors = await this._service.findAnyNeighbors(source, rows, cols, origin, this.neighbors);
@@ -109,13 +109,13 @@ export class MazeGenerationRandomizedPrimService {
         while (this.graph.length < length) {
             for (let i = 0; i < threshold; i++) {
                 index = this.vertex.length === 1 ? 0 : random(0, this.vertex.length - 1, false);
-                this.point[i].currPoint = this.vertex.splice(index, 1)[0];
+                this.point[i].currCell = this.vertex.splice(index, 1)[0];
 
-                if (!this._service.existed(this.graph, this.point[i].currPoint)) {
-                    this.graph.push(this.point[i].currPoint);
+                if (!this._service.existed(this.graph, this.point[i].currCell)) {
+                    this.graph.push(this.point[i].currCell);
                 }
                 
-                this.neighbors = await this._service.findAnyNeighbors(source, rows, cols, this.point[i].currPoint, this.neighbors);
+                this.neighbors = await this._service.findAnyNeighbors(source, rows, cols, this.point[i].currCell, this.neighbors);
                 this.oldNeighbors = this.neighbors.filter(neighbor => this._service.existed(this.graph, neighbor));
                 this.newNeighbors = this.neighbors.filter(neighbor => !this._service.existed(this.graph, neighbor) && !this._service.existed(this.vertex, neighbor));
 
@@ -123,9 +123,9 @@ export class MazeGenerationRandomizedPrimService {
                     this.vertex.push(...this.newNeighbors);
                 }
                 
-                this.point[i].nextPoint = this.oldNeighbors[this.oldNeighbors.length === 1 ? 0 : random(0, this.oldNeighbors.length - 1, false)];
+                this.point[i].nextCell = this.oldNeighbors[this.oldNeighbors.length === 1 ? 0 : random(0, this.oldNeighbors.length - 1, false)];
                 
-                source = await this._service.mergeWall(source, this.point[i].currPoint, this.point[i].nextPoint);
+                source = await this._service.mergeWall(source, this.point[i].currCell, this.point[i].nextCell);
             }
 
             for (let i = 0, length = this.vertex.length; i < length; i++){
@@ -134,14 +134,14 @@ export class MazeGenerationRandomizedPrimService {
             
             for (let i = 0; i < threshold; i++) {
                 if (i % 3 === 1) {
-                    source[this.point[i].currPoint.row][this.point[i].currPoint.col].color = PRIMARY_ONE_COLOR;
-                    source[this.point[i].nextPoint.row][this.point[i].nextPoint.col].color = SECONDARY_ONE_COLOR;
+                    source[this.point[i].currCell.row][this.point[i].currCell.col].color = PRIMARY_ONE_COLOR;
+                    source[this.point[i].nextCell.row][this.point[i].nextCell.col].color = SECONDARY_ONE_COLOR;
                 } else if (i % 3 === 2) {
-                    source[this.point[i].currPoint.row][this.point[i].currPoint.col].color = PRIMARY_TWO_COLOR;
-                    source[this.point[i].nextPoint.row][this.point[i].nextPoint.col].color = SECONDARY_TWO_COLOR;
+                    source[this.point[i].currCell.row][this.point[i].currCell.col].color = PRIMARY_TWO_COLOR;
+                    source[this.point[i].nextCell.row][this.point[i].nextCell.col].color = SECONDARY_TWO_COLOR;
                 } else {
-                    source[this.point[i].currPoint.row][this.point[i].currPoint.col].color = PRIMARY_COLOR;
-                    source[this.point[i].nextPoint.row][this.point[i].nextPoint.col].color = SECONDARY_COLOR;
+                    source[this.point[i].currCell.row][this.point[i].currCell.col].color = PRIMARY_COLOR;
+                    source[this.point[i].nextCell.row][this.point[i].nextCell.col].color = SECONDARY_COLOR;
                 }
             }
             
@@ -154,8 +154,8 @@ export class MazeGenerationRandomizedPrimService {
             }
             
             for (let i = 0; i < threshold; i++) {
-                source[this.point[i].currPoint.row][this.point[i].currPoint.col].color = EMPTY_COLOR;
-                source[this.point[i].nextPoint.row][this.point[i].nextPoint.col].color = EMPTY_COLOR;
+                source[this.point[i].currCell.row][this.point[i].currCell.col].color = EMPTY_COLOR;
+                source[this.point[i].nextCell.row][this.point[i].nextCell.col].color = EMPTY_COLOR;
             }
 
             callback(source);

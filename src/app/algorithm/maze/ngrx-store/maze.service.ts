@@ -1,17 +1,16 @@
 import { Injectable } from "@angular/core";
-import { ActivatedRouteSnapshot, CanDeactivateFn, RouterStateSnapshot } from "@angular/router";
 import { Observable, of } from "rxjs";
 
-import { MazeCellModel } from "./maze.state";
-import { EMPTY_COLOR } from "../../../public/values.utils";
-import { MazeActionType, MazeActionmName, MazeGridXY } from "./maze.state";
+import { MazeCellModel, MazeGridPoint } from "./maze.state";
+import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, EMPTY_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR } from "../../../public/values.utils";
+import { MazeActionType, MazeActionmName, MazeGridCell } from "./maze.state";
 
-import { MazeGenerationRandomizedBacktrackerService, MazeGenerationParallelRandomizedBacktrackerService } from "../service/backtracker-maze.service";
+import { MazeGenerationRandomizedBacktrackerService } from "../service/backtracker-maze.service";
 import { MazeGenerationRandomizedPrimService } from "../service/prim-maze.service";
 import { MazeGenerationRandomizedKruskalService } from "../service/kruskal-maze.service";
 import { MazeGenerationAldousBroderService } from "../service/aldous-broder-maze.service";
 import { MazeGenerationHuntAndKillService } from "../service/hunt-kill-maze.service";
-import { MazeGenerationRandomizedDivisionBuildService, MazeGenerationRandomizedDivisionMergeService } from "../service/division-maze.service";
+import { MazeGenerationRandomizedDivisionService } from "../service/division-maze.service";
 import { MazeGenerationSidewinderService } from "../service/sidewinder-maze.service";
 import { MazeGenerationGrowTreeService } from "../service/grow-tree-maze.service";
 import { MazeGenerationEllerService } from "../service/eller-maze.service";
@@ -69,7 +68,7 @@ export class MazeUtilsService {
 @Injectable()
 export class MazeToolsService {
 
-    public async findFitNeighbors(source: MazeCellModel[][], rows: number, cols: number, currPoint: MazeGridXY, neighbors: MazeGridXY[]): Promise<MazeGridXY[]> {
+    public async findFitNeighbors(source: MazeCellModel[][], rows: number, cols: number, currPoint: MazeGridCell, neighbors: MazeGridCell[]): Promise<MazeGridCell[]> {
         if (neighbors.length > 0) {
             neighbors.splice(0);
         }
@@ -96,7 +95,7 @@ export class MazeToolsService {
         return neighbors;
     }
 
-    public async findAnyNeighbors(source: MazeCellModel[][], rows: number, cols: number, currPoint: MazeGridXY, neighbors: MazeGridXY[]): Promise<MazeGridXY[]> {
+    public async findAnyNeighbors(source: MazeCellModel[][], rows: number, cols: number, currPoint: MazeGridCell, neighbors: MazeGridCell[]): Promise<MazeGridCell[]> {
         if (neighbors.length > 0) {
             neighbors.splice(0);
         }
@@ -123,7 +122,7 @@ export class MazeToolsService {
         return neighbors;
     }
 
-    public async mergeWall(source: MazeCellModel[][], currPoint: MazeGridXY, nextPoint: MazeGridXY): Promise<MazeCellModel[][]> {
+    public async mergeWall(source: MazeCellModel[][], currPoint: MazeGridCell, nextPoint: MazeGridCell): Promise<MazeCellModel[][]> {
         if (currPoint && nextPoint) {
             /* 拆上边 */
             if (currPoint.row - 1 === nextPoint.row && currPoint.col === nextPoint.col) {
@@ -150,7 +149,7 @@ export class MazeToolsService {
         return source;
     }
 
-    public async buildWall(source: MazeCellModel[][], currPoint: MazeGridXY, nextPoint: MazeGridXY): Promise<MazeCellModel[][]> {
+    public async buildWall(source: MazeCellModel[][], currPoint: MazeGridCell, nextPoint: MazeGridCell): Promise<MazeCellModel[][]> {
         if (currPoint && nextPoint) {
             /* 建上边 */
             if (currPoint.row - 1 === nextPoint.row && currPoint.col === nextPoint.col) {
@@ -177,7 +176,7 @@ export class MazeToolsService {
         return source;
     }
 
-    public async direct(source: MazeCellModel[][], currPoint: MazeGridXY, nextPoint: MazeGridXY): Promise<MazeCellModel[][]> {
+    public async direct(source: MazeCellModel[][], currPoint: MazeGridCell, nextPoint: MazeGridCell): Promise<MazeCellModel[][]> {
         if (currPoint && nextPoint) {
             /* 在上边 */
             if (currPoint.row - 1 === nextPoint.row && currPoint.col === nextPoint.col) {
@@ -200,11 +199,11 @@ export class MazeToolsService {
         return source;
     }
 
-    public existed(array: MazeGridXY[], target: MazeGridXY): boolean {
+    public existed(array: MazeGridCell[], target: MazeGridCell): boolean {
         return this.indexOf(array, target) > -1;
     }
 
-    public indexOf(array: MazeGridXY[], target: MazeGridXY): number {
+    public indexOf(array: MazeGridCell[], target: MazeGridCell): number {
         if (array.length === 0) {
             return -1;
         }
@@ -220,6 +219,61 @@ export class MazeToolsService {
         return -1;
     }
 
+    public async colorCells(source: MazeCellModel[][], points: MazeGridPoint[], flags: boolean[], threshold: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+        let point: MazeGridPoint, flag: boolean;
+
+        for (let i = 0; i < threshold; i++) {
+            point = points[i];
+            flag = flags[i];
+
+            if (!point.currCell) continue;
+
+            if (i % 3 === 1) {
+                if (!flag) {
+                    source[point.currCell.row][point.currCell.col].color = ACCENT_ONE_COLOR;
+                } else {
+                    source[point.currCell.row][point.currCell.col].color = PRIMARY_ONE_COLOR;
+                    source[point.nextCell.row][point.nextCell.col].color = SECONDARY_ONE_COLOR;
+                }
+            } else if (i % 3 === 2) {
+                if (!flag) {
+                    source[point.currCell.row][point.currCell.col].color = ACCENT_TWO_COLOR;
+                } else {
+                    source[point.currCell.row][point.currCell.col].color = PRIMARY_TWO_COLOR;
+                    source[point.nextCell.row][point.nextCell.col].color = SECONDARY_TWO_COLOR;
+                }
+            } else {
+                if (!flag) {
+                    source[point.currCell.row][point.currCell.col].color = ACCENT_COLOR;
+                } else {
+                    source[point.currCell.row][point.currCell.col].color = PRIMARY_COLOR;
+                    source[point.nextCell.row][point.nextCell.col].color = SECONDARY_COLOR;
+                }
+            }
+        }
+        
+        callback(source);
+    }
+
+    public async clearCells(source: MazeCellModel[][], points: MazeGridPoint[], flags: boolean[], threshold: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+        let point: MazeGridPoint;
+
+        for (let i = 0; i < threshold; i++) {
+            point = points[i];
+
+            if (!point.currCell) continue;
+
+            if (!flags[i]) {
+                source[point.currCell.row][point.currCell.col].color = EMPTY_COLOR;
+            } else {
+                source[point.currCell.row][point.currCell.col].color = EMPTY_COLOR;
+                source[point.nextCell.row][point.nextCell.col].color = EMPTY_COLOR;
+            }
+        }
+        
+        callback(source);
+    }
+
 }
 
 @Injectable()
@@ -227,10 +281,8 @@ export class MazeMatchService {
 
     constructor(
         private _ab: MazeGenerationAldousBroderService,
-        private _buildDivide: MazeGenerationRandomizedDivisionBuildService,
-        private _mergeDivide: MazeGenerationRandomizedDivisionMergeService,
+        private divide: MazeGenerationRandomizedDivisionService,
         private _rbt: MazeGenerationRandomizedBacktrackerService,
-        private _paraRBT: MazeGenerationParallelRandomizedBacktrackerService,
         private _eller: MazeGenerationEllerService,
         private _gt: MazeGenerationGrowTreeService,
         private _hak: MazeGenerationHuntAndKillService,
@@ -242,24 +294,16 @@ export class MazeMatchService {
 
     public match(type: MazeActionType, name: MazeActionmName, source: MazeCellModel[][], rows: number, cols: number): Observable<MazeCellModel[][] | null> {
         if (type === 'generation') {
-            if (name === 'aldous-broder' || name === 'parallel-aldous-broder') {
-                return this._ab.maze(source, rows, cols, name.includes('parallel') ? 'all' : 'one');
+            if (name === 'aldous-broder' || name === 'optimal-aldous-broder' || name === 'parallel-aldous-broder') {
+                return this._ab.maze(source, rows, cols, name.includes('parallel') ? 'all' : (name.includes('optimal') ? 'opt' : 'one'));
             }
 
-            if (name === 'randomized-backtracker') {
-                return this._rbt.maze(source, rows, cols);
+            if (name === 'randomized-backtracker' || name === 'parallel-randomized-backtracker') {
+                return this._rbt.maze(source, rows, cols, name.includes('parallel') ? 'all' : 'one');
             }
 
-            if (name === 'parallel-randomized-backtracker') {
-                return this._paraRBT.maze(source, rows, cols);
-            }
-
-            if (name === 'randomized-division-build') {
-                return this._buildDivide.maze(source, rows, cols);
-            }
-
-            if (name === 'randomized-division-merge') {
-                return this._mergeDivide.maze(source, rows, cols);
+            if (name === 'randomized-division-build' || name === 'randomized-division-merge') {
+                return this.divide.maze(source, rows, cols, name.endsWith('merge') ? 'merge' : 'build');
             }
 
             if (name === 'eller') {
@@ -286,8 +330,8 @@ export class MazeMatchService {
                 return this._sidewinder.maze(source, rows, cols);
             }
             
-            if (name === 'wilson') {
-                return this._wilson.maze(source, rows, cols);
+            if (name === 'wilson' || name === 'optimal-wilson') {
+                return this._wilson.maze(source, rows, cols, name.includes('optimal') ? 'opt' : null);
             }
         }
 

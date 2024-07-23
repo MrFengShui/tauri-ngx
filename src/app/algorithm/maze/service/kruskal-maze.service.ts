@@ -5,7 +5,7 @@ import { random } from "lodash";
 import { MazeToolsService } from "../ngrx-store/maze.service";
 import { MazeCellModel } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
-import { MazeGridXY } from "../ngrx-store/maze.state";
+import { MazeGridCell } from "../ngrx-store/maze.state";
 import { EMPTY_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
 
 /**
@@ -24,7 +24,7 @@ export class MazeGenerationRandomizedKruskalService {
 
     private async run(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
         const length: number = rows * cols;
-        let currPoint: MazeGridXY = { row: -1, col: -1 }, nextPoint: MazeGridXY = { row: -1, col: -1 }, neighbors: MazeGridXY[] = Array.from([]), currWeight: number, nextWeight: number, count: number = 1;
+        let currPoint: MazeGridCell = { row: -1, col: -1 }, nextPoint: MazeGridCell = { row: -1, col: -1 }, neighbors: MazeGridCell[] = Array.from([]), currWeight: number, nextWeight: number, count: number = 1;
 
         while (count < length) {
             currPoint.row = random(0, rows - 1);

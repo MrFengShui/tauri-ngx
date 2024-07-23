@@ -45,101 +45,101 @@ export class RecursiveQuickSortService {
         let mid: number = -1;
 
         if (lhs < rhs) {
-            if (rhs - lhs < THRESHOLD) {
-                if (order === 'ascent') {
-                    times = await this._service.stableSortByAscent(source, lhs, rhs, temp, times, callback);
-                }
-                
-                if (order === 'descent') {
-                    times = await this._service.stableSortByDescent(source, lhs, rhs, temp, times, callback);
-                }
-            } else {
-                if (order === 'ascent') {
-                    [times, mid] = await this.partitionByAscent(source, lhs, rhs, temp, times, callback);
-                }
-    
-                if (order === 'descent') {
-                    [times, mid] = await this.partitionByDescent(source, lhs, rhs, temp, times, callback);
-                }
-                
-                times = await this.sortByOrder(source, lhs, mid - 1, temp, order, times, callback);
-                times = await this.sortByOrder(source, mid + 1, rhs, temp, order, times, callback);
+            if (order === 'ascent') {
+                [times, mid] = await this.partitionByAscent(source, lhs, rhs, temp, times, callback);
             }
+
+            if (order === 'descent') {
+                [times, mid] = await this.partitionByDescent(source, lhs, rhs, temp, times, callback);
+            }
+            
+            times = await this.sortByOrder(source, lhs, mid - 1, temp, order, times, callback);
+            times = await this.sortByOrder(source, mid + 1, rhs, temp, order, times, callback);
         }
 
         return times;
     }
 
     public async partitionByAscent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
-        const pivot: number = rhs;
-        let i: number = lhs - 1;
-        source[pivot].color = ACCENT_COLOR;
+        if (rhs - lhs < THRESHOLD) {
+            times = await this._service.stableSortByAscent(source, lhs, rhs, temp, times, callback);
+            return [times, rhs];
+        } else {
+            const pivot: number = rhs;
+            let i: number = lhs - 1;
+            source[pivot].color = ACCENT_COLOR;
 
-        for (let j = lhs; j < rhs; j++) {
-            source[j].color = PRIMARY_COLOR;
-            callback({ times, datalist: source});
-
-            if (source[j].value < source[pivot].value) {
-                i += 1;
-                source[i].color = SECONDARY_COLOR;
+            for (let j = lhs; j < rhs; j++) {
+                source[j].color = PRIMARY_COLOR;
                 callback({ times, datalist: source});
+
+                if (source[j].value < source[pivot].value) {
+                    i += 1;
+                    source[i].color = SECONDARY_COLOR;
+                    callback({ times, datalist: source});
+                    
+                    times += 1;
+                    await swap(source, i, j, temp);
+                }
+
+                await delay(SORT_DELAY_DURATION);
                 
-                times += 1;
-                await swap(source, i, j, temp);
+                if (i > -1) {
+                    source[i].color = CLEAR_COLOR;
+                }
+
+                source[j].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
             }
 
             await delay(SORT_DELAY_DURATION);
-            
-            if (i > -1) {
-                source[i].color = CLEAR_COLOR;
-            }
+            await swap(source, i + 1, pivot, temp);
 
-            source[j].color = CLEAR_COLOR;
+            source[i + 1].color = CLEAR_COLOR;
             callback({ times, datalist: source});
+            return [times, i + 1];
         }
-
-        await delay(SORT_DELAY_DURATION);
-        await swap(source, i + 1, pivot, temp);
-
-        source[i + 1].color = CLEAR_COLOR;
-        callback({ times, datalist: source});
-        return [times, i + 1];
     }
 
     public async partitionByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
-        const pivot: number = rhs;
-        let i: number = lhs - 1;
-        source[pivot].color = ACCENT_COLOR;
-
-        for (let j = lhs; j < rhs; j++) {
-            source[j].color = PRIMARY_COLOR;
-            callback({ times, datalist: source});
-
-            if (source[j].value > source[pivot].value) {
-                i += 1;
-                source[i].color = SECONDARY_COLOR;
+        if (rhs - lhs < THRESHOLD) {
+            times = await this._service.stableSortByDescent(source, lhs, rhs, temp, times, callback);
+            return [times, rhs];
+        } else {
+            const pivot: number = rhs;
+            let i: number = lhs - 1;
+            source[pivot].color = ACCENT_COLOR;
+    
+            for (let j = lhs; j < rhs; j++) {
+                source[j].color = PRIMARY_COLOR;
                 callback({ times, datalist: source});
-
-                times += 1;
-                await swap(source, i, j, temp);
+    
+                if (source[j].value > source[pivot].value) {
+                    i += 1;
+                    source[i].color = SECONDARY_COLOR;
+                    callback({ times, datalist: source});
+    
+                    times += 1;
+                    await swap(source, i, j, temp);
+                }
+    
+                await delay(SORT_DELAY_DURATION);
+                
+                if (i > -1) {
+                    source[i].color = CLEAR_COLOR;
+                }
+    
+                source[j].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
             }
-
+    
             await delay(SORT_DELAY_DURATION);
-            
-            if (i > -1) {
-                source[i].color = CLEAR_COLOR;
-            }
-
-            source[j].color = CLEAR_COLOR;
+            await swap(source, i + 1, pivot, temp);
+    
+            source[i + 1].color = CLEAR_COLOR;
             callback({ times, datalist: source});
+            return [times, i + 1];
         }
-
-        await delay(SORT_DELAY_DURATION);
-        await swap(source, i + 1, pivot, temp);
-
-        source[i + 1].color = CLEAR_COLOR;
-        callback({ times, datalist: source});
-        return [times, i + 1];
     }
 
 }
@@ -263,6 +263,8 @@ export class IterativeQuickSortService {
 @Injectable()
 export class TwoWayRecursiveQuickSortService {
 
+    constructor(private _service: SortToolsService) {}
+
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
             const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
@@ -309,101 +311,111 @@ export class TwoWayRecursiveQuickSortService {
     }
 
     public async partitionByAscent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
-        const pivot: number = rhs;
-        let i: number = lhs, j: number = rhs;
-        
-        while (i < j) {
-            source[pivot].color = ACCENT_COLOR;
+        if (rhs - lhs < THRESHOLD) {
+            times = await this._service.stableSortByAscent(source, lhs, rhs, temp, times, callback);
+            return [times, rhs];
+        } else {
+            const pivot: number = rhs;
+            let i: number = lhs, j: number = rhs;
+            
+            while (i < j) {
+                source[pivot].color = ACCENT_COLOR;
 
-            while (i < j && source[i].value <= source[pivot].value) {
-                source[i].color = PRIMARY_COLOR;
-                callback({ times, datalist: source});
+                while (i < j && source[i].value <= source[pivot].value) {
+                    source[i].color = PRIMARY_COLOR;
+                    callback({ times, datalist: source});
+
+                    await delay(SORT_DELAY_DURATION);
+
+                    source[i].color = CLEAR_COLOR;
+                    callback({ times, datalist: source});
+
+                    i += 1;
+                }
+
+                while (i < j && source[j].value >= source[pivot].value) {
+                    source[j].color = SECONDARY_COLOR;
+                    callback({ times, datalist: source});
+
+                    await delay(SORT_DELAY_DURATION);
+
+                    source[j].color = CLEAR_COLOR;
+                    callback({ times, datalist: source});
+                    
+                    j -= 1;
+                }
 
                 await delay(SORT_DELAY_DURATION);
+                await swap(source, i, j, temp);
+                times += 1;
 
+                source[pivot].color = CLEAR_COLOR;
                 source[i].color = CLEAR_COLOR;
-                callback({ times, datalist: source});
-
-                i += 1;
-            }
-
-            while (i < j && source[j].value >= source[pivot].value) {
-                source[j].color = SECONDARY_COLOR;
-                callback({ times, datalist: source});
-
-                await delay(SORT_DELAY_DURATION);
-
                 source[j].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
-                
-                j -= 1;
             }
 
             await delay(SORT_DELAY_DURATION);
-            await swap(source, i, j, temp);
-            times += 1;
-
-            source[pivot].color = CLEAR_COLOR;
+            await swap(source, i, pivot, temp);
+            
             source[i].color = CLEAR_COLOR;
-            source[j].color = CLEAR_COLOR;
             callback({ times, datalist: source});
+            return [times, i];
         }
-
-        await delay(SORT_DELAY_DURATION);
-        await swap(source, i, pivot, temp);
-        
-        source[i].color = CLEAR_COLOR;
-        callback({ times, datalist: source});
-        return [times, i];
     }
 
     public async partitionByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
-        const pivot: number = rhs;
-        let i: number = lhs, j: number = rhs;
-        
-        while (i < j) {
-            source[pivot].color = ACCENT_COLOR;
-
-            while (i < j && source[i].value >= source[pivot].value) {
-                source[i].color = PRIMARY_COLOR;
-                callback({ times, datalist: source});
-
+        if (rhs - lhs < THRESHOLD) {
+            times = await this._service.stableSortByDescent(source, lhs, rhs, temp, times, callback);
+            return [times, rhs];
+        } else {
+            const pivot: number = rhs;
+            let i: number = lhs, j: number = rhs;
+            
+            while (i < j) {
+                source[pivot].color = ACCENT_COLOR;
+    
+                while (i < j && source[i].value >= source[pivot].value) {
+                    source[i].color = PRIMARY_COLOR;
+                    callback({ times, datalist: source});
+    
+                    await delay(SORT_DELAY_DURATION);
+    
+                    source[i].color = CLEAR_COLOR;
+                    callback({ times, datalist: source});
+    
+                    i += 1;
+                }
+    
+                while (i < j && source[j].value <= source[pivot].value) {
+                    source[j].color = SECONDARY_COLOR;
+                    callback({ times, datalist: source});
+    
+                    await delay(SORT_DELAY_DURATION);
+    
+                    source[j].color = CLEAR_COLOR;
+                    callback({ times, datalist: source});
+                    
+                    j -= 1;
+                }
+    
                 await delay(SORT_DELAY_DURATION);
-
+                await swap(source, i, j, temp);
+                times += 1;
+                
+                source[pivot].color = CLEAR_COLOR;
                 source[i].color = CLEAR_COLOR;
-                callback({ times, datalist: source});
-
-                i += 1;
-            }
-
-            while (i < j && source[j].value <= source[pivot].value) {
-                source[j].color = SECONDARY_COLOR;
-                callback({ times, datalist: source});
-
-                await delay(SORT_DELAY_DURATION);
-
                 source[j].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
-                
-                j -= 1;
             }
-
+    
             await delay(SORT_DELAY_DURATION);
-            await swap(source, i, j, temp);
-            times += 1;
-            
-            source[pivot].color = CLEAR_COLOR;
-            source[i].color = CLEAR_COLOR;
-            source[j].color = CLEAR_COLOR;
+            await swap(source, i, pivot, temp);
+    
+            source[i].color = CLEAR_COLOR;     
             callback({ times, datalist: source});
+            return [times, i];
         }
-
-        await delay(SORT_DELAY_DURATION);
-        await swap(source, i, pivot, temp);
-
-        source[i].color = CLEAR_COLOR;     
-        callback({ times, datalist: source});
-        return [times, i];
     }
 
 }
@@ -775,6 +787,8 @@ export class ThreeWayIterativeQuickSortService {
 @Injectable()
 export class DualPivotRecursiveQuickSortService {
 
+    constructor(private _service: SortToolsService) {}
+
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
             const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
@@ -822,58 +836,25 @@ export class DualPivotRecursiveQuickSortService {
     }
 
     public async partitionByAscent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number, number]> {
-        let fst: number = lhs + 1, snd: number = rhs - 1, i: number = lhs + 1;
+        if (rhs - lhs < THRESHOLD) {
+            times = await this._service.stableSortByAscent(source, lhs, rhs, temp, times, callback);
+            return [times, lhs, rhs];
+        } else {
+            let fst: number = lhs + 1, snd: number = rhs - 1, i: number = lhs + 1;
 
-        if (source[lhs].value > source[rhs].value) {
-            await swap(source, lhs, rhs, temp);
-        }
-
-        while (i <= snd) {
-            source[lhs].color = ACCENT_ONE_COLOR;
-            source[rhs].color = ACCENT_TWO_COLOR;
-
-            if (source[i].value < source[lhs].value) {
-                times += 1;
-
-                source[i].color = PRIMARY_ONE_COLOR;
-                source[fst].color = SECONDARY_ONE_COLOR;
-                callback({ times, datalist: source });
-
-                await swap(source, i, fst, temp);
-                await delay(SORT_DELAY_DURATION);
-
-                source[i].color = CLEAR_COLOR;
-                source[fst].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
-
-                fst += 1;
-            } 
-            
-            if (source[i].value > source[rhs].value) {
-                while (i < snd && source[snd].value > source[rhs].value) {
-                    snd -= 1;
-                }
-
-                times += 1;
-
-                source[i].color = PRIMARY_TWO_COLOR;
-                source[snd].color = SECONDARY_TWO_COLOR;
-                callback({ times, datalist: source });
-
-                await swap(source, i, snd, temp);
-                await delay(SORT_DELAY_DURATION);
-
-                source[i].color = CLEAR_COLOR;
-                source[snd].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
-
-                snd -= 1;
-
+            if (source[lhs].value > source[rhs].value) {
+                await swap(source, lhs, rhs, temp);
+            }
+    
+            while (i <= snd) {
+                source[lhs].color = ACCENT_ONE_COLOR;
+                source[rhs].color = ACCENT_TWO_COLOR;
+    
                 if (source[i].value < source[lhs].value) {
                     times += 1;
-
-                    source[i].color = PRIMARY_TWO_COLOR;
-                    source[fst].color = SECONDARY_TWO_COLOR;
+    
+                    source[i].color = PRIMARY_ONE_COLOR;
+                    source[fst].color = SECONDARY_ONE_COLOR;
                     callback({ times, datalist: source });
     
                     await swap(source, i, fst, temp);
@@ -882,147 +863,191 @@ export class DualPivotRecursiveQuickSortService {
                     source[i].color = CLEAR_COLOR;
                     source[fst].color = CLEAR_COLOR;
                     callback({ times, datalist: source });
-
+    
                     fst += 1;
+                } 
+                
+                if (source[i].value > source[rhs].value) {
+                    while (i < snd && source[snd].value > source[rhs].value) {
+                        snd -= 1;
+                    }
+    
+                    times += 1;
+    
+                    source[i].color = PRIMARY_TWO_COLOR;
+                    source[snd].color = SECONDARY_TWO_COLOR;
+                    callback({ times, datalist: source });
+    
+                    await swap(source, i, snd, temp);
+                    await delay(SORT_DELAY_DURATION);
+    
+                    source[i].color = CLEAR_COLOR;
+                    source[snd].color = CLEAR_COLOR;
+                    callback({ times, datalist: source });
+    
+                    snd -= 1;
+    
+                    if (source[i].value < source[lhs].value) {
+                        times += 1;
+    
+                        source[i].color = PRIMARY_TWO_COLOR;
+                        source[fst].color = SECONDARY_TWO_COLOR;
+                        callback({ times, datalist: source });
+        
+                        await swap(source, i, fst, temp);
+                        await delay(SORT_DELAY_DURATION);
+        
+                        source[i].color = CLEAR_COLOR;
+                        source[fst].color = CLEAR_COLOR;
+                        callback({ times, datalist: source });
+    
+                        fst += 1;
+                    }
                 }
+                
+                i += 1;
+                source[lhs].color = CLEAR_COLOR;
+                source[rhs].color = CLEAR_COLOR;
             }
-            
-            i += 1;
+    
+            fst -= 1;
+            snd += 1;
+            await delay(SORT_DELAY_DURATION);
+    
+            source[lhs].color = PRIMARY_COLOR;
+            source[fst].color = SECONDARY_COLOR;
+            callback({ times, datalist: source });
+    
+            await swap(source, lhs, fst, temp);
+            await delay(SORT_DELAY_DURATION);
+    
             source[lhs].color = CLEAR_COLOR;
+            source[fst].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+    
+            await delay(SORT_DELAY_DURATION);
+    
+            source[rhs].color = PRIMARY_COLOR;
+            source[snd].color = SECONDARY_COLOR;
+            callback({ times, datalist: source });
+    
+            await swap(source, rhs, snd, temp);
+            await delay(SORT_DELAY_DURATION);
+    
             source[rhs].color = CLEAR_COLOR;
+            source[snd].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+    
+            return [times + 2, fst, snd];
         }
-
-        fst -= 1;
-        snd += 1;
-        await delay(SORT_DELAY_DURATION);
-
-        source[lhs].color = PRIMARY_COLOR;
-        source[fst].color = SECONDARY_COLOR;
-        callback({ times, datalist: source });
-
-        await swap(source, lhs, fst, temp);
-        await delay(SORT_DELAY_DURATION);
-
-        source[lhs].color = CLEAR_COLOR;
-        source[fst].color = CLEAR_COLOR;
-        callback({ times, datalist: source });
-
-        await delay(SORT_DELAY_DURATION);
-
-        source[rhs].color = PRIMARY_COLOR;
-        source[snd].color = SECONDARY_COLOR;
-        callback({ times, datalist: source });
-
-        await swap(source, rhs, snd, temp);
-        await delay(SORT_DELAY_DURATION);
-
-        source[rhs].color = CLEAR_COLOR;
-        source[snd].color = CLEAR_COLOR;
-        callback({ times, datalist: source });
-
-        return [times + 2, fst, snd];
+        
     }
 
     public async partitionByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number, number]> {
-        let fst: number = lhs + 1, snd: number = rhs - 1, i: number = lhs + 1;
+        if (rhs - lhs < THRESHOLD) {
+            times = await this._service.stableSortByDescent(source, lhs, rhs, temp, times, callback);
+            return [times, lhs, rhs];
+        } else {
+            let fst: number = lhs + 1, snd: number = rhs - 1, i: number = lhs + 1;
 
-        if (source[lhs].value < source[rhs].value) {
-            await swap(source, lhs, rhs, temp);
-        }
+            if (source[lhs].value < source[rhs].value) {
+                await swap(source, lhs, rhs, temp);
+            }
 
-        while (i <= snd) {
-            source[lhs].color = ACCENT_ONE_COLOR;
-            source[rhs].color = ACCENT_TWO_COLOR;
-
-            if (source[i].value > source[lhs].value) {
-                times += 1;
-
-                source[i].color = PRIMARY_ONE_COLOR;
-                source[fst].color = SECONDARY_ONE_COLOR;
-                callback({ times, datalist: source });
-
-                await swap(source, i, fst, temp);
-                await delay(SORT_DELAY_DURATION);
-
-                source[i].color = CLEAR_COLOR;
-                source[fst].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
-
-                fst += 1;
-            } 
-            
-            if (source[i].value < source[rhs].value) {
-                while (i < snd && source[snd].value < source[rhs].value) {
-                    snd -= 1;
-                }
-
-                times += 1;
-
-                source[i].color = PRIMARY_TWO_COLOR;
-                source[snd].color = SECONDARY_TWO_COLOR;
-                callback({ times, datalist: source });
-
-                await swap(source, i, snd, temp);
-                await delay(SORT_DELAY_DURATION);
-
-                source[i].color = CLEAR_COLOR;
-                source[snd].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
-
-                snd -= 1;
+            while (i <= snd) {
+                source[lhs].color = ACCENT_ONE_COLOR;
+                source[rhs].color = ACCENT_TWO_COLOR;
 
                 if (source[i].value > source[lhs].value) {
                     times += 1;
 
-                    source[i].color = PRIMARY_TWO_COLOR;
-                    source[fst].color = SECONDARY_TWO_COLOR;
+                    source[i].color = PRIMARY_ONE_COLOR;
+                    source[fst].color = SECONDARY_ONE_COLOR;
                     callback({ times, datalist: source });
-    
+
                     await swap(source, i, fst, temp);
                     await delay(SORT_DELAY_DURATION);
-    
+
                     source[i].color = CLEAR_COLOR;
                     source[fst].color = CLEAR_COLOR;
                     callback({ times, datalist: source });
 
                     fst += 1;
+                } 
+                
+                if (source[i].value < source[rhs].value) {
+                    while (i < snd && source[snd].value < source[rhs].value) {
+                        snd -= 1;
+                    }
+
+                    times += 1;
+
+                    source[i].color = PRIMARY_TWO_COLOR;
+                    source[snd].color = SECONDARY_TWO_COLOR;
+                    callback({ times, datalist: source });
+
+                    await swap(source, i, snd, temp);
+                    await delay(SORT_DELAY_DURATION);
+
+                    source[i].color = CLEAR_COLOR;
+                    source[snd].color = CLEAR_COLOR;
+                    callback({ times, datalist: source });
+
+                    snd -= 1;
+
+                    if (source[i].value > source[lhs].value) {
+                        times += 1;
+
+                        source[i].color = PRIMARY_TWO_COLOR;
+                        source[fst].color = SECONDARY_TWO_COLOR;
+                        callback({ times, datalist: source });
+        
+                        await swap(source, i, fst, temp);
+                        await delay(SORT_DELAY_DURATION);
+        
+                        source[i].color = CLEAR_COLOR;
+                        source[fst].color = CLEAR_COLOR;
+                        callback({ times, datalist: source });
+
+                        fst += 1;
+                    }
                 }
+                
+                i += 1;
+                source[lhs].color = CLEAR_COLOR;
+                source[rhs].color = CLEAR_COLOR;
             }
-            
-            i += 1;
+
+            fst -= 1;
+            snd += 1;
+            await delay(SORT_DELAY_DURATION);
+
+            source[lhs].color = PRIMARY_COLOR;
+            source[fst].color = SECONDARY_COLOR;
+            callback({ times, datalist: source });
+
+            await swap(source, lhs, fst, temp);
+            await delay(SORT_DELAY_DURATION);
+
             source[lhs].color = CLEAR_COLOR;
+            source[fst].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+
+            await delay(SORT_DELAY_DURATION);
+
+            source[rhs].color = PRIMARY_COLOR;
+            source[snd].color = SECONDARY_COLOR;
+            callback({ times, datalist: source });
+
+            await swap(source, rhs, snd, temp);
+            await delay(SORT_DELAY_DURATION);
+
             source[rhs].color = CLEAR_COLOR;
+            source[snd].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+
+            return [times + 2, fst, snd];
         }
-
-        fst -= 1;
-        snd += 1;
-        await delay(SORT_DELAY_DURATION);
-
-        source[lhs].color = PRIMARY_COLOR;
-        source[fst].color = SECONDARY_COLOR;
-        callback({ times, datalist: source });
-
-        await swap(source, lhs, fst, temp);
-        await delay(SORT_DELAY_DURATION);
-
-        source[lhs].color = CLEAR_COLOR;
-        source[fst].color = CLEAR_COLOR;
-        callback({ times, datalist: source });
-
-        await delay(SORT_DELAY_DURATION);
-
-        source[rhs].color = PRIMARY_COLOR;
-        source[snd].color = SECONDARY_COLOR;
-        callback({ times, datalist: source });
-
-        await swap(source, rhs, snd, temp);
-        await delay(SORT_DELAY_DURATION);
-
-        source[rhs].color = CLEAR_COLOR;
-        source[snd].color = CLEAR_COLOR;
-        callback({ times, datalist: source });
-
-        return [times + 2, fst, snd];
     }
 
 }

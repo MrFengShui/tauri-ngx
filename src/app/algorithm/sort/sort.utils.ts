@@ -22,7 +22,11 @@ export const complete = (source: SortDataModel[], times: number, callback: (parr
     }
 
     callback({ times, datalist: source });
-    resolve();
+
+    if (source.length > 0) {
+        source.splice(0);
+        resolve();
+    }
 });
 
 export const SORT_DELAY_DURATION: number = 1;

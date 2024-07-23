@@ -5,7 +5,7 @@ import { random } from "lodash";
 import { MazeToolsService } from "../ngrx-store/maze.service";
 import { MazeCellModel } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
-import { MazeGridXY } from "../ngrx-store/maze.state";
+import { MazeGridCell } from "../ngrx-store/maze.state";
 import { ACCENT_COLOR, EMPTY_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
 
 /**
@@ -14,7 +14,7 @@ import { ACCENT_COLOR, EMPTY_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../..
 @Injectable()
 export class MazeGenerationSidewinderService {
 
-    private cache: MazeGridXY[] = Array.from([]);
+    private cache: MazeGridCell[] = Array.from([]);
 
     constructor(private _service: MazeToolsService) {}
 
@@ -25,7 +25,7 @@ export class MazeGenerationSidewinderService {
     }
 
     private async run(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
-        let currPoint: MazeGridXY = { row: -1, col: -1 }, nextPoint: MazeGridXY = { row: -1, col: -1 }, flag: boolean;
+        let currPoint: MazeGridCell = { row: -1, col: -1 }, nextPoint: MazeGridCell = { row: -1, col: -1 }, flag: boolean;
 
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {

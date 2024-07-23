@@ -3,84 +3,60 @@ import { Observable } from "rxjs";
 import { random } from "lodash";
 
 import { MazeToolsService } from "../ngrx-store/maze.service";
-import { MazeCellModel } from "../ngrx-store/maze.state";
+import { MazeCellModel, MazeGridPoint } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
-import { MazeGridXY } from "../ngrx-store/maze.state";
+import { MazeGridCell } from "../ngrx-store/maze.state";
 import { EMPTY_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
 
 /**
- * 随机隔离算法（拆墙）
+ * 随机隔离算法
  */
 @Injectable()
-export class MazeGenerationRandomizedDivisionMergeService {
+export class MazeGenerationRandomizedDivisionService {
 
     constructor(private _service: MazeToolsService) {}
 
-    public maze(source: MazeCellModel[][], rows: number, cols: number): Observable<MazeCellModel[][]> {
+    public maze(source: MazeCellModel[][], rows: number, cols: number, type: 'build' | 'merge'): Observable<MazeCellModel[][]> {
         return new Observable(subscriber => {
-            this.run(source, 0, rows - 1, 0, cols - 1, param => subscriber.next(param)).then(() => subscriber.complete());
+            if (type === 'build') {
+                this.runByBuild(source, rows, cols, param => subscriber.next(param)).then(() => subscriber.complete());
+            }
+
+            if (type === 'merge') {
+                this.runByMerge(source, 0, rows - 1, 0, cols - 1, param => subscriber.next(param)).then(() => subscriber.complete());
+            }
         });
     }
 
-    private async run(source: MazeCellModel[][], startRow: number, finalRow: number, startCol: number, finalCol: number, callback: (param: MazeCellModel[][]) => void): Promise<MazeCellModel[][]> {
+    private async runByMerge(source: MazeCellModel[][], startRow: number, finalRow: number, startCol: number, finalCol: number, callback: (param: MazeCellModel[][]) => void): Promise<MazeCellModel[][]> {
         if (startRow < finalRow || startCol < finalCol) {
-            let currPoint: MazeGridXY, nextPoint: MazeGridXY, splitRow: number = -1, splitCol: number = -1;
+            let point: MazeGridPoint, split: MazeGridCell;
 
             if (finalRow - startRow > finalCol - startCol) {
-                splitRow = random(startRow, finalRow - 1, false);
-                splitCol = random(startCol, finalCol, false);
+                split = { row: random(startRow, finalRow - 1, false), col: random(startCol, finalCol, false) };
+                point = { currCell: { row: split.row, col: split.col }, nextCell: { row: split.row + 1, col: split.col } };
     
-                currPoint = { row: splitRow, col: splitCol };
-                nextPoint = { row: splitRow + 1, col: splitCol };
+                source = await this._service.mergeWall(source, point.currCell, point.nextCell);
     
-                source = await this._service.mergeWall(source, currPoint, nextPoint);
-    
-                source = await this.run(source, startRow, splitRow, startCol, finalCol, callback);
-                source = await this.run(source, splitRow + 1, finalRow, startCol, finalCol, callback);
+                source = await this.runByMerge(source, startRow, split.row, startCol, finalCol, callback);
+                source = await this.runByMerge(source, split.row + 1, finalRow, startCol, finalCol, callback);
             } else {
-                splitCol = random(startCol, finalCol - 1, false);
-                splitRow = random(startRow, finalRow, false);
+                split = { row: random(startRow, finalRow, false), col: random(startCol, finalCol - 1, false) };
+                point = { currCell: { row: split.row, col: split.col }, nextCell: { row: split.row, col: split.col + 1 } };
     
-                currPoint = { row: splitRow, col: splitCol };
-                nextPoint = { row: splitRow, col: splitCol + 1 };
+                source = await this._service.mergeWall(source, point.currCell, point.nextCell);
     
-                source = await this._service.mergeWall(source, currPoint, nextPoint);
-    
-                source = await this.run(source, startRow, finalRow, startCol, splitCol, callback);
-                source = await this.run(source, startRow, finalRow, splitCol + 1, finalCol, callback);
+                source = await this.runByMerge(source, startRow, finalRow, startCol, split.col, callback);
+                source = await this.runByMerge(source, startRow, finalRow, split.col + 1, finalCol, callback);
             }
 
-            source[currPoint.row][currPoint.col].color = PRIMARY_COLOR;
-            source[nextPoint.row][nextPoint.col].color = SECONDARY_COLOR;
             callback(source);
-
             await delay(MAZE_DELAY_DURATION);
-            
-            source[currPoint.row][currPoint.col].color = EMPTY_COLOR;
-            source[nextPoint.row][nextPoint.col].color = EMPTY_COLOR;
-            callback(source);
         }
 
         return source;
     }
-
-}
-
-/**
- * 随机隔离算法（建墙）
- */
-@Injectable()
-export class MazeGenerationRandomizedDivisionBuildService {
-
-    constructor(private _service: MazeToolsService) {}
-
-    public maze(source: MazeCellModel[][], rows: number, cols: number): Observable<MazeCellModel[][]> {
-        return new Observable(subscriber => {
-            this.run(source, rows, cols, param => subscriber.next(param)).then(() => subscriber.complete());
-        });
-    }
-
-    private async run(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async runByBuild(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
         source = await this.initGrid(source, rows, cols);
         callback(source);
 
@@ -91,168 +67,61 @@ export class MazeGenerationRandomizedDivisionBuildService {
 
     private async task(source: MazeCellModel[][], startRow: number, finalRow: number, startCol: number, finalCol: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
         if (startRow < finalRow || startCol < finalCol) {
-            let currPoint: MazeGridXY, nextPoint: MazeGridXY, splitRow: number = -1, splitCol: number = -1;
+            let point: MazeGridPoint, split: MazeGridCell;
 
             if (finalRow - startRow > finalCol - startCol) {
-                splitRow = random(startRow, finalRow - 1, false);
-                splitCol = random(startCol, finalCol, false);
+                split = { row: random(startRow, finalRow - 1, false), col: random(startCol, finalCol, false) };
     
                 for (let col = startCol; col <= finalCol; col++) {
-                    if (col !== splitCol) {
-                        currPoint = { row: splitRow, col };
-                        nextPoint = { row: splitRow + 1, col };
+                    if (col !== split.col) {
+                        point = { currCell: { row: split.row, col }, nextCell: { row: split.row + 1, col } };
     
-                        source = await this._service.buildWall(source, currPoint, nextPoint);
+                        source = await this._service.buildWall(source, point.currCell, point.nextCell);
                     }
-
-                    callback(source);
-                    await delay(MAZE_DELAY_DURATION);
                 }
+
+                callback(source);
+                await delay(MAZE_DELAY_DURATION);
                 
-                await this.task(source, startRow, splitRow, startCol, finalCol, callback);
-                await this.task(source, splitRow + 1, finalRow, startCol, finalCol, callback);
+                await this.task(source, startRow, split.row, startCol, finalCol, callback);
+                await this.task(source, split.row + 1, finalRow, startCol, finalCol, callback);
             } else {
-                splitCol = random(startCol, finalCol - 1, false);
-                splitRow = random(startRow, finalRow, false);
+                split = { row: random(startRow, finalRow, false), col: random(startCol, finalCol - 1, false) };
     
                 for (let row = startRow; row <= finalRow; row++) {
-                    if (row !== splitRow) {
-                        currPoint = { row, col: splitCol };
-                        nextPoint = { row, col: splitCol + 1 };
+                    if (row !== split.row) {
+                        point = { currCell: { row, col: split.col }, nextCell: { row, col: split.col + 1 } };
     
-                        source = await this._service.buildWall(source, currPoint, nextPoint);
+                        source = await this._service.buildWall(source, point.currCell, point.nextCell);
                     }
-
-                    callback(source);
-                    await delay(MAZE_DELAY_DURATION);
                 }
 
-                await this.task(source, startRow, finalRow, startCol, splitCol, callback);
-                await this.task(source, startRow, finalRow, splitCol + 1, finalCol, callback);
+                callback(source);
+                await delay(MAZE_DELAY_DURATION);
+
+                await this.task(source, startRow, finalRow, startCol, split.col, callback);
+                await this.task(source, startRow, finalRow, split.col + 1, finalCol, callback);
             }
         }
     }
 
-    // private async taskByIterative(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
-    //     const rowStack: number[] = Array.from([]), colStack: number[] = Array.from([]);
-    //     let startRow: number = 0, finalRow: number = rows - 1, startCol: number = 0, finalCol: number = cols - 1;
-    //     let currPoint: MazeGridXY, nextPoint: MazeGridXY, splitRow: number, splitCol: number;
-
-    //     rowStack.push(finalRow);
-    //     rowStack.push(startRow);
-    //     colStack.push(finalCol);
-    //     colStack.push(startCol);
-
-    //     while (rowStack.length > 0 && colStack.length > 0) {
-    //         startRow = rowStack.pop() as number;
-    //         finalRow = rowStack.pop() as number;
-    //         startCol = colStack.pop() as number;
-    //         finalCol = colStack.pop() as number;
-
-    //         if (finalRow - startRow > finalCol - startCol) {
-    //             splitRow = random(startRow, finalRow - 1, false);
-    //             splitCol = random(startCol, finalCol, false);
-
-    //             for (let col = startCol; col <= finalCol; col++) {
-    //                 if (col !== splitCol) {
-    //                     currPoint = { row: splitRow, col };
-    //                     nextPoint = { row: splitRow + 1, col };
-    
-    //                     source = await this._service.buildWall(source, currPoint, nextPoint);
-    //                 }
-
-    //                 callback(source);
-    //                 await delay(MAZE_DELAY_DURATION);
-    //             }
-
-    //             if (splitRow + 1 < finalRow) {
-    //                 rowStack.push(finalRow);
-    //                 rowStack.push(splitRow + 1);
-    //             }
-
-    //             if (startRow < splitRow) {
-    //                 rowStack.push(splitRow);
-    //                 rowStack.push(startRow);
-    //             }
-
-    //             colStack.push(finalCol);
-    //             colStack.push(startCol);
-    //         } else {
-    //             splitCol = random(startCol, finalCol - 1, false);
-    //             splitRow = random(startRow, finalRow, false);
-
-    //             for (let row = startRow; row <= finalRow; row++) {
-    //                 if (row !== splitRow) {
-    //                     currPoint = { row, col: splitCol };
-    //                     nextPoint = { row, col: splitCol + 1 };
-    
-    //                     source = await this._service.buildWall(source, currPoint, nextPoint);
-    //                 }
-
-    //                 callback(source);
-    //                 await delay(MAZE_DELAY_DURATION);
-    //             }
-
-    //             if (splitCol + 1 < finalCol) {
-    //                 colStack.push(finalCol);
-    //                 colStack.push(splitCol + 1);
-    //             }
-
-    //             if (startCol < splitCol) {
-    //                 colStack.push(splitCol);
-    //                 colStack.push(startCol);
-    //             }
-
-    //             rowStack.push(finalRow);
-    //             rowStack.push(startRow);
-    //         }
-    //     }
-    // }
-
     private async initGrid(source: MazeCellModel[][], rows: number, cols: number): Promise<MazeCellModel[][]> {
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
-                if (row === 0) {
+                if (row < rows - 1) {
                     source[row][col].walls.bottom = false;
-
-                    if (col > 0 && col < cols - 1) {
-                        source[row][col].walls.left = false;
-                        source[row][col].walls.right = false;
-                    }
                 }
 
-                if (row === rows - 1) {
+                if (row > 0) {
                     source[row][col].walls.top = false;
-
-                    if (col > 0 && col < cols - 1) {
-                        source[row][col].walls.left = false;
-                        source[row][col].walls.right = false;
-                    }
                 }
 
-                if (col === 0) {
+                if (col < cols - 1) {
                     source[row][col].walls.right = false;
-
-                    if (row > 0 && row < rows - 1) {
-                        source[row][col].walls.top = false;
-                        source[row][col].walls.bottom = false;
-                    }
                 }
 
-                if (col === cols - 1) {
+                if (col > 0) {
                     source[row][col].walls.left = false;
-
-                    if (row > 0 && row < rows - 1) {
-                        source[row][col].walls.top = false;
-                        source[row][col].walls.bottom = false;
-                    }
-                }
-
-                if (row > 0 && row < rows - 1 && col > 0 && col < cols - 1) {
-                    source[row][col].walls.top = false;
-                    source[row][col].walls.bottom = false;
-                    source[row][col].walls.left = false;
-                    source[row][col].walls.right = false;
                 }
             }
         }
@@ -261,3 +130,4 @@ export class MazeGenerationRandomizedDivisionBuildService {
     }
 
 }
+

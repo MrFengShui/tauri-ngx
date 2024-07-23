@@ -56,12 +56,12 @@ import { BinarySearchTreeSortService } from "./sort/service/tree-sort.service";
 import { OptimalShearSortService, ShearSortService } from "./sort/service/shear-sort.service";
 
 import { MazeMatchService, MazeToolsService, MazeUtilsService } from "./maze/ngrx-store/maze.service";
-import { MazeGenerationRandomizedBacktrackerService, MazeGenerationParallelRandomizedBacktrackerService } from "./maze/service/backtracker-maze.service";
+import { MazeGenerationRandomizedBacktrackerService } from "./maze/service/backtracker-maze.service";
 import { MazeGenerationRandomizedPrimService } from "./maze/service/prim-maze.service";
 import { MazeGenerationRandomizedKruskalService } from "./maze/service/kruskal-maze.service";
 import { MazeGenerationAldousBroderService } from "./maze/service/aldous-broder-maze.service";
 import { MazeGenerationHuntAndKillService } from "./maze/service/hunt-kill-maze.service";
-import { MazeGenerationRandomizedDivisionBuildService, MazeGenerationRandomizedDivisionMergeService } from "./maze/service/division-maze.service";
+import { MazeGenerationRandomizedDivisionService } from "./maze/service/division-maze.service";
 import { MazeGenerationSidewinderService } from "./maze/service/sidewinder-maze.service";
 import { MazeGenerationGrowTreeService } from "./maze/service/grow-tree-maze.service";
 import { MazeGenerationEllerService } from "./maze/service/eller-maze.service";
@@ -103,7 +103,7 @@ import { MazeGenerationWilsonService } from "./maze/service/wilson-maze.service"
         BogoSortService, BogoBubbleSortService, BogoCocktailSortService, CycleSortService, GnomeSortService, GravitySortService, SyncSleepSortService, AsyncSleepSortService, RecursiveStoogeSortService, IterativeStoogeSortService, SlowSortService, TournamentSortService, PancakeSortService, PatienceSortService, LibrarySortService, StrandSortService, OptimalStrandSortService, BinarySearchTreeSortService,
 
         MazeMatchService, MazeUtilsService, MazeToolsService,
-        MazeGenerationAldousBroderService, MazeGenerationRandomizedDivisionBuildService, MazeGenerationRandomizedDivisionMergeService, MazeGenerationEllerService, MazeGenerationGrowTreeService, MazeGenerationHuntAndKillService, MazeGenerationRandomizedBacktrackerService, MazeGenerationParallelRandomizedBacktrackerService, MazeGenerationRandomizedKruskalService, MazeGenerationRandomizedPrimService, MazeGenerationSidewinderService, MazeGenerationWilsonService
+        MazeGenerationAldousBroderService, MazeGenerationRandomizedDivisionService, MazeGenerationEllerService, MazeGenerationGrowTreeService, MazeGenerationHuntAndKillService, MazeGenerationRandomizedBacktrackerService,  MazeGenerationRandomizedKruskalService, MazeGenerationRandomizedPrimService, MazeGenerationSidewinderService, MazeGenerationWilsonService
     ]
 })
 export class AlgorithmModule {}

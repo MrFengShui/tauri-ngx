@@ -5,8 +5,8 @@ import { floor, random } from "lodash";
 import { MazeToolsService } from "../ngrx-store/maze.service";
 import { MazeCellModel, MazeGridPoint, MazeRunType } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
-import { MazeGridXY } from "../ngrx-store/maze.state";
-import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, EMPTY_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR } from "../../../public/values.utils";
+import { MazeGridCell } from "../ngrx-store/maze.state";
+import { ACCENT_COLOR, EMPTY_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
 
 /**
  * 增长树算法
@@ -14,16 +14,17 @@ import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, EMPTY_COLOR, PRIMARY_
 @Injectable()
 export class MazeGenerationGrowTreeService {
 
-    private caches: MazeGridXY[][] = Array.from([]);
-    private cache: MazeGridXY[] = Array.from([]);
-    private point: MazeGridPoint[] = Array.from([]);
-    private neighbors: MazeGridXY[] = Array.from([]);
+    private visited: MazeGridCell[] = Array.from([]);
+    private unvisited: MazeGridCell[] = Array.from([]);
+    private flags: boolean[] = Array.from([]);
+    private points: MazeGridPoint[] = Array.from([]);
+    private neighbors: MazeGridCell[] = Array.from([]);
 
     constructor(private _service: MazeToolsService) {}
 
     public maze(source: MazeCellModel[][], rows: number, cols: number, name: 'depth-first-growing-tree' | 'parallel-depth-first-growing-tree' | 'breadth-first-growing-tree' | 'parallel-breadth-first-growing-tree', type: MazeRunType): Observable<MazeCellModel[][]> {
         return new Observable(subscriber => {
-            if (name === 'breadth-first-growing-tree') {
+            if (name === 'breadth-first-growing-tree' || name === 'parallel-breadth-first-growing-tree') {
                 if (type === 'one') {
                     this.runByBreadthFirst(source, rows, cols, param => subscriber.next(param)).then(() => subscriber.complete());
                 }
@@ -46,108 +47,226 @@ export class MazeGenerationGrowTreeService {
     }
 
     private async runByBreadthFirst(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
-        let currPoint: MazeGridXY = { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, nextPoint: MazeGridXY = { row: -1, col: -1 }, index: number;
+        const total: number = rows * cols;
+        let point: MazeGridPoint = { currCell: { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, nextCell: { row: -1, col: -1 } }, index: number, count: number = 1;
 
-        this.cache.push(currPoint);
-
-        while (this.cache.length > 0) {
-            this.neighbors = await this._service.findFitNeighbors(source, rows, cols, currPoint, this.neighbors);
+        while (count < total) {
+            this.neighbors = await this._service.findFitNeighbors(source, rows, cols, point.currCell, this.neighbors);
 
             if (this.neighbors.length > 0) {
+                count += 1;
+
                 this.neighbors.forEach(neighbor => {
-                    if (!this._service.existed(this.cache, neighbor)) {
-                        this.cache.push(neighbor);
+                    if (!this._service.existed(this.unvisited, neighbor)) {
+                        this.unvisited.push(neighbor);
                     }
                 });
 
-                nextPoint = this.neighbors[this.neighbors.length === 1 ? 0 : random(0, this.neighbors.length - 1, false)];
+                point.nextCell = this.neighbors[this.neighbors.length === 1 ? 0 : random(0, this.neighbors.length - 1, false)];
 
-                source[nextPoint.row][nextPoint.col].visited = true;
+                source[point.nextCell.row][point.nextCell.col].visited = true;
+                source = await this._service.mergeWall(source, point.currCell, point.nextCell);
 
-                source = await this._service.mergeWall(source, currPoint, nextPoint);
+                for (let i = 0, length = this.unvisited.length; i < length; i++) {
+                    source[this.unvisited[i].row][this.unvisited[i].col].color = ACCENT_COLOR;
+                }
 
-                this.cache.forEach(item => source[item.row][item.col].color = ACCENT_COLOR);
-                source[currPoint.row][currPoint.col].color = PRIMARY_COLOR;
-                source[nextPoint.row][nextPoint.col].color = SECONDARY_COLOR;
+                source[point.currCell.row][point.currCell.col].color = PRIMARY_COLOR;
+                source[point.nextCell.row][point.nextCell.col].color = SECONDARY_COLOR;
                 callback(source);
 
                 await delay(MAZE_DELAY_DURATION);
 
-                this.cache.forEach(item => source[item.row][item.col].color = EMPTY_COLOR);
-                source[currPoint.row][currPoint.col].color = EMPTY_COLOR;
-                source[nextPoint.row][nextPoint.col].color = EMPTY_COLOR;
+                for (let i = 0, length = this.unvisited.length; i < length; i++) {
+                    source[this.unvisited[i].row][this.unvisited[i].col].color = EMPTY_COLOR;
+                }
+
+                source[point.currCell.row][point.currCell.col].color = EMPTY_COLOR;
+                source[point.nextCell.row][point.nextCell.col].color = EMPTY_COLOR;
                 callback(source);
             } else {
-                index = this.cache.length === 1 ? 0 : random(0, this.cache.length - 1, false);
-                currPoint = this.cache.splice(index, 1)[0];
+                index = this.unvisited.length === 1 ? 0 : random(0, this.unvisited.length - 1, false);
+                point.currCell = this.unvisited.splice(index, 1)[0];
             }
         }
 
-        this.cache.splice(0);
+        this.unvisited.splice(0);
         this.neighbors.splice(0);
     }
 
     private async runOneByDepthFirst(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
-        let currPoint: MazeGridXY = { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, nextPoint: MazeGridXY = { row: -1, col: -1 }, index: number;
+        const total: number = rows * cols;
+        let point: MazeGridPoint = { currCell: { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, nextCell: { row: -1, col: -1 } }, index: number, count: number = 0;
 
-        this.cache.push(currPoint);
-
-        while (this.cache.length > 0) {
-            this.neighbors = await this._service.findFitNeighbors(source, rows, cols, currPoint, this.neighbors);
+        while (count < total) {
+            this.neighbors = await this._service.findFitNeighbors(source, rows, cols, point.currCell, this.neighbors);
 
             if (this.neighbors.length > 0) {
-                nextPoint = this.neighbors[this.neighbors.length === 1 ? 0 : random(0, this.neighbors.length - 1, false)];
+                count += 1;
 
-                if (!this._service.existed(this.cache, nextPoint)) {
-                    this.cache.push(nextPoint);
+                point.nextCell = this.neighbors[this.neighbors.length === 1 ? 0 : random(0, this.neighbors.length - 1, false)];
 
-                    source[nextPoint.row][nextPoint.col].visited = true;
-
-                    source = await this._service.mergeWall(source, currPoint, nextPoint);
+                if (!this._service.existed(this.visited, point.nextCell)) {
+                    this.visited.push(point.nextCell);
                 }
 
-                this.cache.forEach(item => source[item.row][item.col].color = ACCENT_COLOR);
-                source[currPoint.row][currPoint.col].color = PRIMARY_COLOR;
-                source[nextPoint.row][nextPoint.col].color = SECONDARY_COLOR;
+                source[point.nextCell.row][point.nextCell.col].visited = true;
+                source = await this._service.mergeWall(source, point.currCell, point.nextCell);
+
+                source[point.currCell.row][point.currCell.col].color = PRIMARY_COLOR;
+                source[point.nextCell.row][point.nextCell.col].color = SECONDARY_COLOR;
                 callback(source);
 
                 await delay(MAZE_DELAY_DURATION);
 
-                this.cache.forEach(item => source[item.row][item.col].color = EMPTY_COLOR);
-                source[currPoint.row][currPoint.col].color = EMPTY_COLOR;
-                source[nextPoint.row][nextPoint.col].color = EMPTY_COLOR;
+                source[point.currCell.row][point.currCell.col].color = EMPTY_COLOR;
+                source[point.nextCell.row][point.nextCell.col].color = EMPTY_COLOR;
                 callback(source);
 
-                currPoint = nextPoint;
+                point.currCell = point.nextCell;
             } else {
-                index = this.cache.length === 1 ? 0 : random(0, this.cache.length - 1, false);
-                currPoint = this.cache.splice(index, 1)[0];
+                index = this.visited.length === 1 ? 0 : random(0, this.visited.length - 1, false);
+                point.currCell = this.visited.splice(index, 1)[0];
             }
         }    
 
-        this.cache.splice(0);
+        this.visited.splice(0);
         this.neighbors.splice(0);
     }
 
     private async runAllByBreadthFirst(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
-        const origin: MazeGridXY = { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, scale: number = floor(Math.log2(rows * cols)) * 3, count: number = Math.max(scale, 3);
-        let index: number = 0, threshold: number, flag: boolean = false;
+        const total: number = rows * cols, scale: number = floor(Math.log2(total)) * 3;
+        let index: number = 0, threshold: number = 1, count: number = 0;
 
-                
+        for (let i = 0; i < scale; i++) {
+            this.points.push({ currCell: { row: -1, col: -1 }, nextCell: { row: -1, col: -1 } });
+            this.flags.push(false);
+        }
 
-        this.cache.splice(0);
-        this.point.splice(0);
+        this.points[0].currCell = { row: random(0, rows - 1, false), col: random(0, cols - 1, false) };
+        
+        while (count < total) {
+            for (let i = 0; i < threshold; i++) {
+                if (this.points[i].currCell && this.points[i].currCell.row === -1 && this.points[i].currCell.col === -1) {
+                    index = this.unvisited.length === 1 ? 0 : random(0, this.unvisited.length - 1, false);
+                    this.points[i].currCell = this.unvisited.splice(index, 1)[0];
+                }
+
+                this.neighbors = await this._service.findFitNeighbors(source, rows, cols, this.points[i].currCell, this.neighbors);
+
+                if (this.neighbors.length > 0) {
+                    this.flags[i] = true;
+                    count += 1;
+
+                    this.neighbors.forEach(neighbor => {
+                        if (!this._service.existed(this.unvisited, neighbor)) {
+                            this.unvisited.push(neighbor);
+                        }
+                    });
+
+                    this.points[i].nextCell = this.neighbors[this.neighbors.length === 1 ? 0 : random(0, this.neighbors.length - 1, false)];
+
+                    source[this.points[i].nextCell.row][this.points[i].nextCell.col].visited = true;
+                    source = await this._service.mergeWall(source, this.points[i].currCell, this.points[i].nextCell);
+                } else {
+                    this.flags[i] = false;
+
+                    index = this.unvisited.length === 1 ? 0 : random(0, this.unvisited.length - 1, false);
+                    this.points[i].currCell = this.unvisited.splice(index, 1)[0];
+                }
+            }
+
+            for (let i = 0, length = this.unvisited.length; i < length; i++) {
+                source[this.unvisited[i].row][this.unvisited[i].col].color = ACCENT_COLOR;
+            }
+
+            await this._service.colorCells(source, this.points, this.flags, threshold, callback);
+
+            await delay(MAZE_DELAY_DURATION);
+
+            for (let i = 0, length = this.unvisited.length; i < length; i++) {
+                source[this.unvisited[i].row][this.unvisited[i].col].color = EMPTY_COLOR;
+            }
+
+            await this._service.clearCells(source, this.points, this.flags, threshold, callback);
+
+            threshold = Math.min(threshold + 1, scale);
+        }
+
+        this.unvisited.splice(0);
+        this.flags.splice(0);
+        this.points.splice(0);
         this.neighbors.splice(0);
     }
 
     private async runAllByDepthFirst(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
-        const origin: MazeGridXY = { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, scale: number = floor(Math.log2(rows * cols)) * 3, count: number = Math.max(scale, 3);
-        let index: number = 0, threshold: number, flag: boolean = false;
+        const total: number = rows * cols, scale: number = floor(Math.log2(total)) * 3;
+        let index: number = 0, threshold: number = 1, count: number = 0;
 
+        for (let i = 0; i < scale; i++) {
+            this.points.push({ currCell: { row: -1, col: -1 }, nextCell: { row: -1, col: -1 } });
+            this.flags.push(false);
+        }
+
+        this.points[0].currCell = { row: random(0, rows - 1, false), col: random(0, cols - 1, false) };
+
+        while (count < total) {
+            for (let i = 0; i < threshold; i++) {
+                if (this.points[i].currCell) {
+                    if (this.points[i].currCell.row === -1 && this.points[i].currCell.col === -1) {
+                        index = this.visited.length === 1 ? 0 : random(0, this.visited.length - 1, false);
+                        this.points[i].currCell = this.visited.splice(index, 1)[0];
+                    }
+
+                    if (!source[this.points[i].currCell.row][this.points[i].currCell.col].visited) {
+                        count += 1;
+
+                        source[this.points[i].currCell.row][this.points[i].currCell.col].visited = true;
+    
+                        if (!this._service.existed(this.visited, this.points[i].currCell)) {
+                            this.visited.push(this.points[i].currCell);
+                        }
+                    }
+                }
                 
+                this.neighbors = await this._service.findFitNeighbors(source, rows, cols, this.points[i].currCell, this.neighbors);
+                
+                if (this.neighbors.length > 0) {
+                    this.flags[i] = true;
+                    count += 1;
+    
+                    this.points[i].nextCell = this.neighbors[this.neighbors.length === 1 ? 0 : random(0, this.neighbors.length - 1, false)];
+    
+                    if (!this._service.existed(this.visited, this.points[i].nextCell)) {
+                        this.visited.push(this.points[i].nextCell);
+                    }
+    
+                    source[this.points[i].nextCell.row][this.points[i].nextCell.col].visited = true;
+                    source = await this._service.mergeWall(source, this.points[i].currCell, this.points[i].nextCell);
+                } else {
+                    this.flags[i] = false;
 
-        this.cache.splice(0);
-        this.point.splice(0);
+                    index = this.visited.length === 1 ? 0 : random(0, this.visited.length - 1, false);
+                    this.points[i].currCell = this.visited.splice(index, 1)[0];
+                }
+            }
+            
+            await this._service.colorCells(source, this.points, this.flags, threshold, callback);
+            await delay(MAZE_DELAY_DURATION);
+            await this._service.clearCells(source, this.points, this.flags, threshold, callback);
+
+            for (let i = 0; i < threshold; i++) {
+                if (this.flags[i]) {
+                    this.points[i].currCell = this.points[i].nextCell;
+                }
+            }
+            
+            threshold = Math.min(threshold + 1, scale);
+        }    
+
+        this.visited.splice(0);
+        this.flags.splice(0);
+        this.points.splice(0);
         this.neighbors.splice(0);
     }
 

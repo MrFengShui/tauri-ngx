@@ -13,6 +13,7 @@ export const PRIMARY_TWO_COLOR = 'seagreen';
 export const SECONDARY_TWO_COLOR = 'indianred';
 export const ACCENT_TWO_COLOR = 'skyblue';
 
-export const FINAL_COLOR = 'navy';
+export const START_COLOR = 'goldenrod';
+export const FINAL_COLOR = 'turquoise';
 export const CLEAR_COLOR = 'snow';
 export const EMPTY_COLOR = 'transparent';
