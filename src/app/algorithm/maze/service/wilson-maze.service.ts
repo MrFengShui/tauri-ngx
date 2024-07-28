@@ -3,7 +3,7 @@ import { Observable } from "rxjs";
 import { floor, random } from "lodash";
 
 import { MazeToolsService } from "../ngrx-store/maze.service";
-import { MazeCellModel, MazeGridPoint, MazeRunType } from "../ngrx-store/maze.state";
+import { MazeDataModel, MazeGridPoint, MazeRunType } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
 import { MazeGridCell } from "../ngrx-store/maze.state";
 import { ACCENT_COLOR, EMPTY_COLOR, FINAL_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, START_COLOR } from "../../../public/values.utils";
@@ -21,7 +21,7 @@ export class MazeGenerationWilsonService {
 
     constructor(private _service: MazeToolsService) {}
 
-    public maze(source: MazeCellModel[][], rows: number, cols: number, type: MazeRunType): Observable<MazeCellModel[][]> {
+    public maze(source: MazeDataModel[][], rows: number, cols: number, type: MazeRunType): Observable<MazeDataModel[][]> {
         return new Observable(subscriber => {
             if (type === null) {
                 this.run(source, rows, cols, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -33,7 +33,7 @@ export class MazeGenerationWilsonService {
         });
     }
 
-    private async run(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async run(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         let origin: MazeGridCell, index: number;
 
         for (let row = 0; row < rows; row++) {
@@ -70,7 +70,7 @@ export class MazeGenerationWilsonService {
         this.neighbors.splice(0);
     }
 
-    private async runByOptimal(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async runByOptimal(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         const length: number = rows * cols;
         let origin: MazeGridCell;
 
@@ -111,7 +111,7 @@ export class MazeGenerationWilsonService {
         this.neighbors.splice(0);
     }
 
-    private async initPath(source: MazeCellModel[][], rows: number, cols: number, origin: MazeGridCell, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async initPath(source: MazeDataModel[][], rows: number, cols: number, origin: MazeGridCell, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         let point: MazeGridPoint = { currCell: origin, nextCell: { row: -1, col: -1 } };
 
         source[point.currCell.row][point.currCell.col].visited = true;
@@ -148,7 +148,7 @@ export class MazeGenerationWilsonService {
         }
     }
 
-    private async seekPath(source: MazeCellModel[][], rows: number, cols: number, origin: MazeGridCell, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async seekPath(source: MazeDataModel[][], rows: number, cols: number, origin: MazeGridCell, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         let currPoint: MazeGridCell = origin, nextPoint: MazeGridCell = { row: -1, col: -1 };
 
         while (true) {
@@ -186,7 +186,7 @@ export class MazeGenerationWilsonService {
         }
     }
 
-    private async seekPathByOptimal(source: MazeCellModel[][], rows: number, cols: number, origin: MazeGridCell, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async seekPathByOptimal(source: MazeDataModel[][], rows: number, cols: number, origin: MazeGridCell, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         let currPoint: MazeGridCell = origin, nextPoint: MazeGridCell = { row: -1, col: -1 };
 
         while (true) {
@@ -225,7 +225,7 @@ export class MazeGenerationWilsonService {
         }
     }
 
-    private async markPath(source: MazeCellModel[][], origin: MazeGridCell, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async markPath(source: MazeDataModel[][], origin: MazeGridCell, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         let currPoint: MazeGridCell = origin, nextPoint: MazeGridCell = { row: -1, col: -1 };
 
         while (source[currPoint.row][currPoint.col].direction) {
@@ -264,7 +264,7 @@ export class MazeGenerationWilsonService {
         }
     }
 
-    private async rebalance(source: MazeCellModel[][]): Promise<void> {
+    private async rebalance(source: MazeDataModel[][]): Promise<void> {
         let point: MazeGridCell, index: number;
 
         this.cache.splice(0);

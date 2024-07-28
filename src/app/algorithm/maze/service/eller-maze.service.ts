@@ -3,7 +3,7 @@ import { Observable } from "rxjs";
 import { random } from "lodash";
 
 import { MazeToolsService } from "../ngrx-store/maze.service";
-import { MazeCellModel } from "../ngrx-store/maze.state";
+import { MazeDataModel } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
 import { MazeGridCell } from "../ngrx-store/maze.state";
 import { ACCENT_COLOR, EMPTY_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
@@ -18,13 +18,13 @@ export class MazeGenerationEllerService {
 
     constructor(private _service: MazeToolsService) {}
 
-    public maze(source: MazeCellModel[][], rows: number, cols: number): Observable<MazeCellModel[][]> {
+    public maze(source: MazeDataModel[][], rows: number, cols: number): Observable<MazeDataModel[][]> {
         return new Observable(subscriber => {
             this.run(source, rows, cols, param => subscriber.next(param)).then(() => subscriber.complete());
         });
     }
 
-    private async run(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async run(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         for (let row = 0; row < rows; row++) {
             if (row === 0) {
                 await this.taskFirstRow(source, cols, row, callback);
@@ -40,7 +40,7 @@ export class MazeGenerationEllerService {
         Object.keys(this.cache).forEach(key => delete this.cache[key]);
     }
 
-    private async taskFirstRow(source: MazeCellModel[][], cols: number, row: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async taskFirstRow(source: MazeDataModel[][], cols: number, row: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         let currPoint: MazeGridCell = { row: -1, col: -1 }, nextPoint: MazeGridCell = { row: -1, col: -1 };
         let lhs: number = 0, rhs: number = 0, weight: number
 
@@ -94,7 +94,7 @@ export class MazeGenerationEllerService {
         }
     }
 
-    private async taskLastRow(source: MazeCellModel[][], cols: number, row: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async taskLastRow(source: MazeDataModel[][], cols: number, row: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         let currPoint: MazeGridCell = { row: -1, col: -1 }, nextPoint: MazeGridCell = { row: -1, col: -1 };
         let currWeight: number, nextWeight: number;
 
@@ -127,7 +127,7 @@ export class MazeGenerationEllerService {
         }
     }
 
-    private async mergeGridX(source: MazeCellModel[][], cols: number, row: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async mergeGridX(source: MazeDataModel[][], cols: number, row: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         let currPoint: MazeGridCell = { row: -1, col: -1 }, nextPoint: MazeGridCell = { row: -1, col: -1 };
         let currWeight: number, nextWeight: number, flag: boolean = false;
         // console.info('+++', JSON.parse(JSON.stringify(source[row])), JSON.parse(JSON.stringify(this.cache)));
@@ -176,7 +176,7 @@ export class MazeGenerationEllerService {
         // console.info('---', JSON.parse(JSON.stringify(source[row])), JSON.parse(JSON.stringify(this.cache)));
     }
 
-    private async mergeGridY(source: MazeCellModel[][], cols: number, row: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async mergeGridY(source: MazeDataModel[][], cols: number, row: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         let currPoint: MazeGridCell = { row: -1, col: -1 }, nextPoint: MazeGridCell = { row: -1, col: -1 }, weight: number, flag: boolean;
         // console.info('+++', JSON.parse(JSON.stringify(source[row])), JSON.parse(JSON.stringify(this.cache)));
         for (let col = cols - 1; col >= 0; col--) {

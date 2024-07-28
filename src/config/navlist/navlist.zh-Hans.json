@@ -385,6 +385,32 @@
                                         "param": "dpi-quick-sort"
                                     },
                                     "leaf": true
+                                },
+                                {
+                                    "key": "2-1-4-50",
+                                    "label": "平均值快速排序（递归）",
+                                    "data": {
+                                        "url": [
+                                            "/playground",
+                                            "algorithm",
+                                            "sort"
+                                        ],
+                                        "param": "ar-quick-sort"
+                                    },
+                                    "leaf": true
+                                },
+                                {
+                                    "key": "2-1-4-51",
+                                    "label": "平均值快速排序（迭代）",
+                                    "data": {
+                                        "url": [
+                                            "/playground",
+                                            "algorithm",
+                                            "sort"
+                                        ],
+                                        "param": "ai-quick-sort"
+                                    },
+                                    "leaf": true
                                 }
                             ]
                         }
@@ -943,7 +969,7 @@
                                     ]
                                 },
                                 {
-                                    "key": "3-1-40",
+                                    "key": "3-1-1-40",
                                     "label": "Eller算法",
                                     "data": {
                                         "url": [
@@ -992,7 +1018,7 @@
                                     ]
                                 },
                                 {
-                                    "key": "3-1-60",
+                                    "key": "3-1-1-60",
                                     "label": "猎杀算法",
                                     "data": {
                                         "url": [
@@ -1006,21 +1032,42 @@
                                     "leaf": true
                                 },
                                 {
-                                    "key": "3-1-70",
+                                    "key": "3-1-1-70",
                                     "label": "随机克鲁斯卡尔算法",
-                                    "data": {
-                                        "url": [
-                                            "/playground",
-                                            "algorithm",
-                                            "maze",
-                                            "generation"
-                                        ],
-                                        "param": "randomized-kruskal"
-                                    },
-                                    "leaf": true
+                                    "leaf": false,
+                                    "children": [
+                                        {
+                                            "key": "3-1-1-70-10",
+                                            "label": "原始版本",
+                                            "data": {
+                                                "url": [
+                                                    "/playground",
+                                                    "algorithm",
+                                                    "maze",
+                                                    "generation"
+                                                ],
+                                                "param": "randomized-kruskal"
+                                            },
+                                            "leaf": true
+                                        },
+                                        {
+                                            "key": "3-1-1-70-11",
+                                            "label": "优化版本",
+                                            "data": {
+                                                "url": [
+                                                    "/playground",
+                                                    "algorithm",
+                                                    "maze",
+                                                    "generation"
+                                                ],
+                                                "param": "optimal-randomized-kruskal"
+                                            },
+                                            "leaf": true
+                                        }
+                                    ]
                                 },
                                 {
-                                    "key": "3-1-80",
+                                    "key": "3-1-1-80",
                                     "label": "随机普里姆算法",
                                     "data": {
                                         "url": [
@@ -1034,7 +1081,7 @@
                                     "leaf": true
                                 },
                                 {
-                                    "key": "3-1-90",
+                                    "key": "3-1-1-90",
                                     "label": "绕线机算法",
                                     "data": {
                                         "url": [
@@ -1170,8 +1217,22 @@
                                     "leaf": true
                                 },
                                 {
-                                    "key": "3-1-80",
-                                    "label": "并行随机普里姆算法",
+                                    "key": "3-1-2-70",
+                                    "label": "随机克鲁斯卡尔算法",
+                                    "data": {
+                                        "url": [
+                                            "/playground",
+                                            "algorithm",
+                                            "maze",
+                                            "generation"
+                                        ],
+                                        "param": "parallel-randomized-kruskal"
+                                    },
+                                    "leaf": true
+                                },
+                                {
+                                    "key": "3-1-2-80",
+                                    "label": "随机普里姆算法",
                                     "data": {
                                         "url": [
                                             "/playground",
@@ -1180,6 +1241,20 @@
                                             "generation"
                                         ],
                                         "param": "parallel-randomized-prim"
+                                    },
+                                    "leaf": true
+                                },
+                                {
+                                    "key": "3-1-2-90",
+                                    "label": "绕线机算法",
+                                    "data": {
+                                        "url": [
+                                            "/playground",
+                                            "algorithm",
+                                            "maze",
+                                            "generation"
+                                        ],
+                                        "param": "parallel-sidewinder"
                                     },
                                     "leaf": true
                                 }

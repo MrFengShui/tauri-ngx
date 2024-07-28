@@ -32,6 +32,7 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
     styleColor: ColorType = 'amber';
     styleMode: boolean = true;
     navlist: TreeNode<RouteUrlParam>[] = [];
+    protected key: string = '';
 
     private readonly PORT: { [key: string]: number } = { 'en-US': 4200, 'zh-Hans': 5200, 'zh-Hant': 5300 };
 
@@ -64,7 +65,8 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
                 .subscribe(snapshot => 
                     this._ngZone.run(() => {
                         if (Object.keys(snapshot.queryParams).includes('id')) {
-                            const split = (snapshot.queryParams['id'] as string).split('-');
+                            this.key = snapshot.queryParams['id'] as string;
+                            const split = this.key.split('-');
 
                             for (let i = 1; i <= split.length; i++) {
                                 this.idSplit.push(split.slice(0, i).join('-'));
@@ -216,9 +218,11 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
     selector: 'tauri-ngx-navlist',
     template: `
         <ng-container *ngFor="let item of list">
-            <a [routerLink]="item.data?.url" routerLinkActive="text-primary" [queryParams]="{ id: item.key, name: item.data?.param }"
-                class="flex align-items-center text-color hover:bg-primary hover:text-primary min-w-full p-2 gap-2" 
-                [class.no-underline]="item.leaf" [class.cursor-pointer]="item.leaf" [class.hover:text-primary]="item.leaf"
+            <a [routerLink]="item.data?.url" [queryParams]="{ id: item.key, name: item.data?.param }"
+                class="flex align-items-center min-w-full p-2 gap-2" 
+                [class.no-underline]="item?.leaf" [class.cursor-pointer]="item?.leaf" 
+                [class.bg-primary]="item?.key === nodeKey" [class.text-white]="item?.key === nodeKey" [class.text-color]="item?.key !== nodeKey"
+                [class.hover:bg-primary]="item.leaf" [class.hover:text-primary]="item.leaf"
                 [style.padding-left]="(depth * 0.5) + 'rem !important'" (click)="handleExpandCollapseEvent(item)">
                 <span class="control-button flex justify-content-center align-items-center"
                     [class.hidden]="item?.leaf">
@@ -227,7 +231,7 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
                 <i [class]="item?.icon" *ngIf="showIcon"></i>
                 <span class="flex-auto white-space-nowrap" [class.font-bold]="!item.leaf">{{item?.label}}</span>
             </a>
-            <tauri-ngx-navlist [navlist]="item.children" [showIcon]="showIcon" [depth]="depth + 1" 
+            <tauri-ngx-navlist [navlist]="item.children" [nodeKey]="nodeKey" [showIcon]="showIcon" [depth]="depth + 1" 
                 (selectedChange)="selectedChange.emit($event)"
                 [class.visible]="item?.expanded" [class.hidden]="!item?.expanded"></tauri-ngx-navlist>
         </ng-container>
@@ -238,6 +242,8 @@ export class NavlistComponent {
     @Input('navlist') list: TreeNode<RouteUrlParam>[] | undefined = [];
 
     @Input('showIcon') showIcon: boolean = false;
+
+    @Input('nodeKey') nodeKey: string = '';
 
     @Input('depth')
     protected depth: number = 1;

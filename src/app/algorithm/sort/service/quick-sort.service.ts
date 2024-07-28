@@ -152,10 +152,7 @@ export class IterativeQuickSortService {
 
     private stack: number[] = Array.from([]);
 
-    constructor(
-        private _sortService: RecursiveQuickSortService,
-        private _toolsService: SortToolsService
-    ) {}
+    constructor(private _sortService: RecursiveQuickSortService) {}
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
@@ -181,20 +178,16 @@ export class IterativeQuickSortService {
             lhs = this.stack.pop() as number;
             rhs = this.stack.pop() as number;
             
-            if (rhs - lhs < THRESHOLD) {
-                times = await this._toolsService.stableSortByAscent(source, lhs, rhs, temp, times, callback);
-            } else {
-                [times, mid] = await this._sortService.partitionByAscent(source, lhs, rhs, temp, times, callback);
+            [times, mid] = await this._sortService.partitionByAscent(source, lhs, rhs, temp, times, callback);
 
-                if (mid + 1 < rhs) {
-                    this.stack.push(rhs);
-                    this.stack.push(mid + 1);
-                }
-    
-                if (lhs < mid - 1) {
-                    this.stack.push(mid - 1);
-                    this.stack.push(lhs);
-                }
+            if (mid + 1 < rhs) {
+                this.stack.push(rhs);
+                this.stack.push(mid + 1);
+            }
+
+            if (lhs < mid - 1) {
+                this.stack.push(mid - 1);
+                this.stack.push(lhs);
             }
             
             source[lhs].color = PRIMARY_COLOR;
@@ -223,20 +216,311 @@ export class IterativeQuickSortService {
             lhs = this.stack.pop() as number;
             rhs = this.stack.pop() as number;
 
-            if (rhs - lhs < THRESHOLD) {
-                times = await this._toolsService.stableSortByDescent(source, lhs, rhs, temp, times, callback);
-            } else {
-                [times, mid] = await this._sortService.partitionByDescent(source, lhs, rhs, temp, times, callback);
+            [times, mid] = await this._sortService.partitionByDescent(source, lhs, rhs, temp, times, callback);
 
-                if (mid + 1 < rhs) {
-                    this.stack.push(rhs);
-                    this.stack.push(mid + 1);
+            if (mid + 1 < rhs) {
+                this.stack.push(rhs);
+                this.stack.push(mid + 1);
+            }
+
+            if (lhs < mid - 1) {
+                this.stack.push(mid - 1);
+                this.stack.push(lhs);
+            }
+            
+            source[lhs].color = PRIMARY_COLOR;
+            source[rhs].color = SECONDARY_COLOR;
+            callback({ times, datalist: source });
+
+            await delay(SORT_DELAY_DURATION);
+
+            source[lhs].color = CLEAR_COLOR;
+            source[rhs].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+        }
+
+        await delay(SORT_DELAY_DURATION);
+        await complete(source, times, callback);
+        this.stack.splice(0);
+    }
+
+}
+
+/**
+ * 平均值快速排序（递归）
+ */
+@Injectable()
+export class AverageRecursiveQuickSortService {
+
+    constructor(private _service: SortToolsService) {}
+
+    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
+        return new Observable(subscriber => {
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+
+            if (order === 'ascent') {
+                this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+            }
+    
+            if (order === 'descent') {
+                this.sortByDescent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+            }
+        });
+    }
+
+    private async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        times = await this.sortByOrder(source, lhs, rhs, temp, 'ascent', times, callback);
+        await delay(SORT_DELAY_DURATION);
+        await complete(source, times, callback);
+    }
+
+    private async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        times = await this.sortByOrder(source, lhs, rhs, temp, 'descent', times, callback);
+        await delay(SORT_DELAY_DURATION);
+        await complete(source, times, callback);
+    }
+
+    private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let mid: number = -1;
+
+        if (lhs < rhs) {
+            if (order === 'ascent') {
+                [times, mid] = await this.partitionByAscent(source, lhs, rhs, temp, times, callback);
+            }
+
+            if (order === 'descent') {
+                [times, mid] = await this.partitionByDescent(source, lhs, rhs, temp, times, callback);
+            }
+            
+            times = await this.sortByOrder(source, lhs, mid - 1, temp, order, times, callback);
+            times = await this.sortByOrder(source, mid, rhs, temp, order, times, callback);
+        }
+
+        return times;
+    }
+
+    public async partitionByAscent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
+        if (rhs - lhs < THRESHOLD) {
+            times = await this._service.stableSortByAscent(source, lhs, rhs, temp, times, callback);
+            return [times, rhs];
+        } else {
+            const pivot: number = await this.sum(source, lhs, rhs, 0, times, callback) / (rhs - lhs + 1);
+            let i: number = lhs, j: number = rhs;
+            
+            while (i < j) {
+                while (i < j && source[i].value <= pivot) {
+                    source[i].color = PRIMARY_COLOR;
+                    callback({ times, datalist: source});
+
+                    await delay(SORT_DELAY_DURATION);
+
+                    source[i].color = CLEAR_COLOR;
+                    callback({ times, datalist: source});
+
+                    i += 1;
+                }
+
+                while (i < j && source[j].value >= pivot) {
+                    source[j].color = SECONDARY_COLOR;
+                    callback({ times, datalist: source});
+
+                    await delay(SORT_DELAY_DURATION);
+
+                    source[j].color = CLEAR_COLOR;
+                    callback({ times, datalist: source});
+                    
+                    j -= 1;
+                }
+
+                await delay(SORT_DELAY_DURATION);
+                await swap(source, i, j, temp);
+                times += 1;
+
+                source[i].color = CLEAR_COLOR;
+                source[j].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+            }
+
+            return [times, i];
+        }
+    }
+
+    public async partitionByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
+        if (rhs - lhs < THRESHOLD) {
+            times = await this._service.stableSortByDescent(source, lhs, rhs, temp, times, callback);
+            return [times, rhs];
+        } else {
+            const pivot: number = await this.sum(source, lhs, rhs, 0, times, callback) / (rhs - lhs + 1);
+            let i: number = lhs, j: number = rhs;
+            
+            while (i < j) {
+                while (i < j && source[i].value >= pivot) {
+                    source[i].color = PRIMARY_COLOR;
+                    callback({ times, datalist: source});
+    
+                    await delay(SORT_DELAY_DURATION);
+    
+                    source[i].color = CLEAR_COLOR;
+                    callback({ times, datalist: source});
+    
+                    i += 1;
                 }
     
-                if (lhs < mid - 1) {
-                    this.stack.push(mid - 1);
-                    this.stack.push(lhs);
+                while (i < j && source[j].value <= pivot) {
+                    source[j].color = SECONDARY_COLOR;
+                    callback({ times, datalist: source});
+    
+                    await delay(SORT_DELAY_DURATION);
+    
+                    source[j].color = CLEAR_COLOR;
+                    callback({ times, datalist: source});
+                    
+                    j -= 1;
                 }
+    
+                await delay(SORT_DELAY_DURATION);
+                await swap(source, i, j, temp);
+                times += 1;
+                
+                source[i].color = CLEAR_COLOR;
+                source[j].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+            }
+    
+            return [times, i];
+        }
+    }
+
+    private async sum(source: SortDataModel[], lhs: number, rhs: number, sum: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let stack: number[] = Array.from([]), mid: number;
+
+        stack.push(rhs);
+        stack.push(lhs);
+
+        while (stack.length > 0) {
+            lhs = stack.pop() as number;
+            rhs = stack.pop() as number;
+
+            if (lhs >= rhs) continue;
+
+            if (rhs - lhs < THRESHOLD) {
+                for (let i = lhs; i <= rhs; i++) {
+                    sum += source[i].value;
+
+                    source[i].color = ACCENT_COLOR;
+                    callback({ times, datalist: source });
+
+                    await delay(SORT_DELAY_DURATION);
+
+                    source[i].color = CLEAR_COLOR;
+                    callback({ times, datalist: source });
+                }
+            } else {
+                mid = Math.floor((rhs - lhs) * 0.5 + lhs);
+
+                if (mid + 1 < rhs) {
+                    stack.push(rhs);
+                    stack.push(mid + 1);
+                }
+
+                if (lhs < mid) {
+                    stack.push(mid);
+                    stack.push(lhs);
+                }
+            }
+        }
+
+        return sum;
+    }
+
+}
+
+/**
+ * 平均值快速排序（迭代）
+ */
+@Injectable()
+export class AverageIterativeQuickSortService {
+
+    private stack: number[] = Array.from([]);
+
+    constructor(private _sortService: AverageRecursiveQuickSortService) {}
+
+    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
+        return new Observable(subscriber => {
+            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+
+            if (order === 'ascent') {
+                this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+            }
+    
+            if (order === 'descent') {
+                this.sortByDescent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+            }
+        });
+    }
+
+    private async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        let mid: number;
+
+        this.stack.push(rhs);
+        this.stack.push(lhs);
+        
+        while (this.stack.length > 0) {
+            lhs = this.stack.pop() as number;
+            rhs = this.stack.pop() as number;
+            
+            if (lhs >= rhs) continue;
+
+            [times, mid] = await this._sortService.partitionByAscent(source, lhs, rhs, temp, times, callback);
+
+            if (mid < rhs) {
+                this.stack.push(rhs);
+                this.stack.push(mid);
+            }
+
+            if (lhs < mid - 1) {
+                this.stack.push(mid - 1);
+                this.stack.push(lhs);
+            }
+            
+            source[lhs].color = PRIMARY_COLOR;
+            source[rhs].color = SECONDARY_COLOR;
+            callback({ times, datalist: source });
+
+            await delay(SORT_DELAY_DURATION);
+
+            source[lhs].color = CLEAR_COLOR;
+            source[rhs].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+        }
+
+        await delay(SORT_DELAY_DURATION);
+        await complete(source, times, callback);
+        this.stack.splice(0);
+    }
+
+    private async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        let mid: number;
+
+        this.stack.push(rhs);
+        this.stack.push(lhs);
+
+        while (this.stack.length > 0) {
+            lhs = this.stack.pop() as number;
+            rhs = this.stack.pop() as number;
+
+            if (lhs >= rhs) continue;
+
+            [times, mid] = await this._sortService.partitionByDescent(source, lhs, rhs, temp, times, callback);
+
+            if (mid < rhs) {
+                this.stack.push(rhs);
+                this.stack.push(mid);
+            }
+
+            if (lhs < mid - 1) {
+                this.stack.push(mid - 1);
+                this.stack.push(lhs);
             }
             
             source[lhs].color = PRIMARY_COLOR;

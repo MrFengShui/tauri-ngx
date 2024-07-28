@@ -3,10 +3,9 @@ import { Observable } from "rxjs";
 import { random } from "lodash";
 
 import { MazeToolsService } from "../ngrx-store/maze.service";
-import { MazeCellModel, MazeGridPoint } from "../ngrx-store/maze.state";
+import { MazeDataModel, MazeGridPoint } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
 import { MazeGridCell } from "../ngrx-store/maze.state";
-import { EMPTY_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
 
 /**
  * 随机隔离算法
@@ -16,7 +15,7 @@ export class MazeGenerationRandomizedDivisionService {
 
     constructor(private _service: MazeToolsService) {}
 
-    public maze(source: MazeCellModel[][], rows: number, cols: number, type: 'build' | 'merge'): Observable<MazeCellModel[][]> {
+    public maze(source: MazeDataModel[][], rows: number, cols: number, type: 'build' | 'merge'): Observable<MazeDataModel[][]> {
         return new Observable(subscriber => {
             if (type === 'build') {
                 this.runByBuild(source, rows, cols, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -28,7 +27,7 @@ export class MazeGenerationRandomizedDivisionService {
         });
     }
 
-    private async runByMerge(source: MazeCellModel[][], startRow: number, finalRow: number, startCol: number, finalCol: number, callback: (param: MazeCellModel[][]) => void): Promise<MazeCellModel[][]> {
+    private async runByMerge(source: MazeDataModel[][], startRow: number, finalRow: number, startCol: number, finalCol: number, callback: (param: MazeDataModel[][]) => void): Promise<MazeDataModel[][]> {
         if (startRow < finalRow || startCol < finalCol) {
             let point: MazeGridPoint, split: MazeGridCell;
 
@@ -56,7 +55,7 @@ export class MazeGenerationRandomizedDivisionService {
 
         return source;
     }
-    private async runByBuild(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async runByBuild(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         source = await this.initGrid(source, rows, cols);
         callback(source);
 
@@ -65,7 +64,7 @@ export class MazeGenerationRandomizedDivisionService {
         await this.task(source, 0, rows - 1, 0, cols - 1, callback);
     }
 
-    private async task(source: MazeCellModel[][], startRow: number, finalRow: number, startCol: number, finalCol: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async task(source: MazeDataModel[][], startRow: number, finalRow: number, startCol: number, finalCol: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         if (startRow < finalRow || startCol < finalCol) {
             let point: MazeGridPoint, split: MazeGridCell;
 
@@ -105,7 +104,7 @@ export class MazeGenerationRandomizedDivisionService {
         }
     }
 
-    private async initGrid(source: MazeCellModel[][], rows: number, cols: number): Promise<MazeCellModel[][]> {
+    private async initGrid(source: MazeDataModel[][], rows: number, cols: number): Promise<MazeDataModel[][]> {
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
                 if (row < rows - 1) {

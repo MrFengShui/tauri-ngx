@@ -3,7 +3,7 @@ import { Observable } from "rxjs";
 import { floor, random } from "lodash";
 
 import { MazeToolsService } from "../ngrx-store/maze.service";
-import { MazeCellModel, MazeGridPoint, MazeRunType } from "../ngrx-store/maze.state";
+import { MazeDataModel, MazeGridPoint, MazeRunType } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
 import { MazeGridCell } from "../ngrx-store/maze.state";
 import { ACCENT_COLOR, EMPTY_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR } from "../../../public/values.utils";
@@ -23,7 +23,7 @@ export class MazeGenerationRandomizedPrimService {
 
     constructor(private _service: MazeToolsService) {}
 
-    public maze(source: MazeCellModel[][], rows: number, cols: number, type: MazeRunType): Observable<MazeCellModel[][]> {
+    public maze(source: MazeDataModel[][], rows: number, cols: number, type: MazeRunType): Observable<MazeDataModel[][]> {
         return new Observable(subscriber => {
             if (type === 'one') {
                 this.runByOne(source, rows, cols, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -35,7 +35,7 @@ export class MazeGenerationRandomizedPrimService {
         });
     }
 
-    private async runByOne(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async runByOne(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         const length: number = rows * cols;
         let currPoint: MazeGridCell = { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, nextPoint: MazeGridCell = { row: -1, col: -1 };
         let neighbors: MazeGridCell[] = Array.from([]), newNeighbors: MazeGridCell[] = Array.from([]), oldNeighbors: MazeGridCell[] = Array.from([]), index: number;
@@ -91,7 +91,7 @@ export class MazeGenerationRandomizedPrimService {
         this.vertex.splice(0);
     }
 
-    private async runByAll(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async runByAll(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         const length: number = rows * cols, scale: number = floor(Math.log2(length)) * 3, count: number = Math.max(scale, 3);
         const origin: MazeGridCell = { row: random(floor(rows * 0.25), floor(rows * 0.75), false), col: random(floor(cols * 0.25), floor(cols * 0.75), false) };
         let threshold: number, index: number;

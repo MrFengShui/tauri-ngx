@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Observable, of } from "rxjs";
 
-import { MazeCellModel, MazeGridPoint } from "./maze.state";
+import { MazeDataModel, MazeGridPoint } from "./maze.state";
 import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, EMPTY_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR } from "../../../public/values.utils";
 import { MazeActionType, MazeActionmName, MazeGridCell } from "./maze.state";
 
@@ -19,13 +19,13 @@ import { MazeGenerationWilsonService } from "../service/wilson-maze.service";
 @Injectable()
 export class MazeUtilsService {
 
-    public createDataGrid(rows: number, cols: number): Observable<MazeCellModel[][]> {
+    public createDataGrid(rows: number, cols: number): Observable<MazeDataModel[][]> {
         return new Observable(subscriber => {
-            const grid: MazeCellModel[][] = Array.from([]);
+            const grid: MazeDataModel[][] = Array.from([]);
             let index: number = 0;
 
             for (let row = 0; row < rows; row++) {
-                let array: MazeCellModel[] = Array.from([]);
+                let array: MazeDataModel[] = Array.from([]);
 
                 for (let col = 0; col < cols; col++) {
                     array.push({
@@ -43,7 +43,7 @@ export class MazeUtilsService {
         });
     }
 
-    public resetDataGrid(source: MazeCellModel[][], rows: number, cols: number): Observable<MazeCellModel[][]> {
+    public resetDataGrid(source: MazeDataModel[][], rows: number, cols: number): Observable<MazeDataModel[][]> {
         return new Observable(subscriber => {
             let index: number = 0;
             
@@ -68,131 +68,131 @@ export class MazeUtilsService {
 @Injectable()
 export class MazeToolsService {
 
-    public async findFitNeighbors(source: MazeCellModel[][], rows: number, cols: number, currPoint: MazeGridCell, neighbors: MazeGridCell[]): Promise<MazeGridCell[]> {
+    public async findFitNeighbors(source: MazeDataModel[][], rows: number, cols: number, currCell: MazeGridCell, neighbors: MazeGridCell[]): Promise<MazeGridCell[]> {
         if (neighbors.length > 0) {
             neighbors.splice(0);
         }
 
-        if (currPoint) {
+        if (currCell) {
             /* 添加上边 */
-            if (currPoint.col > 0 && !source[currPoint.row][currPoint.col - 1].visited) {
-                neighbors.push({ row: currPoint.row, col: currPoint.col - 1 });
+            if (currCell.col > 0 && !source[currCell.row][currCell.col - 1].visited) {
+                neighbors.push({ row: currCell.row, col: currCell.col - 1 });
             }
             /* 添加右边 */
-            if (currPoint.row < rows - 1 && !source[currPoint.row + 1][currPoint.col].visited) {
-                neighbors.push({ row: currPoint.row + 1, col: currPoint.col });
+            if (currCell.row < rows - 1 && !source[currCell.row + 1][currCell.col].visited) {
+                neighbors.push({ row: currCell.row + 1, col: currCell.col });
             }
             /* 添加下边 */
-            if (currPoint.col < cols - 1 && !source[currPoint.row][currPoint.col + 1].visited) {
-                neighbors.push({ row: currPoint.row, col: currPoint.col + 1 });
+            if (currCell.col < cols - 1 && !source[currCell.row][currCell.col + 1].visited) {
+                neighbors.push({ row: currCell.row, col: currCell.col + 1 });
             }
             /* 添加左边 */
-            if (currPoint.row > 0 && !source[currPoint.row - 1][currPoint.col].visited) {
-                neighbors.push({ row: currPoint.row - 1, col: currPoint.col });
+            if (currCell.row > 0 && !source[currCell.row - 1][currCell.col].visited) {
+                neighbors.push({ row: currCell.row - 1, col: currCell.col });
             }
         }
 
         return neighbors;
     }
 
-    public async findAnyNeighbors(source: MazeCellModel[][], rows: number, cols: number, currPoint: MazeGridCell, neighbors: MazeGridCell[]): Promise<MazeGridCell[]> {
+    public async findAnyNeighbors(source: MazeDataModel[][], rows: number, cols: number, currCell: MazeGridCell, neighbors: MazeGridCell[]): Promise<MazeGridCell[]> {
         if (neighbors.length > 0) {
             neighbors.splice(0);
         }
 
-        if (currPoint) {
+        if (currCell) {
             /* 添加上边 */
-            if (currPoint.col > 0) {
-                neighbors.push({ row: currPoint.row, col: currPoint.col - 1 });
+            if (currCell.col > 0) {
+                neighbors.push({ row: currCell.row, col: currCell.col - 1 });
             }
             /* 添加右边 */
-            if (currPoint.row < rows - 1) {
-                neighbors.push({ row: currPoint.row + 1, col: currPoint.col });
+            if (currCell.row < rows - 1) {
+                neighbors.push({ row: currCell.row + 1, col: currCell.col });
             }
             /* 添加下边 */
-            if (currPoint.col < cols - 1) {
-                neighbors.push({ row: currPoint.row, col: currPoint.col + 1 });
+            if (currCell.col < cols - 1) {
+                neighbors.push({ row: currCell.row, col: currCell.col + 1 });
             }
             /* 添加左边 */
-            if (currPoint.row > 0) {
-                neighbors.push({ row: currPoint.row - 1, col: currPoint.col });
+            if (currCell.row > 0) {
+                neighbors.push({ row: currCell.row - 1, col: currCell.col });
             }
         }
 
         return neighbors;
     }
 
-    public async mergeWall(source: MazeCellModel[][], currPoint: MazeGridCell, nextPoint: MazeGridCell): Promise<MazeCellModel[][]> {
-        if (currPoint && nextPoint) {
+    public async mergeWall(source: MazeDataModel[][], currCell: MazeGridCell, nextCell: MazeGridCell): Promise<MazeDataModel[][]> {
+        if (currCell && nextCell) {
             /* 拆上边 */
-            if (currPoint.row - 1 === nextPoint.row && currPoint.col === nextPoint.col) {
-                source[currPoint.row][currPoint.col].walls.top = false;
-                source[nextPoint.row][nextPoint.col].walls.bottom = false;
+            if (currCell.row - 1 === nextCell.row && currCell.col === nextCell.col) {
+                source[currCell.row][currCell.col].walls.top = false;
+                source[nextCell.row][nextCell.col].walls.bottom = false;
             }
             /* 拆右边 */
-            if (currPoint.row === nextPoint.row && currPoint.col + 1 === nextPoint.col) {
-                source[currPoint.row][currPoint.col].walls.right = false;
-                source[nextPoint.row][nextPoint.col].walls.left = false;
+            if (currCell.row === nextCell.row && currCell.col + 1 === nextCell.col) {
+                source[currCell.row][currCell.col].walls.right = false;
+                source[nextCell.row][nextCell.col].walls.left = false;
             }
             /* 拆下边 */
-            if (currPoint.row + 1 === nextPoint.row && currPoint.col === nextPoint.col) {
-                source[currPoint.row][currPoint.col].walls.bottom = false;
-                source[nextPoint.row][nextPoint.col].walls.top = false;
+            if (currCell.row + 1 === nextCell.row && currCell.col === nextCell.col) {
+                source[currCell.row][currCell.col].walls.bottom = false;
+                source[nextCell.row][nextCell.col].walls.top = false;
             }
             /* 拆左边 */
-            if (currPoint.row === nextPoint.row && currPoint.col - 1 === nextPoint.col) {
-                source[currPoint.row][currPoint.col].walls.left = false;
-                source[nextPoint.row][nextPoint.col].walls.right = false;
+            if (currCell.row === nextCell.row && currCell.col - 1 === nextCell.col) {
+                source[currCell.row][currCell.col].walls.left = false;
+                source[nextCell.row][nextCell.col].walls.right = false;
             }
         }
 
         return source;
     }
 
-    public async buildWall(source: MazeCellModel[][], currPoint: MazeGridCell, nextPoint: MazeGridCell): Promise<MazeCellModel[][]> {
-        if (currPoint && nextPoint) {
+    public async buildWall(source: MazeDataModel[][], currCell: MazeGridCell, nextCell: MazeGridCell): Promise<MazeDataModel[][]> {
+        if (currCell && nextCell) {
             /* 建上边 */
-            if (currPoint.row - 1 === nextPoint.row && currPoint.col === nextPoint.col) {
-                source[currPoint.row][currPoint.col].walls.top = true;
-                source[nextPoint.row][nextPoint.col].walls.bottom = true;
+            if (currCell.row - 1 === nextCell.row && currCell.col === nextCell.col) {
+                source[currCell.row][currCell.col].walls.top = true;
+                source[nextCell.row][nextCell.col].walls.bottom = true;
             }
             /* 建右边 */
-            if (currPoint.row === nextPoint.row && currPoint.col + 1 === nextPoint.col) {
-                source[currPoint.row][currPoint.col].walls.right = true;
-                source[nextPoint.row][nextPoint.col].walls.left = true;
+            if (currCell.row === nextCell.row && currCell.col + 1 === nextCell.col) {
+                source[currCell.row][currCell.col].walls.right = true;
+                source[nextCell.row][nextCell.col].walls.left = true;
             }
             /* 建下边 */
-            if (currPoint.row + 1 === nextPoint.row && currPoint.col === nextPoint.col) {
-                source[currPoint.row][currPoint.col].walls.bottom = true;
-                source[nextPoint.row][nextPoint.col].walls.top = true;
+            if (currCell.row + 1 === nextCell.row && currCell.col === nextCell.col) {
+                source[currCell.row][currCell.col].walls.bottom = true;
+                source[nextCell.row][nextCell.col].walls.top = true;
             }
             /* 建左边 */
-            if (currPoint.row === nextPoint.row && currPoint.col - 1 === nextPoint.col) {
-                source[currPoint.row][currPoint.col].walls.left = true;
-                source[nextPoint.row][nextPoint.col].walls.right = true;
+            if (currCell.row === nextCell.row && currCell.col - 1 === nextCell.col) {
+                source[currCell.row][currCell.col].walls.left = true;
+                source[nextCell.row][nextCell.col].walls.right = true;
             }
         }
 
         return source;
     }
 
-    public async direct(source: MazeCellModel[][], currPoint: MazeGridCell, nextPoint: MazeGridCell): Promise<MazeCellModel[][]> {
-        if (currPoint && nextPoint) {
+    public async direct(source: MazeDataModel[][], currCell: MazeGridCell, nextCell: MazeGridCell): Promise<MazeDataModel[][]> {
+        if (currCell && nextCell) {
             /* 在上边 */
-            if (currPoint.row - 1 === nextPoint.row && currPoint.col === nextPoint.col) {
-                source[currPoint.row][currPoint.col].direction = 'u';
+            if (currCell.row - 1 === nextCell.row && currCell.col === nextCell.col) {
+                source[currCell.row][currCell.col].direction = 'u';
             }
             /* 在右边 */
-            if (currPoint.row === nextPoint.row && currPoint.col + 1 === nextPoint.col) {
-                source[currPoint.row][currPoint.col].direction = 'r';
+            if (currCell.row === nextCell.row && currCell.col + 1 === nextCell.col) {
+                source[currCell.row][currCell.col].direction = 'r';
             }
             /* 在下边 */
-            if (currPoint.row + 1 === nextPoint.row && currPoint.col === nextPoint.col) {
-                source[currPoint.row][currPoint.col].direction = 'd';
+            if (currCell.row + 1 === nextCell.row && currCell.col === nextCell.col) {
+                source[currCell.row][currCell.col].direction = 'd';
             }
             /* 在左边 */
-            if (currPoint.row === nextPoint.row && currPoint.col - 1 === nextPoint.col) {
-                source[currPoint.row][currPoint.col].direction = 'l';
+            if (currCell.row === nextCell.row && currCell.col - 1 === nextCell.col) {
+                source[currCell.row][currCell.col].direction = 'l';
             }
         }
 
@@ -219,14 +219,38 @@ export class MazeToolsService {
         return -1;
     }
 
-    public async colorCells(source: MazeCellModel[][], points: MazeGridPoint[], flags: boolean[], threshold: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    public calcGCD(fst: number, snd: number): number {
+        while (true) {
+            if (fst > snd) {
+                fst -= snd;
+            } else if (fst < snd) {
+                snd -= fst;
+            } else {
+                break;
+            }
+        }
+        
+        return fst;
+    }
+
+    public calcLCM(fst: number, snd: number): number {
+        let mult: number = 0, gcd: number = this.calcGCD(fst, snd);
+        
+        for (let i = 0; i < snd; i++) {
+            mult += fst;
+        }
+        
+        return Math.floor(mult / gcd);
+    }
+
+    public async colorCells(source: MazeDataModel[][], points: MazeGridPoint[], flags: boolean[], threshold: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         let point: MazeGridPoint, flag: boolean;
 
         for (let i = 0; i < threshold; i++) {
             point = points[i];
             flag = flags[i];
 
-            if (!point.currCell) continue;
+            if (!point || !point.currCell || (point.currCell.row === -1 && point.currCell.col === -1)) continue;
 
             if (i % 3 === 1) {
                 if (!flag) {
@@ -255,13 +279,13 @@ export class MazeToolsService {
         callback(source);
     }
 
-    public async clearCells(source: MazeCellModel[][], points: MazeGridPoint[], flags: boolean[], threshold: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    public async clearCells(source: MazeDataModel[][], points: MazeGridPoint[], flags: boolean[], threshold: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         let point: MazeGridPoint;
 
         for (let i = 0; i < threshold; i++) {
             point = points[i];
 
-            if (!point.currCell) continue;
+            if (!point.currCell || (point.currCell.row === -1 && point.currCell.col === -1)) continue;
 
             if (!flags[i]) {
                 source[point.currCell.row][point.currCell.col].color = EMPTY_COLOR;
@@ -292,7 +316,7 @@ export class MazeMatchService {
         private _wilson: MazeGenerationWilsonService
     ) { }
 
-    public match(type: MazeActionType, name: MazeActionmName, source: MazeCellModel[][], rows: number, cols: number): Observable<MazeCellModel[][] | null> {
+    public match(type: MazeActionType, name: MazeActionmName, source: MazeDataModel[][], rows: number, cols: number): Observable<MazeDataModel[][] | null> {
         if (type === 'generation') {
             if (name === 'aldous-broder' || name === 'optimal-aldous-broder' || name === 'parallel-aldous-broder') {
                 return this._ab.maze(source, rows, cols, name.includes('parallel') ? 'all' : (name.includes('optimal') ? 'opt' : 'one'));
@@ -318,16 +342,16 @@ export class MazeMatchService {
                 return this._hak.maze(source, rows, cols, name.includes('parallel') ? 'all' : 'one');
             }
 
-            if (name === 'randomized-kruskal') {
-                return this._kruskal.maze(source, rows, cols);
+            if (name === 'randomized-kruskal' || name === 'optimal-randomized-kruskal' || name === 'parallel-randomized-kruskal') {
+                return this._kruskal.maze(source, rows, cols, name.includes('parallel') ? 'all' : (name.includes('optimal') ? 'opt' : 'one'));
             }
 
             if (name === 'randomized-prim' || name === 'parallel-randomized-prim') {
                 return this._prim.maze(source, rows, cols, name.includes('parallel') ? 'all' : 'one');
             }
             
-            if (name === 'sidewinder') {
-                return this._sidewinder.maze(source, rows, cols);
+            if (name === 'sidewinder' || name === 'parallel-sidewinder') {
+                return this._sidewinder.maze(source, rows, cols, name.includes('parallel') ? 'all' : 'one');
             }
             
             if (name === 'wilson' || name === 'optimal-wilson') {

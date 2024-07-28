@@ -3,7 +3,7 @@ import { Observable } from "rxjs";
 import { floor, random } from "lodash";
 
 import { MazeToolsService } from "../ngrx-store/maze.service";
-import { MazeCellModel, MazeGridPoint, MazeRunType } from "../ngrx-store/maze.state";
+import { MazeDataModel, MazeGridPoint, MazeRunType } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
 import { MazeGridCell } from "../ngrx-store/maze.state";
 import { ACCENT_COLOR, EMPTY_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
@@ -22,7 +22,7 @@ export class MazeGenerationGrowTreeService {
 
     constructor(private _service: MazeToolsService) {}
 
-    public maze(source: MazeCellModel[][], rows: number, cols: number, name: 'depth-first-growing-tree' | 'parallel-depth-first-growing-tree' | 'breadth-first-growing-tree' | 'parallel-breadth-first-growing-tree', type: MazeRunType): Observable<MazeCellModel[][]> {
+    public maze(source: MazeDataModel[][], rows: number, cols: number, name: 'depth-first-growing-tree' | 'parallel-depth-first-growing-tree' | 'breadth-first-growing-tree' | 'parallel-breadth-first-growing-tree', type: MazeRunType): Observable<MazeDataModel[][]> {
         return new Observable(subscriber => {
             if (name === 'breadth-first-growing-tree' || name === 'parallel-breadth-first-growing-tree') {
                 if (type === 'one') {
@@ -46,7 +46,7 @@ export class MazeGenerationGrowTreeService {
         });
     }
 
-    private async runByBreadthFirst(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async runByBreadthFirst(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         const total: number = rows * cols;
         let point: MazeGridPoint = { currCell: { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, nextCell: { row: -1, col: -1 } }, index: number, count: number = 1;
 
@@ -94,7 +94,7 @@ export class MazeGenerationGrowTreeService {
         this.neighbors.splice(0);
     }
 
-    private async runOneByDepthFirst(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async runOneByDepthFirst(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         const total: number = rows * cols;
         let point: MazeGridPoint = { currCell: { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, nextCell: { row: -1, col: -1 } }, index: number, count: number = 0;
 
@@ -134,8 +134,8 @@ export class MazeGenerationGrowTreeService {
         this.neighbors.splice(0);
     }
 
-    private async runAllByBreadthFirst(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
-        const total: number = rows * cols, scale: number = floor(Math.log2(total)) * 3;
+    private async runAllByBreadthFirst(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
+        const total: number = rows * cols, scale: number = this._service.calcLCM(floor(Math.log2(total), 0), 3);
         let index: number = 0, threshold: number = 1, count: number = 0;
 
         for (let i = 0; i < scale; i++) {
@@ -199,8 +199,8 @@ export class MazeGenerationGrowTreeService {
         this.neighbors.splice(0);
     }
 
-    private async runAllByDepthFirst(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
-        const total: number = rows * cols, scale: number = floor(Math.log2(total)) * 3;
+    private async runAllByDepthFirst(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
+        const total: number = rows * cols, scale: number = this._service.calcLCM(floor(Math.log2(total), 0), 3);
         let index: number = 0, threshold: number = 1, count: number = 0;
 
         for (let i = 0; i < scale; i++) {

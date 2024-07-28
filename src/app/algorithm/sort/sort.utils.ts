@@ -31,62 +31,96 @@ export const complete = (source: SortDataModel[], times: number, callback: (parr
 
 export const SORT_DELAY_DURATION: number = 1;
 
-export class SortCanvasUtils {
+export class SortDataVisualBuilder {
 
-    private readonly THRESHOLD: number = 128;
-
-    private canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D | null = null;
-    private source: SortDataModel[] = [];
+    private maxValue: number = -1;
+    private width: number = -1;
+    private height: number = -1;
+
+    public setContext(canvas: HTMLCanvasElement): SortDataVisualBuilder {
+        if (!this.context) {
+            this.context = canvas.getContext('2d');
+        }
+        
+        return this;
+    }
+
+    public getContext(): CanvasRenderingContext2D | null {
+        return this.context;
+    }
+
+    public setMaxValue(maxValue: number): SortDataVisualBuilder {
+        if (this.maxValue !== maxValue) {
+            this.maxValue = maxValue;
+        }
+
+        return this;
+    }
+
+    public getMaxValue(): number {
+        return this.maxValue;
+    }
+
+    public setDimension(width: number, height: number): SortDataVisualBuilder {
+        this.width = width;
+        this.height = height;
+
+        return this;
+    }
+
+    public getDimension(): { width: number, height: number } {
+        return { width: this.width, height: this.height };
+    }
+
+    public build(): SortDataVisualFactory {
+        return new SortDataVisualFactory(this.context, this.maxValue, this.width, this.height);
+    }
+
+}
+
+export class SortDataVisualFactory {
+
+    private context: CanvasRenderingContext2D | null = null;
     private maxValue: number = -1;
     private width: number = 0;
     private height: number = 0;
 
-    constructor(canvas: HTMLCanvasElement) {
-        this.canvas = canvas;
+    constructor(context: CanvasRenderingContext2D | null, maxValue: number, width: number, height: number) {
+        this.context = context;
+        this.update(maxValue, width, height);
     }
 
-    public create(width: number, height: number): void {
-        this.context = this.canvas.getContext('2d');
+    public update(maxValue: number, width: number, height: number): void {
+        this.maxValue = maxValue;
         this.width = width;
         this.height = height;
     }
 
-    public loadData(source: SortDataModel[]): void {
-        this.source = source;
+    public erase(): void {
+        this.context?.clearRect(0, 0, this.width, this.height);
+        this.context?.reset();
     }
 
-    public setMaxValue(value: number): void {
-        if (this.maxValue !== value) {
-            this.maxValue = value;
-        }
-    }
-
-    public clear(): void {
+    public draw(source: SortDataModel[], length: number): void {
         if (this.context) {
-            this.context.clearRect(0, 0, this.width, this.height);
-            this.context.reset();
-        }
-    }
-
-    public draw(length: number): void {
-        if (this.context) {
-            const width: number = this.width / length;
-            let height: number = 0;
+            const delta: number = this.width / length, scale: number = this.height / this.maxValue;
+            let model: SortDataModel, x: number = 0, y: number = 0, width: number = 0, height: number = 0;
             
             this.context.clearRect(0, 0, this.width, this.height);
             
             for(let i = 0; i < length; i++) {
-                height = (this.source[i].value === 0 || this.source[i].value === Number.MAX_SAFE_INTEGER || this.source[i].value === Number.MIN_SAFE_INTEGER) ? 0 : this.source[i].value * this.height / this.maxValue;
-                this.drawColumn(this.source[i], i, width, height);
-            }
-        }
-    }
+                model = source[i];
 
-    private drawColumn(model: SortDataModel, index: number, width: number, height: number): void {
-        if (this.context) {
-            this.context.fillStyle = model.color;
-            this.context.fillRect(index * width, this.height - height, width, height);
+                width = delta;
+                height = (model.value === 0 || model.value === Number.MAX_SAFE_INTEGER || model.value === Number.MIN_SAFE_INTEGER) ? 0 : model.value * scale;
+
+                x = i === 0 ? 0 : x + delta;
+                y = this.height - height;
+
+                this.context.fillStyle = model.color;
+                this.context.fillRect(x, y, width, height);
+            }
         }
     }
 

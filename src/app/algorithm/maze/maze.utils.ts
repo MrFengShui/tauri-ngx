@@ -1,80 +1,74 @@
 import { CLEAR_COLOR } from "../../public/values.utils";
-import { MazeCellModel } from "./ngrx-store/maze.state";
+import { MazeDataModel } from "./ngrx-store/maze.state";
 
 export const delay = (duration: number = 10): Promise<void> => new Promise<void>(resolve => setTimeout(resolve, duration));
 
 export const MAZE_DELAY_DURATION: number = 1;
 
-export class MazeCanvasUtils {
+export class MazeDataVisualBuilder {
 
-    private canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D | null = null;
-    private source: MazeCellModel[][] = [];
+    private width: number = -1;
+    private height: number = -1;
+
+    public setContext(canvas: HTMLCanvasElement): MazeDataVisualBuilder {
+        if (!this.context) {
+            this.context = canvas.getContext('2d');
+        }
+        
+        return this;
+    }
+
+    public getContext(): CanvasRenderingContext2D | null {
+        return this.context;
+    }
+
+    public setDimension(width: number, height: number): MazeDataVisualBuilder {
+        this.width = width;
+        this.height = height;
+
+        return this;
+    }
+
+    public getDimension(): { width: number, height: number } {
+        return { width: this.width, height: this.height };
+    }
+
+    public build(): MazeDataVisualFactory {
+        return new MazeDataVisualFactory(this.context, this.width, this.height);
+    }
+
+}
+
+export class MazeDataVisualFactory {
+
+    private context: CanvasRenderingContext2D | null = null;
     private width: number = 0;
     private height: number = 0;
 
-    constructor(canvas: HTMLCanvasElement) {
-        this.canvas = canvas;
+    constructor(context: CanvasRenderingContext2D | null, width: number, height: number) {
+        this.context = context;
+        this.update(width, height);
     }
 
-    public create(width: number, height: number): void {
-        this.context = this.canvas.getContext('2d');
+    public update(width: number, height: number): void {
         this.width = width;
         this.height = height;
     }
 
-    public loadData(source: MazeCellModel[][]) {
-        this.source = source;
-    }
-
-    public clear(): void {
+    public erase(): void {
         if (this.context) {
             this.context.clearRect(0, 0, this.width, this.height);
             this.context.reset();
         }
     }
 
-    // public draw(rows: number, cols: number, lineWidth: number): void {
-    //     if (this.context) {
-    //         const xSize: number = Number.parseFloat(((this.width - lineWidth) / cols).toFixed(3));
-    //         const ySize: number = Number.parseFloat(((this.height - lineWidth) / rows).toFixed(3));
-    //         let x: number = lineWidth * 0.5, y: number = lineWidth * 0.5, col: number, row: number;
-    //         let cell: MazeCellModel, innerPath: Path2D, outerPath: Path2D;
-
-    //         this.context.clearRect(0, 0, this.width, this.height);
-
-    //         this.context.lineWidth = lineWidth;
-    //         this.context.lineJoin = 'round';
-    //         this.context.lineCap = 'round';
-    //         this.context.strokeStyle = CLEAR_COLOR;
-            
-    //         for (let row = 0; row < rows; row++) {
-    //             for (let col = 0; col < cols; col++) {
-    //                 const cell = this.source[row][col];
-
-    //                 this.context.fillStyle = cell.color;
-
-    //                 innerPath = this.drawCellInnerPath(cell, x, y, xSize, ySize);
-    //                 outerPath = this.drawCellOuterPath(lineWidth, x, y, xSize, ySize);
-                    
-    //                 this.context.stroke(innerPath);
-    //                 this.context.fill(outerPath);
-
-    //                 x += xSize;
-    //             }
-
-    //             x = lineWidth * 0.5;
-    //             y += ySize;
-    //         }
-    //     }
-    // }
-
-    public draw(rows: number, cols: number, lineWidth: number): void {
+    public draw(source: MazeDataModel[][], rows: number, cols: number, lineWidth: number): void {
         if (this.context) {
             const xSize: number = Number.parseFloat(((this.width - lineWidth) / cols).toFixed(3));
             const ySize: number = Number.parseFloat(((this.height - lineWidth) / rows).toFixed(3));
             let x: number = 0, y: number = lineWidth * 0.5, col: number, row: number;
-            let cell: MazeCellModel, innerPath: Path2D, outerPath: Path2D;
+            let cell: MazeDataModel, innerPath: Path2D, outerPath: Path2D;
 
             this.context.clearRect(0, 0, this.width, this.height);
 
@@ -86,7 +80,7 @@ export class MazeCanvasUtils {
             for (let i = 0, length = rows * cols; i < length; i++) {
                 col = i % cols;
                 row = Math.floor(i / cols);
-                cell = this.source[row][col];
+                cell = source[row][col];
 
                 x = col === 0 ? lineWidth * 0.5 : x + xSize;
                 y = col === 0 ? (i > 0 ? y + ySize : y) : y;
@@ -102,7 +96,7 @@ export class MazeCanvasUtils {
         }
     }
 
-    private drawCellInnerPath(cell: MazeCellModel, x: number, y: number, xSize: number, ySize: number): Path2D {
+    private drawCellInnerPath(cell: MazeDataModel, x: number, y: number, xSize: number, ySize: number): Path2D {
         const path = new Path2D();
 
         path.moveTo(x, y);

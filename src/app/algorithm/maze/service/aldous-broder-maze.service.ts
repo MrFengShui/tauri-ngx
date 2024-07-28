@@ -3,7 +3,7 @@ import { Observable } from "rxjs";
 import { floor, random } from "lodash";
 
 import { MazeToolsService } from "../ngrx-store/maze.service";
-import { MazeCellModel, MazeGridPoint, MazeRunType } from "../ngrx-store/maze.state";
+import { MazeDataModel, MazeGridPoint, MazeRunType } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
 import { MazeGridCell } from "../ngrx-store/maze.state";
 import { ACCENT_COLOR, EMPTY_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
@@ -21,7 +21,7 @@ export class MazeGenerationAldousBroderService {
 
     constructor(private _service: MazeToolsService) { }
 
-    public maze(source: MazeCellModel[][], rows: number, cols: number, type: MazeRunType): Observable<MazeCellModel[][]> {
+    public maze(source: MazeDataModel[][], rows: number, cols: number, type: MazeRunType): Observable<MazeDataModel[][]> {
         return new Observable(subscriber => {
             if (type === 'one') {
                 this.runByOne(source, rows, cols, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -37,7 +37,7 @@ export class MazeGenerationAldousBroderService {
         });
     }
 
-    private async runByOne(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async runByOne(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         const total: number = rows * cols;
         let point: MazeGridPoint = { currCell: { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, nextCell: { row: -1, col: -1 } }, count: number = 0, flag: boolean;
 
@@ -59,24 +59,14 @@ export class MazeGenerationAldousBroderService {
                 }
             }
 
-            if (!flag) {
-                source[point.currCell.row][point.currCell.col].color = ACCENT_COLOR;
-            } else {
-                source[point.currCell.row][point.currCell.col].color = PRIMARY_COLOR;
-                source[point.nextCell.row][point.nextCell.col].color = SECONDARY_COLOR;
-            }
-            
+            source[point.currCell.row][point.currCell.col].color = flag ? PRIMARY_COLOR : ACCENT_COLOR;
+            source[point.nextCell.row][point.nextCell.col].color = flag ? SECONDARY_COLOR : EMPTY_COLOR;
             callback(source);
 
             await delay(MAZE_DELAY_DURATION);
 
-            if (!flag) {
-                source[point.currCell.row][point.currCell.col].color = EMPTY_COLOR;
-            } else {
-                source[point.currCell.row][point.currCell.col].color = EMPTY_COLOR;
-                source[point.nextCell.row][point.nextCell.col].color = EMPTY_COLOR;
-            }
-            
+            source[point.currCell.row][point.currCell.col].color = EMPTY_COLOR;
+            source[point.nextCell.row][point.nextCell.col].color = EMPTY_COLOR;
             callback(source);
 
             point.currCell = point.nextCell;
@@ -85,7 +75,7 @@ export class MazeGenerationAldousBroderService {
         this.neighbors.splice(0);
     }
 
-    private async runByOptimal(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async runByOptimal(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         const total: number = rows * cols;
         let point: MazeGridPoint = { currCell: { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, nextCell: { row: -1, col: -1 } }, count: number = 0, flag: boolean;
 
@@ -110,24 +100,14 @@ export class MazeGenerationAldousBroderService {
                 }
             }
 
-            if (!flag) {
-                source[point.currCell.row][point.currCell.col].color = ACCENT_COLOR;
-            } else {
-                source[point.currCell.row][point.currCell.col].color = PRIMARY_COLOR;
-                source[point.nextCell.row][point.nextCell.col].color = SECONDARY_COLOR;
-            }
-            
+            source[point.currCell.row][point.currCell.col].color = flag ? PRIMARY_COLOR : ACCENT_COLOR;
+            source[point.nextCell.row][point.nextCell.col].color = flag ? SECONDARY_COLOR : EMPTY_COLOR;
             callback(source);
 
             await delay(MAZE_DELAY_DURATION);
 
-            if (!flag) {
-                source[point.currCell.row][point.currCell.col].color = EMPTY_COLOR;
-            } else {
-                source[point.currCell.row][point.currCell.col].color = EMPTY_COLOR;
-                source[point.nextCell.row][point.nextCell.col].color = EMPTY_COLOR;
-            }
-            
+            source[point.currCell.row][point.currCell.col].color = EMPTY_COLOR;
+            source[point.nextCell.row][point.nextCell.col].color = EMPTY_COLOR;            
             callback(source);
 
             point.currCell = point.nextCell;
@@ -137,10 +117,10 @@ export class MazeGenerationAldousBroderService {
         this.neighbors.splice(0);
     }
 
-    private async runByAll(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
-        const origin: MazeGridCell = { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, total: number = rows * cols, scale: number = floor(Math.log2(total)) * 3;
+    private async runByAll(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
+        const origin: MazeGridCell = { row: random(0, rows - 1, false), col: random(0, cols - 1, false) }, total: number = rows * cols, scale: number = this._service.calcLCM(floor(Math.log2(total), 0), 3);
         let count: number = 0, threshold: number = 1;
-
+        
         for (let i = 0; i < scale; i++) {
             this.points.push({ currCell: { row: -1, col: -1 }, nextCell: { row: -1, col: -1 } });
             this.flags.push(false);

@@ -13,7 +13,7 @@ import { BinarySearchInserionSortService, InsertionSortService, ShellSortService
 import { LibrarySortService } from "../service/insertion-sort.service";
 import { ShakerSelectionSortService, SelectionSortService, TwoWaySelectionSortService } from "../service/selection-sort.service";
 import { BogoBubbleSortService, BogoCocktailSortService, BogoSortService } from "../service/bogo-sort.service";
-import { DualPivotIterativeQuickSortService, DualPivotRecursiveQuickSortService, IterativeQuickSortService, RecursiveQuickSortService, ThreeWayIterativeQuickSortService, ThreeWayRecursiveQuickSortService, TwoWayIterativeQuickSortService, TwoWayRecursiveQuickSortService } from "../service/quick-sort.service";
+import { AverageIterativeQuickSortService, AverageRecursiveQuickSortService, DualPivotIterativeQuickSortService, DualPivotRecursiveQuickSortService, IterativeQuickSortService, RecursiveQuickSortService, ThreeWayIterativeQuickSortService, ThreeWayRecursiveQuickSortService, TwoWayIterativeQuickSortService, TwoWayRecursiveQuickSortService } from "../service/quick-sort.service";
 import { CountSortService } from "../service/count-sort.service";
 import { BucketSortService, InterpolationSortService, PigeonholeSortService } from "../service/bucket-sort.service";
 import { RadixLSDSortService, RadixMSDSortService } from "../service/radix-sort.service";
@@ -342,7 +342,33 @@ export class SortToolsService {
     public async stableSortByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         return await this.stableGapSortByDescent(source, lhs, rhs, 1, temp, times, callback);
     }
+
+    public async swapAndRenderer(source: SortDataModel[], completed: boolean, flag: boolean, m: number, n: number, temp: SortDataModel, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<[boolean, number]> {
+        source[m].color = flag ? primaryColor : accentColor;
+        source[n].color = flag ? secondaryColor : (m === n ? accentColor : CLEAR_COLOR);
+        callback({ times, datalist: source });
     
+        if (flag) {
+            completed = false;
+            times += 1;
+    
+            await swap(source, n, m, temp);
+            await delay(SORT_DELAY_DURATION);
+    
+            source[m].color = flag ? secondaryColor : accentColor;
+            source[n].color = flag ? primaryColor : (m === n ? accentColor : CLEAR_COLOR);
+            callback({ times, datalist: source });
+        }
+    
+        await delay(SORT_DELAY_DURATION);
+    
+        source[m].color = CLEAR_COLOR;
+        source[n].color = CLEAR_COLOR;
+        callback({ times, datalist: source });
+    
+        return [completed, times];
+    }
+
     public findMinMaxValue(source: SortDataModel[]): [number, number] {
         let min: number = Number.MAX_SAFE_INTEGER, max: number = Number.MIN_SAFE_INTEGER;
         
@@ -491,6 +517,8 @@ export class SortMatchService {
         private _3wIterQuick: ThreeWayIterativeQuickSortService,
         private _dpRecuQuick: DualPivotRecursiveQuickSortService,
         private _dpIterQuick: DualPivotIterativeQuickSortService,
+        private _averRecuQuick: AverageRecursiveQuickSortService,
+        private _averIterQuick: AverageIterativeQuickSortService,
         private _heap: HeapSortService,
         private _knHeap: TernaryHeapSortService,
         private _smooth: SmoothSortService,
@@ -613,6 +641,14 @@ export class SortMatchService {
 
         if (name === 'dpi-quick-sort') {
             return this._dpIterQuick.sort(array, order);
+        }
+
+        if (name === 'ar-quick-sort') {
+            return this._averRecuQuick.sort(array, order);
+        }
+
+        if (name === 'ai-quick-sort') {
+            return this._averIterQuick.sort(array, order);
         }
 
         if (name === 'heap-sort') {

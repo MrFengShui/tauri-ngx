@@ -45,14 +45,7 @@
 </p-toolbar>
 <div class="grid grid-nogutter" [style.height]="'calc(100% - 5.5rem)'">
     <div class="col-fixed border-right-1 surface-border overflow-auto scrollbar-visible-hidden w-16rem max-w-16rem h-full">
-        <!-- <p-tree emptyMessage="暂无数据" [lazy]="true" [indentation]="0.75" [virtualScroll]="true" [virtualScrollItemSize]="36" [value]="navlist" selectionMode="single" class="w-full h-full" styleClass="border-none h-full p-0">
-            <ng-template let-node pTemplate="default">
-                <a [routerLink]="node.data?.url" routerLinkActive="text-primary" [queryParams]="{ name: node.data?.param }" 
-                    class="white-space-nowrap no-underline w-full h-full" [class.text-primary]="node.data?.mark" [style.color]="'var(--text-color)'" *ngIf="node.leaf">{{node.label}}</a>
-                <span class="text-color white-space-nowrap" *ngIf="!node.leaf">{{node.label}}</span>
-            </ng-template>
-        </p-tree> -->
-        <tauri-ngx-navlist [navlist]="navlist"></tauri-ngx-navlist>
+        <tauri-ngx-navlist [navlist]="navlist" [nodeKey]="key"></tauri-ngx-navlist>
     </div>
     <div class="col h-full">
         <div class="overflow-x-hidden overflow-y-auto w-full h-full p-2">

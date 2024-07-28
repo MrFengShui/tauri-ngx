@@ -4,9 +4,9 @@ import { Store } from "@ngrx/store";
 import { combineLatest, map, Observable, Observer, Subscription, timer } from "rxjs";
 import { cloneDeep } from "lodash";
 
-import { MazeCellModel } from "./ngrx-store/maze.state";
+import { MazeDataModel } from "./ngrx-store/maze.state";
 import { MazeMatchService, MazeUtilsService } from "./ngrx-store/maze.service";
-import { MazeCanvasUtils } from "./maze.utils";
+import { MazeDataVisualBuilder, MazeDataVisualFactory } from "./maze.utils";
 import { MazeActionType, MazeActionmName } from "./ngrx-store/maze.state";
 import { ConfirmationService } from "primeng/api";
 
@@ -46,11 +46,13 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
     protected maxCols: number = 0;
     protected timer: number = 0;
 
-    private utils: MazeCanvasUtils | null = null;
-    private source: MazeCellModel[][] = Array.from([]);
+    private source: MazeDataModel[][] = Array.from([]);
     private type: MazeActionType = undefined;
     private name: MazeActionmName = undefined;
     private lineWidth: number = 1;
+
+    private builder: MazeDataVisualBuilder | null = null;
+    private factory: MazeDataVisualFactory | null = null;
 
     private create$: Subscription | null = null;
     private match$: Subscription | null = null;
@@ -74,7 +76,7 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
     ) { }
 
     ngOnInit(): void {
-        this.utils = new MazeCanvasUtils(this.canvas.nativeElement);
+        this.builder = new MazeDataVisualBuilder();
     }
 
     ngOnDestroy(): void {
@@ -163,16 +165,16 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
         }
     }
 
-    private resetCanvasParams(width: number, height: number): void {
+    private resetCanvasParams(): void {
         this.rows = 0;
         this.cols = 0;
         this.timer = 0;
         this.locked = false;
+        
+        this.source.forEach(item => item.splice(0));
+        this.source.splice(0);
 
-        if (this.utils) {
-            this.utils.create(width, height);
-            this.utils.clear();
-        }
+        this.factory?.erase();
         
         this._cdr.markForCheck();
     }
@@ -182,10 +184,17 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
 
         this.maxCols = Math.floor(size.width * 0.1);
         this.maxRows = Math.floor(size.height * 0.1);
-
+        
         this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${size.width}`);
         this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${size.height}`);
-        this.resetCanvasParams(size.width, size.height);
+
+        if (this.builder) {
+            this.factory = this.builder
+                .setContext(this.canvas.nativeElement)
+                .setDimension(size.width, size.height)
+                .build();
+            this.resetCanvasParams();
+        }
     }
 
     private fetchCanvasDimension(): Promise<{ width: number, height: number }> {
@@ -199,19 +208,16 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
         });
     }
 
-    private acceptDataAndShow(): Partial<Observer<MazeCellModel[][] | null>> {
+    private acceptDataAndShow(): Partial<Observer<MazeDataModel[][] | null>> {
         return {
             next: state => this._ngZone.run(() => {
-                this.source = cloneDeep(state as MazeCellModel[][]);
-
-                if (this.utils) {
-                    this.utils.loadData(this.source);
-                    this.utils.draw(this.rows, this.cols, this.lineWidth);
-                }
+                this.source = cloneDeep(state as MazeDataModel[][]);
+                this.factory?.update(this.builder?.getDimension().width as number, this.builder?.getDimension().height as number);
+                this.factory?.draw(this.source, this.rows, this.cols, this.lineWidth);
 
                 this._cdr.markForCheck();
             }),
-            error: () => this._ngZone.run(() => {
+            error: error => this._ngZone.run(() => {console.error(error);
                 this.locked = false;
                 this._cdr.detectChanges();
             }),

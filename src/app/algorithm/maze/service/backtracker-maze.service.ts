@@ -3,7 +3,7 @@ import { Observable } from "rxjs";
 import { floor, random } from "lodash";
 
 import { MazeToolsService } from "../ngrx-store/maze.service";
-import { MazeCellModel, MazeGridPoint, MazeRunType } from "../ngrx-store/maze.state";
+import { MazeDataModel, MazeGridPoint, MazeRunType } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
 import { MazeGridCell } from "../ngrx-store/maze.state";
 import { ACCENT_COLOR, EMPTY_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
@@ -23,7 +23,7 @@ export class MazeGenerationRandomizedBacktrackerService {
 
     constructor(private _service: MazeToolsService) {}
 
-    public maze(source: MazeCellModel[][], rows: number, cols: number, type: MazeRunType): Observable<MazeCellModel[][]> {
+    public maze(source: MazeDataModel[][], rows: number, cols: number, type: MazeRunType): Observable<MazeDataModel[][]> {
         return new Observable(subscriber => {
             if (type === 'one') {
                 this.runByOne(source, rows, cols, param => subscriber.next(param)).then(() => subscriber.complete());
@@ -35,7 +35,7 @@ export class MazeGenerationRandomizedBacktrackerService {
         });
     }
 
-    private async runByOne(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
+    private async runByOne(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         const stack: MazeGridCell[] = Array.from([]);
         let point: MazeGridPoint = { currCell: { row: -1, col: -1 }, nextCell: { row: -1, col: -1 } }, cell: MazeGridCell;
 
@@ -81,9 +81,9 @@ export class MazeGenerationRandomizedBacktrackerService {
         this.neighbors.splice(0);
     }
 
-    private async runByAll(source: MazeCellModel[][], rows: number, cols: number, callback: (param: MazeCellModel[][]) => void): Promise<void> {
-        const total: number = rows * cols, scale: number = floor(Math.log2(total)) * 3;
-        let point: MazeGridPoint, threshold: number = 1, count: number = 1;
+    private async runByAll(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
+        const total: number = rows * cols, scale: number = this._service.calcLCM(floor(Math.log2(total), 0), 3);
+        let threshold: number = 1, count: number = 1;
 
         for (let i = 0; i < scale; i++) {
             this.points.push({ currCell: { row: -1, col: -1 }, nextCell: { row: -1, col: -1 } });
