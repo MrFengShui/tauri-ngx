@@ -1,6 +1,4 @@
 
-export const SORT_DELAY_DURATION: number = 1;
-
 export const PRIMARY_COLOR = 'darkorchid';
 export const SECONDARY_COLOR = 'darkorange';
 export const ACCENT_COLOR = 'deeppink';

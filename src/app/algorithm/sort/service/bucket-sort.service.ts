@@ -60,7 +60,7 @@ export class BucketSortService {
 
             rhs = index - 1;
 
-            times = await this._service.stableSortByAscent(source, lhs, rhs, temp, times, callback);
+            times = await this._service.stableGapSortByAscent(source, lhs, rhs, 1, 1, times, callback);
         }
 
         await delay(SORT_DELAY_DURATION);
@@ -97,7 +97,7 @@ export class BucketSortService {
 
             rhs = index - 1;
 
-            times = await this._service.stableSortByDescent(source, lhs, rhs, temp, times, callback);
+            times = await this._service.stableGapSortByDescent(source, lhs, rhs, 1, 1, times, callback);
         }
         
         await delay(SORT_DELAY_DURATION);

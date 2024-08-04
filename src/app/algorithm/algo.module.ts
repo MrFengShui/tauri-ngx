@@ -5,15 +5,18 @@ import { HttpClientModule } from "@angular/common/http";
 import { EffectsModule } from "@ngrx/effects";
 import { StoreModule } from "@ngrx/store";
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { FieldsetModule } from 'primeng/fieldset';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SliderModule } from 'primeng/slider';
 import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
 
 import { TimerPipe } from "../pipe/timer.pipe";
@@ -30,7 +33,7 @@ import { BubbleSortService, CooktailSortService, ExchangeSortService, TwoWayBubb
 import { BinarySearchInserionSortService, InsertionSortService, ShellSortService } from "./sort/service/insertion-sort.service";
 import { LibrarySortService } from "./sort/service/insertion-sort.service";
 import { ShakerSelectionSortService, SelectionSortService, TwoWaySelectionSortService } from "./sort/service/selection-sort.service";
-import { BogoBubbleSortService, BogoCocktailSortService, BogoSortService } from "./sort/service/bogo-sort.service";
+import { BogoBubbleSortService, BogoCocktailSortService, BogoInsertionSortService, BogoSelectionSortService, BogoSortService } from "./sort/service/bogo-sort.service";
 import { AverageIterativeQuickSortService, AverageRecursiveQuickSortService, DualPivotIterativeQuickSortService, DualPivotRecursiveQuickSortService, IterativeQuickSortService, RecursiveQuickSortService, ThreeWayIterativeQuickSortService, ThreeWayRecursiveQuickSortService, TwoWayIterativeQuickSortService, TwoWayRecursiveQuickSortService } from "./sort/service/quick-sort.service";
 import { CountSortService } from "./sort/service/count-sort.service";
 import { BucketSortService, InterpolationSortService, PigeonholeSortService } from "./sort/service/bucket-sort.service";
@@ -78,15 +81,18 @@ import { MazeGenerationWilsonService } from "./maze/service/wilson-maze.service"
         FormsModule,
         HttpClientModule,
         ButtonModule,
+        CheckboxModule,
         ConfirmDialogModule,
         DropdownModule,
         FieldsetModule,
+        InputNumberModule,
         InputGroupModule,
         InputGroupAddonModule,
         InputTextModule,
         SelectButtonModule,
         SliderModule,
         TagModule,
+        ToastModule,
         ToolbarModule,
 
         EffectsModule.forFeature(SortOptionLoadEffect),
@@ -100,7 +106,7 @@ import { MazeGenerationWilsonService } from "./maze/service/wilson-maze.service"
         BubbleSortService, CooktailSortService, TwoWayBubbleSortService, CombSortService, OddEvenSortService, ExchangeSortService, InsertionSortService, BinarySearchInserionSortService, ShellSortService, SelectionSortService, ShakerSelectionSortService, TwoWaySelectionSortService, RecursiveQuickSortService, IterativeQuickSortService, AverageRecursiveQuickSortService, AverageIterativeQuickSortService, TwoWayRecursiveQuickSortService, TwoWayIterativeQuickSortService, ThreeWayRecursiveQuickSortService, ThreeWayIterativeQuickSortService, DualPivotRecursiveQuickSortService, DualPivotIterativeQuickSortService, HeapSortService, TernaryHeapSortService, SmoothSortService,
         BucketSortService, CountSortService, InterpolationSortService, PigeonholeSortService, RadixLSDSortService, RadixMSDSortService, TopDownMergeSortService, BottomUpMergeSortService, MultiWayMergeSortService, InPlaceMergeSortService, TimSortService, 
         TopDownBitonicMergeSortService, BottomUpBitonicMergeSortService, TopDownOddEvenMergeSortService, BottomUpOddEvenMergeSortService, ShearSortService, OptimalShearSortService,
-        BogoSortService, BogoBubbleSortService, BogoCocktailSortService, CycleSortService, GnomeSortService, GravitySortService, SyncSleepSortService, AsyncSleepSortService, RecursiveStoogeSortService, IterativeStoogeSortService, SlowSortService, TournamentSortService, PancakeSortService, PatienceSortService, LibrarySortService, StrandSortService, OptimalStrandSortService, BinarySearchTreeSortService,
+        BogoSortService, BogoBubbleSortService, BogoCocktailSortService, BogoInsertionSortService, BogoSelectionSortService, CycleSortService, GnomeSortService, GravitySortService, SyncSleepSortService, AsyncSleepSortService, RecursiveStoogeSortService, IterativeStoogeSortService, SlowSortService, TournamentSortService, PancakeSortService, PatienceSortService, LibrarySortService, StrandSortService, OptimalStrandSortService, BinarySearchTreeSortService,
 
         MazeMatchService, MazeUtilsService, MazeToolsService,
         MazeGenerationAldousBroderService, MazeGenerationRandomizedDivisionService, MazeGenerationEllerService, MazeGenerationGrowTreeService, MazeGenerationHuntAndKillService, MazeGenerationRandomizedBacktrackerService,  MazeGenerationRandomizedKruskalService, MazeGenerationRandomizedPrimService, MazeGenerationSidewinderService, MazeGenerationWilsonService

@@ -1,20 +1,24 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Inject, LOCALE_ID, NgZone, OnDestroy, OnInit, Renderer2, ViewChild } from "@angular/core";
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Inject, LOCALE_ID, NgZone, OnDestroy, OnInit, Renderer2, ViewChild, ViewEncapsulation } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngrx/store";
 import { Observer, Subscription, map, timer, filter } from "rxjs";
-import { cloneDeep } from "lodash";
+import { cloneDeep, now } from "lodash";
+import { DES } from "crypto-js";
 
-import { SortMatchService, SortUtilsService } from "./ngrx-store/sort.service";
+import { SORT_DATA_SECRET_KEY, SortMatchService, SortToolsService, SortUtilsService } from "./ngrx-store/sort.service";
 
-import { SortDataModel, SortHeapNode, SortHeapNodeOptionModel, SortMergeWay, SortMergeWayOptionModel, SortOrder, SortOrderOptionModel, SortRadix, SortRadixOptionModel, SortStateModel } from "./ngrx-store/sort.state";
+import { SortDataModel, SortHeapNode, SortHeapNodeOptionModel, SortMergeWay, SortMergeWayOptionModel, SortMetadataModel, SortOrder, SortOrderOptionModel, SortRadix, SortRadixOptionModel, SortStateModel } from "./ngrx-store/sort.state";
 import { SortDataVisualBuilder, SortDataVisualFactory } from "./sort.utils";
 import { SORT_HEAP_NODE_OPTION_LOAD_ACTION, SORT_MERGE_WAY_OPTION_LOAD_ACTION, SORT_ORDER_OPTION_LOAD_ACTION, SORT_RADIX_OPTION_LOAD_ACTION } from "./ngrx-store/sort.action";
 import { SORT_OPTION_LOAD_SELECTOR } from "./ngrx-store/sourt.selector";
+import { MessageService } from "primeng/api";
 
 @Component({
+    encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'tauri-ngx-sort-page',
-    templateUrl: 'sort.component.html'
+    templateUrl: 'sort.component.html',
+    styleUrl: 'sort.component.scss'
 })
 export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
@@ -31,10 +35,8 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         await this.update();
     }
 
-    readonly TRANSLATION_MESSAGES: { [key: string | number] : string } = {
+    protected readonly TRANSLATION_MESSAGES: { [key: string | number] : string } = {
         1: $localize `:@@sort_component_ts_1:sort_component_ts_1`,
-        11: $localize `:@@sort_component_ts_1:sort_component_ts_1_1`,
-        12: $localize `:@@sort_component_ts_1:sort_component_ts_1_1`,
         2: $localize `:@@sort_component_ts_2:sort_component_ts_2`,
         31: $localize `:@@sort_component_ts_3_1:sort_component_ts_3_1`,
         32: $localize `:@@sort_component_ts_3_2:sort_component_ts_3_2`,
@@ -43,6 +45,9 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         6: $localize `:@@sort_component_ts_6:sort_component_ts_6`,
         7: $localize `:@@sort_component_ts_7:sort_component_ts_7`,
         8: $localize `:@@sort_component_ts_8:sort_component_ts_8`,
+        9: $localize `:@@sort_component_ts_9:sort_component_ts_9`,
+        10: $localize `:@@sort_component_ts_10:sort_component_ts_10`,
+        11: $localize `:@@sort_component_ts_11:sort_component_ts_11`,
     }
 
     protected source: SortDataModel[] = [];
@@ -59,7 +64,9 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     protected timer: number = 0;
     protected times: number = 0;
     protected count: number = 0;
-    protected maxValue: number = 1024;
+    protected step: number = 32;
+    protected maxValue: number = 0;
+    protected unique: boolean = true;
     protected locked: boolean = false;
     protected name: string = '';
     protected localeID: string = '';
@@ -70,6 +77,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     private event$: Subscription | null = null;
     private shuffle$: Subscription | null = null;
     private create$: Subscription | null = null;
+    private import$: Subscription | null = null;
     private route$: Subscription | null = null;
     private match$: Subscription | null = null;
     private timer$: Subscription | null = null;
@@ -82,10 +90,12 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         private _renderer: Renderer2,
         private _ngZone: NgZone,
         private _store: Store,
+        private _msgService: MessageService,
 
         @Inject(LOCALE_ID)
         private _localeID: string,
 
+        private _toolsService: SortToolsService,
         private _utilsService: SortUtilsService,
         private _matchService: SortMatchService
     ) { }
@@ -115,35 +125,70 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         this.listenLoadConfigChange();
     }
 
-    handleRunSortEvent(): void {
-        this.locked = true;
-        this.listenStopWatchChange();
-        this.listenToSortProcess();
+    protected handleRunSortEvent(): void {
+        if (this.name.includes('shear-sort') && this.count % 32 !== 0) {
+            this.showAlert($localize `:@@sort_component_ts_12_1:sort_component_ts_12_1`);
+        } else if ((this.name.includes('odd-even-merge-sort') || this.name.includes('bitonic-merge-sort')) && !Number.isSafeInteger(Math.log2(this.count))) {
+            this.showAlert($localize `:@@sort_component_ts_12_2:sort_component_ts_12_2`);
+        } else {
+            this.locked = true;
+            this.listenStopWatchChange();
+            this.listenToSortProcess();
+        }
     }
 
-    handleCountSelectChange(): void {
+    protected handleCountSelectChange(): void {
         if (this.name.length > 0) {
             this._ngZone.runOutsideAngular(() => {
-                this.create$ = this._utilsService.createDataList(this.count, this.name).subscribe(value => 
-                    this._ngZone.run(() => {
-                        this.source = cloneDeep(value);
-                        
-                        this.factory?.update(this.count, this.builder?.getDimension().width as number, this.builder?.getDimension().height as number);
-                        this.factory?.draw(this.source, this.count);
-                        
-                        this._cdr.markForCheck();
-                        this.create$?.unsubscribe();
-                    }));
+                this.create$ = this._utilsService.createDataList(this.count, this.name, this.unique)
+                    .subscribe(value => 
+                        this._ngZone.run(() => {
+                            this.loadAndDraw(value);
+                            this.create$?.unsubscribe();
+                        }));
             });
         }        
     }
 
-    handleShuffleSourceEvent(): void {
+    protected handleShuffleSourceEvent(): void {
         this._ngZone.runOutsideAngular(() => {
             this.locked = true;
             this.shuffle$ = this._utilsService.shuffleDataList(this.source)
                 .subscribe(this.acceptDataAndShow());
         });
+    }
+
+    protected handleImportDataListEvent(element: HTMLInputElement): void {
+        element.click();
+        element.onchange = () => {
+            const files = element.files;
+            
+            if (files && files.length > 0) {
+                this._ngZone.runOutsideAngular(() => {
+                    this.import$ = this._utilsService.importDataList(files.item(0), this.name).subscribe(value => 
+                        this._ngZone.run(() => {
+                            this.loadAndDraw(value, true);
+                            this.import$?.unsubscribe();
+                        })
+                    );
+                });
+            }
+        }
+    }
+
+    protected handleExportDataListEvent(element: HTMLAnchorElement): void {
+        if (this.source.length > 0) {
+            const metadata: SortMetadataModel = {
+                unique: this.unique, length: this.source.length, 
+                range: { min: -1, max: -1 }, timestamp: now(),
+                data: DES.encrypt(JSON.stringify(this.source.map(item => item.value)), SORT_DATA_SECRET_KEY).toString()
+            };
+            [metadata.range.min, metadata.range.max] = this._toolsService.findMinMaxValue(this.source);
+
+            element.href = window.URL.createObjectURL(new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            element.download = `sort.data.${metadata.length}.json`;
+            element.click();
+        }
     }
 
     private initHostLayout(): void {
@@ -152,6 +197,13 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         this._renderer.addClass(this._element.nativeElement, 'gap-2');
         this._renderer.addClass(this._element.nativeElement, 'w-full');
         this._renderer.addClass(this._element.nativeElement, 'h-full');
+    }
+    
+    private showAlert(message: string): void {
+        this._msgService.add({
+            closable: false, severity: 'error', 
+            summary: $localize `:@@global_message_0_4:global_message_0_4`, detail: message
+        });
     }
 
     private calcCanvasDimension(): Promise<{ width: number, height: number }> {
@@ -169,6 +221,8 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         this.count = 0;
         this.timer = 0;
         this.times = 0;
+        this.step = 32;
+        this.unique = true;
         this.locked = false;
         this.order = 'ascent';
         this.radix = 10;
@@ -203,6 +257,22 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         };
     }
 
+    private loadAndDraw(value: SortDataModel[], flag: boolean = false): void {
+        this.source = cloneDeep(value);
+        
+        if (flag) {
+            this.count = this.source.length;
+        }
+        
+        const width: number = this.builder?.getDimension().width as number;
+        const height: number = this.builder?.getDimension().height as number;
+
+        this.factory?.update(this.count, width, height);
+        this.factory?.draw(this.source, this.count);
+
+        this._cdr.markForCheck();
+    }
+
     private async update(): Promise<void> {
         const size: { width: number, height: number } = await this.calcCanvasDimension();
 
@@ -211,13 +281,14 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${size.width}`);
         this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${size.height}`);
         
+        this.resetCanvasParams();
+
         if (this.builder) {
             this.factory = this.builder
                 .setContext(this.canvas.nativeElement)
                 .setMaxValue(this.maxValue)
                 .setDimension(size.width, size.height)
                 .build();
-            this.resetCanvasParams();
         }
     }
 

@@ -44,7 +44,7 @@ export class RecursiveStoogeSortService {
             callback({ times, datalist: source });
 
             times += 1;
-            await swap(source, lhs, rhs, temp);
+            await swap(source, lhs, rhs);
             await delay(SORT_DELAY_DURATION);
 
             source[lhs].color = CLEAR_COLOR;
@@ -58,7 +58,7 @@ export class RecursiveStoogeSortService {
             callback({ times, datalist: source });
 
             times += 1;
-            await swap(source, lhs, rhs, temp);
+            await swap(source, lhs, rhs);
             await delay(SORT_DELAY_DURATION);
 
             source[lhs].color = CLEAR_COLOR;
@@ -114,7 +114,7 @@ export class IterativeStoogeSortService {
                 callback({ times, datalist: source });
 
                 times += 1;
-                await swap(source, lhs, rhs, temp);
+                await swap(source, lhs, rhs);
                 await delay(SORT_DELAY_DURATION);
 
                 source[lhs].color = CLEAR_COLOR;
@@ -145,7 +145,7 @@ export class IterativeStoogeSortService {
                 callback({ times, datalist: source });
 
                 times += 1;
-                await swap(source, lhs, rhs, temp);
+                await swap(source, lhs, rhs);
                 await delay(SORT_DELAY_DURATION);
 
                 source[lhs].color = CLEAR_COLOR;

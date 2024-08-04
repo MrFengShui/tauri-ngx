@@ -11,7 +11,7 @@ import { SortToolsService } from "../ngrx-store/sort.service";
 @Injectable()
 export class TimSortService {
 
-    private readonly THRESHOLD: number = 32;
+    private readonly THRESHOLD: number = 24;
 
     constructor(private _service: SortToolsService) {}
 
@@ -35,7 +35,7 @@ export class TimSortService {
 
         for (lhs = 0; lhs < length; lhs += runLength) {
             rhs = Math.min(length - 1, lhs + runLength - 1);
-            times = await this._service.stableSortByAscent(source, lhs, rhs, temp, times, callback);
+            times = await this._service.stableGapSortByAscent(source, lhs, rhs, 1, 1, times, callback);
         }
 
         for (let mergeSize = runLength; mergeSize < source.length; mergeSize =  mergeSize * 2) {
@@ -59,7 +59,7 @@ export class TimSortService {
 
         for (lhs = 0; lhs < length; lhs += runLength) {
             rhs = Math.min(length - 1, lhs + runLength - 1);
-            times = await this._service.stableSortByDescent(source, lhs, rhs, temp, times, callback);
+            times = await this._service.stableGapSortByDescent(source, lhs, rhs, 1, 1, times, callback);
         }
 
         for (let mergeSize = runLength; mergeSize < source.length; mergeSize =  mergeSize * 2) {

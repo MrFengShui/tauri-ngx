@@ -44,6 +44,7 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
     protected maxRows: number = 0;
     protected cols: number = 0;
     protected maxCols: number = 0;
+    protected step: number = 1;
     protected timer: number = 0;
 
     private source: MazeDataModel[][] = Array.from([]);
@@ -84,6 +85,8 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
         this.match$?.unsubscribe();
         this.route$?.unsubscribe();
         this.timer$?.unsubscribe();
+
+        this._utilsService.dispose();
     }
 
     ngAfterViewInit(): void {
@@ -134,7 +137,7 @@ export class AlgorithmMazePageComponent implements OnInit, OnDestroy, AfterViewI
 
     protected handleResetEvent(): void {
         this._ngZone.runOutsideAngular(() => 
-            this._utilsService.resetDataGrid(this.source, this.rows, this.cols)
+            this._utilsService.resetDataGrid(this.rows, this.cols)
                 .subscribe(this.acceptDataAndShow()));
     }
 

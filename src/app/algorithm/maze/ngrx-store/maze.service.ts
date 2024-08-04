@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Observable, of } from "rxjs";
+import { AsyncSubject, BehaviorSubject, debounceTime, Observable, of, Subject, throttleTime } from "rxjs";
 
 import { MazeDataModel, MazeGridPoint } from "./maze.state";
 import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, EMPTY_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR } from "../../../public/values.utils";
@@ -19,48 +19,57 @@ import { MazeGenerationWilsonService } from "../service/wilson-maze.service";
 @Injectable()
 export class MazeUtilsService {
 
+    private subject: Subject<MazeDataModel[][]> = new AsyncSubject();
+    private grid: MazeDataModel[][] = Array.from([]);
+
     public createDataGrid(rows: number, cols: number): Observable<MazeDataModel[][]> {
-        return new Observable(subscriber => {
-            const grid: MazeDataModel[][] = Array.from([]);
-            let index: number = 0;
+        let index: number = 0;
 
-            for (let row = 0; row < rows; row++) {
-                let array: MazeDataModel[] = Array.from([]);
+        this.dispose();
 
-                for (let col = 0; col < cols; col++) {
-                    array.push({
-                        color: EMPTY_COLOR, direction: null, weight: index, visited: false,
-                        walls: { top: true, bottom: true, left: true, right: true }
-                    });
-                    index += 1;
-                }
+        for (let row = 0; row < rows; row++) {
+            let array: MazeDataModel[] = Array.from([]);
 
-                grid.push(array);
+            for (let col = 0; col < cols; col++) {
+                array.push({
+                    color: EMPTY_COLOR, direction: null, weight: index, visited: false,
+                    walls: { top: true, bottom: true, left: true, right: true }
+                });
+                index += 1;
             }
-            
-            subscriber.next(grid);
-            subscriber.complete();
-        });
+
+            this.grid.push(array);
+        }
+
+        this.subject.next(this.grid);
+        this.subject.complete();
+        return this.subject.asObservable().pipe(debounceTime(1000));
     }
 
-    public resetDataGrid(source: MazeDataModel[][], rows: number, cols: number): Observable<MazeDataModel[][]> {
-        return new Observable(subscriber => {
-            let index: number = 0;
+    public resetDataGrid(rows: number, cols: number): Observable<MazeDataModel[][]> {
+        let index: number = 0;
             
-            for (let row = 0; row < rows; row++) {
-                for (let col = 0; col < cols; col++) {
-                    source[row][col] = {
-                        ...source[row][col], 
-                        color: EMPTY_COLOR, weight: index, visited: false, 
-                        walls: { top: true, bottom: true, left: true, right: true }
-                    };
-                    index += 1;
-                }
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                this.grid[row][col] = {
+                    ...this.grid[row][col], 
+                    color: EMPTY_COLOR, weight: index, visited: false, 
+                    walls: { top: true, bottom: true, left: true, right: true }
+                };
+                index += 1;
             }
+        }
 
-            subscriber.next(source);
-            subscriber.complete();
-        });
+        this.subject.next(this.grid);
+        this.subject.complete();
+        return this.subject.asObservable().pipe(debounceTime(1000));
+    }
+
+    public dispose(): void {
+        if (this.grid.length > 0) {
+            this.grid.forEach(item => item.splice(0));
+            this.grid.splice(0);
+        }
     }
 
 }

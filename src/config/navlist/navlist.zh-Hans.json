@@ -639,7 +639,7 @@
                         },
                         {
                             "key": "2-3-30",
-                            "label": "剪切排序",
+                            "label": "刀鞘排序",
                             "data": {
                                 "url": [
                                     "/playground",
@@ -652,14 +652,27 @@
                         },
                         {
                             "key": "2-3-31",
-                            "label": "剪切排序（优化）",
+                            "label": "插入刀鞘排序",
                             "data": {
                                 "url": [
                                     "/playground",
                                     "algorithm",
                                     "sort"
                                 ],
-                                "param": "opt-shear-sort"
+                                "param": "insertion-shear-sort"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "2-3-32",
+                            "label": "选择刀鞘排序",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "sort"
+                                ],
+                                "param": "selection-shear-sort"
                             },
                             "leaf": true
                         }
@@ -710,6 +723,32 @@
                             "leaf": true
                         },
                         {
+                            "key": "2-4-13",
+                            "label": "猴子插入排序",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "sort"
+                                ],
+                                "param": "bogo-insertion-sort"
+                            },
+                            "leaf": true
+                        },
+                        {
+                            "key": "2-4-14",
+                            "label": "猴子选择排序",
+                            "data": {
+                                "url": [
+                                    "/playground",
+                                    "algorithm",
+                                    "sort"
+                                ],
+                                "param": "bogo-selection-sort"
+                            },
+                            "leaf": true
+                        },
+                        {
                             "key": "2-4-20",
                             "label": "循环排序",
                             "data": {
@@ -744,12 +783,12 @@
                                     "algorithm",
                                     "sort"
                                 ],
-                                "param": "sleep-sort"
+                                "param": "sync-sleep-sort"
                             },
                             "leaf": true
                         },
                         {
-                            "key": "2-4-50",
+                            "key": "2-4-51",
                             "label": "睡眠排序（异步）",
                             "data": {
                                 "url": [

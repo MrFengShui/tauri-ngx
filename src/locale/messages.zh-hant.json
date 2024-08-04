@@ -24,6 +24,11 @@
         "sort_component_ts_6": "計時",
         "sort_component_ts_7": "洗牌",
         "sort_component_ts_8": "運行",
+        "sort_component_ts_9": "導入數據",
+        "sort_component_ts_10": "導出數據",
+        "sort_component_ts_11": "數據是否唯一",
+        "sort_component_ts_12_1": "數組長度必須是32的倍數",
+        "sort_component_ts_12_2": "數組長度必須是2的乘方（N > 0）",
 
         "login_component_ts_1": "使用者登入",
         "login_component_ts_2": "管理者登入",

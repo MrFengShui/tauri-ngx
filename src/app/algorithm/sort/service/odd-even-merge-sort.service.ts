@@ -70,7 +70,7 @@ export class TopDownOddEvenMergeSortService {
                 await delay(SORT_DELAY_DURATION);
     
                 if (source[i].value > source[i + dist].value) {
-                    await swap(source, i, i + dist, temp);
+                    await swap(source, i, i + dist);
                     times += 1;
                 }
     
@@ -86,7 +86,7 @@ export class TopDownOddEvenMergeSortService {
             await delay(SORT_DELAY_DURATION);
 
             if (source[lhs].value > source[lhs + dist].value) {
-                await swap(source, lhs, lhs + dist, temp);
+                await swap(source, lhs, lhs + dist);
                 times += 1;
             }
 
@@ -113,7 +113,7 @@ export class TopDownOddEvenMergeSortService {
                 await delay(SORT_DELAY_DURATION);
     
                 if (source[i].value < source[i + dist].value) {
-                    await swap(source, i, i + dist, temp);
+                    await swap(source, i, i + dist);
                     times += 1;
                 }
     
@@ -129,7 +129,7 @@ export class TopDownOddEvenMergeSortService {
             await delay(SORT_DELAY_DURATION);
 
             if (source[lhs].value < source[lhs + dist].value) {
-                await swap(source, lhs, lhs + dist, temp);
+                await swap(source, lhs, lhs + dist);
                 times += 1;
             }
 
@@ -201,7 +201,7 @@ export class BottomUpOddEvenMergeSortService {
             callback({ times, datalist: source});  
 
             if (fst === snd && source[i + low].value > source[i + low + span].value) {
-                await swap(source, i + low, i + low + span, temp);
+                await swap(source, i + low, i + low + span);
                 times += 1;
             }
 
@@ -227,7 +227,7 @@ export class BottomUpOddEvenMergeSortService {
             callback({ times, datalist: source});  
 
             if (fst === snd && source[i + low].value < source[i + low + span].value) {
-                await swap(source, i + low, i + low + span, temp);
+                await swap(source, i + low, i + low + span);
                 times += 1;
             }
 

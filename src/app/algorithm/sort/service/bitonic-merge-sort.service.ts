@@ -67,7 +67,7 @@ export class TopDownBitonicMergeSortService {
                 await delay(SORT_DELAY_DURATION);
 
                 if ((source[i].value > source[j].value && flag === 'up') || (source[i].value < source[j].value && flag === 'down')) {
-                    await swap(source, i, j, temp);
+                    await swap(source, i, j);
                     times += 1;
                 }
 
@@ -95,7 +95,7 @@ export class TopDownBitonicMergeSortService {
                 await delay(SORT_DELAY_DURATION);
 
                 if ((source[i].value > source[j].value && flag === 'down') || (source[i].value < source[j].value && flag === 'up')) {
-                    await swap(source, i, j, temp);
+                    await swap(source, i, j);
                     times += 1;
                 }
 
@@ -171,7 +171,7 @@ export class BottomUpBitonicMergeSortService {
                 await delay(SORT_DELAY_DURATION);
                 
                 if ((source[i].value > source[xor].value && and === 0) || (source[i].value < source[xor].value && and !== 0)) {
-                    await swap(source, i, xor, temp);
+                    await swap(source, i, xor);
                     times += 1;
                 }
 
@@ -200,7 +200,7 @@ export class BottomUpBitonicMergeSortService {
                 await delay(SORT_DELAY_DURATION);
                 
                 if ((source[i].value > source[xor].value && and !== 0) || (source[i].value < source[xor].value && and === 0)) {
-                    await swap(source, i, xor, temp);
+                    await swap(source, i, xor);
                     times += 1;
                 }
 

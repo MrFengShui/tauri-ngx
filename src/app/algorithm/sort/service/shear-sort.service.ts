@@ -2,9 +2,11 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
 import { SortToolsService } from "../ngrx-store/sort.service";
-import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR, ACCENT_COLOR } from "../../../public/values.utils";
+import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR, ACCENT_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
+
+type ShearMode = 'insertion' | 'selection';
 
 const matchRunLength = (length: number): number => {
     if (length > 1024) {
@@ -19,43 +21,42 @@ const matchRunLength = (length: number): number => {
 }
 
 /**
- * 剪切排序
+ * 刀鞘排序
  */
 @Injectable()
 export class ShearSortService {
 
     private matrix: number[][] = Array.from([]);
+    private counter: { [key: string | number]: number } = {};
 
     public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
         return new Observable(subscriber => {
             if (order === 'ascent') {
-                this.sortByAscent(array, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByAscent(array, 0, param => subscriber.next(param))
+                    .then(() => subscriber.complete())
+                    .catch(error => subscriber.error(error));
             }
     
             if (order === 'descent') {
-                this.sortByDescent(array, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByDescent(array, 0, param => subscriber.next(param))
+                    .then(() => subscriber.complete())
+                    .catch(error => subscriber.error(error));
             }
         });
     }
 
     private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
         const length = source.length, cols: number = matchRunLength(length), rows: number = Math.floor(length / cols);
-        let flag: boolean = false;
+
         times = await this.save(source, rows, cols, times, callback);
         
-        while (!flag) {
-            flag = true;
-
-            for (let row = 0; row < rows; row++) {
-                if (row % 2 === 0) {
-                    flag = await this.rowSortByAscent(row, cols, flag);
-                } else {
-                    flag = await this.rowSortByDescent(row, cols, flag);
-                }
+        for (let i = 0, threshold = Math.floor(Math.log2(length)); i < threshold; i++) {
+            for (let row = 0; row <= rows - 1; row++) {
+                times = row % 2 === 0 ? this.rowSortByAscent(row, times) : this.rowSortByDescent(row, times);
             }
 
-            for (let col = 0; col < cols; col++) {
-                flag = await this.colSortByAscent(col, rows, flag);
+            for (let col = 0; col <= cols - 1; col++) {
+                times = this.colSortByAscent(col, times);
             }
             
             times = await this.load(source, rows, cols, times, callback);
@@ -71,22 +72,16 @@ export class ShearSortService {
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
         const length = source.length, cols: number = matchRunLength(length), rows: number = Math.floor(length / cols);
-        let flag: boolean = false;
+
         times = await this.save(source, rows, cols, times, callback);
         
-        while (!flag) {
-            flag = true;
-
+        for (let i = 0, threshold = Math.floor(Math.log2(length)); i < threshold; i++) {
             for (let row = 0; row < rows; row++) {
-                if (row % 2 === 0) {
-                    flag = await this.rowSortByDescent(row, cols, flag);
-                } else {
-                    flag = await this.rowSortByAscent(row, cols, flag);
-                }
+                times = row % 2 === 0 ? this.rowSortByDescent(row, times) : this.rowSortByAscent(row, times);
             }
 
             for (let col = 0; col < cols; col++) {
-                flag = await this.colSortByDescent(col, rows, flag);
+                times = await this.colSortByDescent(col, times);
             }
             
             times = await this.load(source, rows, cols, times, callback);
@@ -100,69 +95,125 @@ export class ShearSortService {
         this.matrix.splice(0);
     }
 
-    private async rowSortByAscent(row: number, length: number, flag: boolean, temp: number = -1): Promise<boolean> {
-        for (let i = 1; i < length; i++) {
-            for (let j = i; j > 0 && this.matrix[row][j - 1] > this.matrix[row][j]; j--) {
-                flag = false;
+    private rowSortByAscent(row: number, times: number): number {
+        let index: number, keys: string[], key: string;
 
-                temp = this.matrix[row][j - 1];
-                this.matrix[row][j - 1] = this.matrix[row][j];
-                this.matrix[row][j] = temp;
+        for (let col = 0, length = this.matrix[row].length; col <= length - 1; col++) {
+            times += 1;
+
+            index = this.matrix[row][col];
+            this.counter[index] = !this.counter[index] ? 1 : this.counter[index] + 1;
+        }
+
+        keys = Object.keys(this.counter);
+        index = 0;
+
+        for (let i = 0, length = keys.length; i <= length - 1; i++) {
+            key = keys[i];
+
+            for (let j = 0, value = Number.parseInt(key); j < this.counter[key]; j++) {
+                this.matrix[row][index] = value;
+                index += 1;
+                times += 1;
             }
+
+            delete this.counter[key];
         }
         
-        return flag;
+        return times;
     }
 
-    private async rowSortByDescent(row: number, length: number, flag: boolean, temp: number = -1): Promise<boolean> {
-        for (let i = 1; i < length; i++) {
-            for (let j = i; j > 0 && this.matrix[row][j - 1] < this.matrix[row][j]; j--) {
-                flag = false;
+    private rowSortByDescent(row: number, times: number): number {
+        let index: number, keys: string[], key: string;
 
-                temp = this.matrix[row][j - 1];
-                this.matrix[row][j - 1] = this.matrix[row][j];
-                this.matrix[row][j] = temp;
+        for (let col = 0, length = this.matrix[row].length; col <= length - 1; col++) {
+            times += 1;
+
+            index = this.matrix[row][col];
+            this.counter[index] = !this.counter[index] ? 1 : this.counter[index] + 1;
+        }
+
+        keys = Object.keys(this.counter);
+        index = 0;
+
+        for (let length = keys.length, i = length - 1; i >= 0; i--) {
+            key = keys[i];
+
+            for (let j = 0, value = Number.parseInt(key); j < this.counter[key]; j++) {
+                this.matrix[row][index] = value;
+                index += 1;
+                times += 1;
             }
+
+            delete this.counter[key];
         }
         
-        return flag;
+        return times;
     }
 
-    private async colSortByAscent(col: number, length: number, flag: boolean, temp: number = -1): Promise<boolean> {
-        for (let i = 1; i < length; i++) {
-            for (let j = i; j > 0 && this.matrix[i - 1][col] > this.matrix[i][col]; j--) {
-                flag = false;
+    private colSortByAscent(col: number, times: number): number {
+        let index: number, keys: string[], key: string;
 
-                temp = this.matrix[i - 1][col];
-                this.matrix[i - 1][col] = this.matrix[i][col];
-                this.matrix[i][col] = temp;
+        for (let row = 0, length = this.matrix.length; row <= length - 1; row++) {
+            times += 1;
+
+            index = this.matrix[row][col];
+            this.counter[index] = !this.counter[index] ? 1 : this.counter[index] + 1;
+        }
+
+        keys = Object.keys(this.counter);
+        index = 0;
+
+        for (let i = 0, length = keys.length; i <= length - 1; i++) {
+            key = keys[i];
+
+            for (let j = 0, value = Number.parseInt(key); j < this.counter[key]; j++) {
+                this.matrix[index][col] = value;
+                index += 1;
+                times += 1;
             }
+
+            delete this.counter[key];
         }
         
-        return flag;
+        return times;
     }
 
-    private async colSortByDescent(col: number, length: number, flag: boolean, temp: number = -1): Promise<boolean> {
-        for (let i = 1; i < length; i++) {
-            for (let j = i; j > 0 && this.matrix[i - 1][col] < this.matrix[i][col]; j--) {
-                flag = false;
+    private colSortByDescent(col: number, times: number): number {
+        let index: number, keys: string[], key: string;
 
-                temp = this.matrix[i - 1][col];
-                this.matrix[i - 1][col] = this.matrix[i][col];
-                this.matrix[i][col] = temp;
+        for (let row = 0, length = this.matrix.length; row <= length - 1; row++) {
+            times += 1;
+
+            index = this.matrix[row][col];
+            this.counter[index] = !this.counter[index] ? 1 : this.counter[index] + 1;
+        }
+
+        keys = Object.keys(this.counter);
+        index = 0;
+
+        for (let length = keys.length, i = length - 1; i >= 0; i--) {
+            key = keys[i];
+
+            for (let j = 0, value = Number.parseInt(key); j < this.counter[key]; j++) {
+                this.matrix[index][col] = value;
+                index += 1;
+                times += 1;
             }
+
+            delete this.counter[key];
         }
         
-        return flag;
+        return times;
     }
 
     private async save(source: SortDataModel[], rows: number, cols: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = 0;
         
-        for (let i = 0; i < rows; i++) {
+        for (let row = 0; row <= rows - 1; row++) {
             let array: number[] = Array.from([]);
 
-            for (let j = 0; j < cols; j++) {
+            for (let col = 0; col <= cols - 1; col++) {
                 times += 1;
     
                 source[index].color = ACCENT_ONE_COLOR;
@@ -186,11 +237,11 @@ export class ShearSortService {
     private async load(source: SortDataModel[], rows: number, cols: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = 0;
         
-        for (let i = 0; i < rows; i++) {
-            for (let j = 0; j < cols; j++) {
+        for (let row = 0; row <= rows - 1; row++) {
+            for (let col = 0; col <= cols - 1; col++) {
                 times += 1;
     
-                source[index].value = this.matrix[i][j];
+                source[index].value = this.matrix[row][col];
                 source[index].color = ACCENT_TWO_COLOR;
                 callback({ times, datalist: source });
     
@@ -209,12 +260,12 @@ export class ShearSortService {
     private async walk(source: SortDataModel[], rows: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = 0;
         
-        for (let i = 0; i < rows; i++) {
-            if (i % 2 === 0) {
-                for (let j = 0, cols = this.matrix[i].length; j < cols; j++) {
+        for (let row = 0, cols = this.matrix[row].length; row < rows; row++) {
+            if (row % 2 === 0) {
+                for (let col = 0; col <= cols - 1; col++) {
                     times += 1;
         
-                    source[index].value = this.matrix[i][j];
+                    source[index].value = this.matrix[row][col];
                     source[index].color = ACCENT_COLOR;
                     callback({ times, datalist: source });
         
@@ -226,10 +277,10 @@ export class ShearSortService {
                     index += 1;
                 }
             } else {
-                for (let j = this.matrix[i].length - 1; j >= 0; j--) {
+                for (let col = cols - 1; col >= 0; col--) {
                     times += 1;
         
-                    source[index].value = this.matrix[i][j];
+                    source[index].value = this.matrix[row][col];
                     source[index].color = ACCENT_COLOR;
                     callback({ times, datalist: source });
         
@@ -249,91 +300,287 @@ export class ShearSortService {
 }
 
 /**
- * 剪切排序（优化）
+ * 刀鞘排序（优化）
  */
 @Injectable()
 export class OptimalShearSortService {
 
     constructor(private _service: SortToolsService) {}
 
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
+    public sort(array: SortDataModel[], order: SortOrder, mode: ShearMode): Observable<SortStateModel> {
         return new Observable(subscriber => {
             let temp: SortDataModel = { color: '', value: Number.NaN };
 
             if (order === 'ascent') {
-                this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByAscent(array, mode, temp, 0, param => subscriber.next(param))
+                    .then(() => subscriber.complete())
+                    .catch(error => subscriber.error(error));
             }
     
             if (order === 'descent') {
-                this.sortByDescent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.sortByDescent(array, mode, temp, 0, param => subscriber.next(param))
+                    .then(() => subscriber.complete())
+                    .catch(error => subscriber.error(error));
             }
         });
     }
 
-    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+    private async sortByAscent(source: SortDataModel[], mode: ShearMode, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
         const length = source.length, cols: number = matchRunLength(length), rows: number = Math.floor(length / cols);
-        let lhs: number, rhs: number;
+        let lhs: number = 0, rhs: number = 0, completed: boolean = false, flag: boolean = false;
         
-        for (let i = 0; i < Math.floor(Math.log2(length)); i++) {
-            for (let row = 0; row < rows; row++) {
-                lhs = row * cols;
+        for (let i = 0, threshold = Math.floor(Math.log2(length)); i < threshold; i++) {
+            completed = true;
+
+            for (let row = 0; row <= rows - 1; row++) {
+                lhs = row === 0 ? 0 : rhs + 1;
                 rhs = lhs + cols - 1;
 
-                if (row % 2 === 0) {
-                    times = await this._service.stableSortByAscent(source, lhs, rhs, temp, times, callback);
-                } else {
-                    times = await this._service.stableSortByDescent(source, lhs, rhs, temp, times, callback);
+                if (mode === 'insertion') {
+                    [flag, times] = row % 2 === 0 
+                        ? await this.insertionSortByAscent(source, lhs, rhs, 1, temp, times, callback)
+                        : await this.insertionSortByDescent(source, lhs, rhs, 1, temp, times, callback);
                 }
+                
+                if (mode === 'selection') {
+                    [flag, times] = row % 2 === 0
+                        ? await this.selectionSortByAscent(source, lhs, rhs, 1, temp, times, callback)
+                        : await this.selectionSortByDescent(source, lhs, rhs, 1, temp, times, callback);
+                }
+
+                completed &&= flag;
             }
 
-            for (let col = 0; col < cols; col++) {
+            if (completed) break;
+
+            for (let col = 0; col <= cols - 1; col++) {
                 lhs = col;
-                rhs = lhs + cols * rows - cols;
-                times = await this._service.stableGapSortByAscent(source, lhs, rhs, cols, temp, times, callback);
+                rhs = length - cols + col;
+                
+                if (mode === 'insertion') {
+                    [flag, times] = await this.insertionSortByAscent(source, lhs, rhs, cols, temp, times, callback);
+                }
+
+                if (mode === 'selection') {
+                    [flag, times] = await this.selectionSortByAscent(source, lhs, rhs, cols, temp, times, callback);
+                }
+
+                completed &&= flag;
             }
+            
+            if (completed) break;
         }
 
-        for (let row = 0; row < rows; row++) {
-            lhs = row * cols;
+        for (let row = 0; row <= rows - 1; row++) {
+            lhs = row === 0 ? 0 : rhs + 1;
             rhs = lhs + cols - 1;
-            times = await this._service.stableSortByAscent(source, lhs, rhs, temp, times, callback);
+
+            if (mode === 'insertion') {
+                [flag, times] = await this.insertionSortByAscent(source, lhs, rhs, 1, temp, times, callback);
+            }
+
+            if (mode === 'selection') {
+                [flag, times] = await this.selectionSortByAscent(source, lhs, rhs, 1, temp, times, callback);
+            }
+        } 
+
+        await delay(SORT_DELAY_DURATION);
+        await complete(source, times, callback);
+    }
+
+    private async sortByDescent(source: SortDataModel[], mode: ShearMode, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
+        const length = source.length, cols: number = matchRunLength(length), rows: number = Math.floor(length / cols);
+        let lhs: number = 0, rhs: number = 0, completed: boolean = false, flag: boolean = false;
+
+        for (let i = 0, threshold = Math.floor(Math.log2(length)); i < threshold; i++) {
+            completed = true;
+
+            for (let row = rows - 1; row >= 0; row--) {
+                rhs = row === rows - 1 ? length - 1 : lhs - 1;
+                lhs = rhs - cols + 1;
+
+                if (mode === 'insertion') {
+                    [flag, times] = row % 2 === 0 
+                        ? await this.insertionSortByAscent(source, lhs, rhs, 1, temp, times, callback)
+                        : await this.insertionSortByDescent(source, lhs, rhs, 1, temp, times, callback);
+                }
+
+                if (mode === 'selection') {
+                    [flag, times] = row % 2 === 0
+                        ? await this.selectionSortByAscent(source, lhs, rhs, 1, temp, times, callback)
+                        : await this.selectionSortByDescent(source, lhs, rhs, 1, temp, times, callback);
+                }
+
+                completed &&= flag;
+            }
+
+            if (completed) break;
+
+            for (let col = cols - 1; col >= 0; col--) {
+                lhs = col;
+                rhs = length - cols + col;
+
+                if (mode === 'insertion') {
+                    [flag, times] = await this.insertionSortByDescent(source, lhs, rhs, cols, temp, times, callback);
+                }
+                
+                if (mode === 'selection') {
+                    [flag, times] = await this.selectionSortByDescent(source, lhs, rhs, cols, temp, times, callback);
+                }
+
+                completed &&= flag;
+            }
+            
+            if (completed) break;
+        }
+
+        for (let row = rows - 1; row >= 0; row--) {
+            rhs = row === rows - 1 ? length - 1 : lhs - 1;
+            lhs = rhs - cols + 1;
+
+            if (mode === 'insertion') {
+                [flag, times] = await this.insertionSortByDescent(source, lhs, rhs, 1, temp, times, callback);
+            }
+            
+            if (mode === 'selection') {
+                [flag, times] = await this.selectionSortByDescent(source, lhs, rhs, 1, temp, times, callback);
+            }
         }
 
         await delay(SORT_DELAY_DURATION);
         await complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        const length = source.length, cols: number = matchRunLength(length), rows: number = Math.floor(length / cols);
-        let lhs: number, rhs: number;
+    private async insertionSortByAscent(source: SortDataModel[], lhs: number, rhs: number, gap: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[boolean, number]> {
+        let flag: boolean = true;
 
-        for (let i = 0; i < Math.floor(Math.log2(length)); i++) {
-            for (let row = 0; row < rows; row++) {
-                lhs = row * cols;
-                rhs = lhs + cols - 1;
+        for (let i = lhs + gap; i <= rhs; i += gap) {
+            for (let j = i - gap; j >= lhs && source[j].value > source[j + gap].value; j -= gap) {
+                flag = false;
+                times += 1;
+                
+                source[i].color = ACCENT_COLOR;
+                source[j].color = PRIMARY_COLOR;
+                source[j + gap].color = SECONDARY_COLOR;
+                callback({ times, datalist: source });
 
-                if (row % 2 === 0) {
-                    times = await this._service.stableSortByDescent(source, lhs, rhs, temp, times, callback);
-                } else {
-                    times = await this._service.stableSortByAscent(source, lhs, rhs, temp, times, callback);
+                await swap(source, j + gap, j);
+                await delay(SORT_DELAY_DURATION);
+
+                source[i].color = ACCENT_COLOR;
+                source[j].color = CLEAR_COLOR;
+                source[j + gap].color = CLEAR_COLOR;
+                callback({ times, datalist: source });
+            }
+
+            source[i].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+        }
+        
+        return [flag, times];
+    }
+
+    private async insertionSortByDescent(source: SortDataModel[], lhs: number, rhs: number, gap: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[boolean, number]> {
+        let flag: boolean = true;
+
+        for (let i = rhs - gap; i >= lhs; i -= gap) {
+            for (let j = i + gap; j <= rhs && source[j].value > source[j - gap].value; j += gap) {
+                flag = false;
+                times += 1;
+
+                callback({ times, datalist: source});
+                source[j].color = PRIMARY_COLOR;
+                source[j - gap].color = SECONDARY_COLOR;
+                callback({ times, datalist: source});
+                
+                await swap(source, j, j - gap);
+                await delay(SORT_DELAY_DURATION);
+
+                callback({ times, datalist: source});
+                source[j].color = CLEAR_COLOR;
+                source[j - gap].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+            }
+
+            source[i].color = CLEAR_COLOR;
+            callback({ times, datalist: source});
+        }
+        
+        return [flag, times];
+    }
+
+    private async selectionSortByAscent(source: SortDataModel[], lhs: number, rhs: number, gap: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[boolean, number]> {
+        let k: number, value: number, flag: boolean = true;
+
+        for (let i = lhs; i <= rhs; i += gap) {
+            value = source[i].value;
+            k = i;
+
+            for (let j = i + gap; j <= rhs; j += gap) {
+                source[i].color = PRIMARY_COLOR;
+                source[j].color = SECONDARY_COLOR;
+                source[k].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
+
+                await delay(SORT_DELAY_DURATION);
+
+                if (source[j].value < value) {
+                    source[k].color = CLEAR_COLOR;
+
+                    flag = false;
+                    k = j;
+                    value = source[j].value;
                 }
+
+                source[i].color = PRIMARY_COLOR;
+                source[j].color = CLEAR_COLOR;
+                source[k].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
             }
 
-            for (let col = 0; col < cols; col++) {
-                lhs = col;
-                rhs = lhs + cols * rows - cols;
-                times = await this._service.stableGapSortByDescent(source, lhs, rhs, cols, temp, times, callback);
+            await this._service.swapAndRenderer(source, false, k !== i, k, i, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+            times += 1;
+        }
+
+        return [flag, times];
+    }
+
+    private async selectionSortByDescent(source: SortDataModel[], lhs: number, rhs: number, gap: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[boolean, number]> {
+        let k: number, value: number, flag: boolean = true;
+
+        for (let i = rhs; i >= lhs; i -= gap) {
+            value = source[i].value;
+            k = i;
+
+            for (let j = i - gap; j >= lhs; j -= gap) {
+                source[i].color = PRIMARY_COLOR;
+                source[j].color = SECONDARY_COLOR;
+                source[k].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
+
+                await delay(SORT_DELAY_DURATION);
+
+                if (source[j].value < value) {
+                    source[k].color = CLEAR_COLOR;
+
+                    flag = false;
+                    k = j;
+                    value = source[j].value;
+                }
+
+                source[i].color = PRIMARY_COLOR;
+                source[j].color = CLEAR_COLOR;
+                source[k].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
             }
+
+            await this._service.swapAndRenderer(source, false, k !== i, k, i, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+            times += 1;
         }
 
-        for (let row = 0; row < rows; row++) {
-            lhs = row * cols;
-            rhs = lhs + cols - 1;
-            times = await this._service.stableSortByDescent(source, lhs, rhs, temp, times, callback);
-        }
-
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        return [flag, times];
     }
 
 }

@@ -63,7 +63,7 @@ export class CycleSortService {
             source[pivot].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await swap(source, point, pivot, temp);
+            await swap(source, point, pivot);
             await delay(SORT_DELAY_DURATION);
 
             source[point].color = CLEAR_COLOR;
@@ -115,7 +115,7 @@ export class CycleSortService {
             source[pivot].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await swap(source, point, pivot, temp);
+            await swap(source, point, pivot);
             await delay(SORT_DELAY_DURATION);
 
             source[point].color = CLEAR_COLOR;
@@ -167,7 +167,7 @@ export class CycleSortService {
             source[pivot].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await swap(source, point, pivot, temp);
+            await swap(source, point, pivot);
             await delay(SORT_DELAY_DURATION);
 
             source[point].color = CLEAR_COLOR;
@@ -217,7 +217,7 @@ export class CycleSortService {
             source[pivot].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await swap(source, point, pivot, temp);
+            await swap(source, point, pivot);
             await delay(SORT_DELAY_DURATION);
 
             source[point].color = CLEAR_COLOR;

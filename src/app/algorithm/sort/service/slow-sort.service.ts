@@ -50,14 +50,14 @@ export class SlowSortService {
                 times += 1;
 
                 source[mid].color = ACCENT_COLOR;
-                await swap(source, mid, rhs, temp);
+                await swap(source, mid, rhs);
             }
 
             if (order === 'descent' && source[mid].value < source[rhs].value) {
                 times += 1;
 
                 source[mid].color = ACCENT_COLOR;
-                await swap(source, mid, rhs, temp);
+                await swap(source, mid, rhs);
             }
 
             callback({ times, datalist: source });

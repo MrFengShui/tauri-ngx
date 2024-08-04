@@ -35,7 +35,7 @@ export class HeapSortService {
             callback({ times, datalist: source });
 
             times += 1;
-            await swap(source, i, 0, temp);
+            await swap(source, i, 0);
             times = await this.heapifyMaxHeap(source, i, 0, temp, times, callback);
 
             source[i].color = CLEAR_COLOR;
@@ -56,7 +56,7 @@ export class HeapSortService {
             callback({ times, datalist: source });
 
             times += 1;
-            await swap(source, i, 0, temp);
+            await swap(source, i, 0);
             times = await this.heapifyMinHeap(source, i, 0, temp, times, callback);
 
             source[i].color = CLEAR_COLOR;
@@ -90,7 +90,7 @@ export class HeapSortService {
             callback({ times, datalist: source });
 
             times += 1;
-            await swap(source, parent, pivot, temp);
+            await swap(source, parent, pivot);
             await delay(SORT_DELAY_DURATION);
             
             source[parent].color = CLEAR_COLOR;
@@ -126,7 +126,7 @@ export class HeapSortService {
             callback({ times, datalist: source });
 
             times += 1;
-            await swap(source, pivot, parent, temp);
+            await swap(source, pivot, parent);
             await delay(SORT_DELAY_DURATION);
             
             source[parent].color = CLEAR_COLOR;
@@ -171,7 +171,7 @@ export class TernaryHeapSortService {
             callback({ times, datalist: source });
 
             times += 1;
-            await swap(source, i, 0, temp);
+            await swap(source, i, 0);
             times = await this.heapifyMaxHeap(source, nodes, i, 0, temp, times, callback);
 
             source[i].color = CLEAR_COLOR;
@@ -192,7 +192,7 @@ export class TernaryHeapSortService {
             callback({ times, datalist: source });
 
             times += 1;
-            await swap(source, i, 0, temp);
+            await swap(source, i, 0);
             times = await this.heapifyMinHeap(source, nodes, i, 0, temp, times, callback);
 
             source[i].color = CLEAR_COLOR;
@@ -233,7 +233,7 @@ export class TernaryHeapSortService {
             callback({ times, datalist: source });
 
             times += 1;
-            await swap(source, parent, pivot, temp);
+            await swap(source, parent, pivot);
             await delay(SORT_DELAY_DURATION);
             
             source[parent].color = CLEAR_COLOR;
@@ -276,7 +276,7 @@ export class TernaryHeapSortService {
             callback({ times, datalist: source });
 
             times += 1;
-            await swap(source, pivot, parent, temp);
+            await swap(source, pivot, parent);
             await delay(SORT_DELAY_DURATION);
             
             source[parent].color = CLEAR_COLOR;
@@ -406,7 +406,7 @@ export class SmoothSortService {
             source[parent].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await swap(source, i, parent, temp);
+            await swap(source, i, parent);
             await delay(SORT_DELAY_DURATION);
 
             source[i].color = CLEAR_COLOR;
@@ -444,7 +444,7 @@ export class SmoothSortService {
             source[parent].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await swap(source, i, parent, temp);
+            await swap(source, i, parent);
             await delay(SORT_DELAY_DURATION);
 
             source[i].color = CLEAR_COLOR;
@@ -483,7 +483,7 @@ export class SmoothSortService {
             source[pivot].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await swap(source, parent, pivot, temp);
+            await swap(source, parent, pivot);
             await delay(SORT_DELAY_DURATION);
 
             source[parent].color = CLEAR_COLOR;
@@ -521,7 +521,7 @@ export class SmoothSortService {
             source[pivot].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await swap(source, parent, pivot, temp);
+            await swap(source, parent, pivot);
             await delay(SORT_DELAY_DURATION);
 
             source[parent].color = CLEAR_COLOR;

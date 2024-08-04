@@ -24,7 +24,7 @@ export class MazeGenerationWilsonService {
     public maze(source: MazeDataModel[][], rows: number, cols: number, type: MazeRunType): Observable<MazeDataModel[][]> {
         return new Observable(subscriber => {
             if (type === null) {
-                this.run(source, rows, cols, param => subscriber.next(param)).then(() => subscriber.complete());
+                this.runByOne(source, rows, cols, param => subscriber.next(param)).then(() => subscriber.complete());
             }
 
             if (type === 'opt') {
@@ -33,7 +33,7 @@ export class MazeGenerationWilsonService {
         });
     }
 
-    private async run(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
+    private async runByOne(source: MazeDataModel[][], rows: number, cols: number, callback: (param: MazeDataModel[][]) => void): Promise<void> {
         let origin: MazeGridCell, index: number;
 
         for (let row = 0; row < rows; row++) {
@@ -74,7 +74,10 @@ export class MazeGenerationWilsonService {
         const length: number = rows * cols;
         let origin: MazeGridCell;
 
-        this.visited.push({ row: random(0, rows - 1, false), col: random(0, cols - 1, false) });
+        this.visited.push({ 
+            row: random(floor(rows * 0.333, 0), floor(rows * 0.667, 0), false), 
+            col: random(floor(cols * 0.333, 0), floor(cols * 0.667, 0), false) 
+        });
 
         while (this.visited.length < floor(length * 0.05, 0)) {
             origin = this.visited[this.visited.length === 1 ? 0 : random(0, this.visited.length - 1, false)];
@@ -179,7 +182,7 @@ export class MazeGenerationWilsonService {
             
             source[origin.row][origin.col].color = START_COLOR;
             source[currPoint.row][currPoint.col].color = PRIMARY_COLOR;
-            source[nextPoint.row][nextPoint.col].color = EMPTY_COLOR;
+            source[nextPoint.row][nextPoint.col].color = SECONDARY_COLOR;
             callback(source);
 
             currPoint = nextPoint;
@@ -218,7 +221,7 @@ export class MazeGenerationWilsonService {
             
             source[origin.row][origin.col].color = START_COLOR;
             source[currPoint.row][currPoint.col].color = PRIMARY_COLOR;
-            source[nextPoint.row][nextPoint.col].color = EMPTY_COLOR;
+            source[nextPoint.row][nextPoint.col].color = SECONDARY_COLOR;
             callback(source);
 
             currPoint = nextPoint;
@@ -257,7 +260,7 @@ export class MazeGenerationWilsonService {
             await delay(MAZE_DELAY_DURATION);
 
             source[currPoint.row][currPoint.col].color = ACCENT_COLOR;
-            source[nextPoint.row][nextPoint.col].color = EMPTY_COLOR;
+            source[nextPoint.row][nextPoint.col].color = SECONDARY_COLOR;
             callback(source);
 
             currPoint = nextPoint;

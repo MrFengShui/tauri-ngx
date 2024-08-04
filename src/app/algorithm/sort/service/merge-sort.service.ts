@@ -186,7 +186,7 @@ export class InPlaceMergeSortService {
                     source[k].color = ACCENT_COLOR;
                     callback({ times, datalist: source });
 
-                    await swap(source, k, k - 1, temp);
+                    await swap(source, k, k - 1);
                     await delay(SORT_DELAY_DURATION);
 
                     source[j].color = ACCENT_TWO_COLOR;
@@ -230,7 +230,7 @@ export class InPlaceMergeSortService {
                     source[k].color = ACCENT_COLOR;
                     callback({ times, datalist: source });
 
-                    await swap(source, k, k - 1, temp);
+                    await swap(source, k, k - 1);
                     await delay(SORT_DELAY_DURATION);
 
                     source[j].color = ACCENT_COLOR;

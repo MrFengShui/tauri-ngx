@@ -3,12 +3,13 @@
 </div>
 <div class="flex align-items-center border-solid surface-border border-round-sm border-1 p-3 gap-4 h-5rem">
     <span class="font-bold text-xl text-primary white-space-nowrap">{{ TRANSLATION_MESSAGES[1] }}</span>
-    <p-slider [disabled]="locked" [animate]="true" [min]="0" [max]="maxValue" [step]="32" [(ngModel)]="count" class="w-full" (onSlideEnd)="handleCountSelectChange()"/>
-    <span class="font-bold text-xl text-primary">{{count}}</span>
+    <p-slider [disabled]="locked" [animate]="true" [min]="0" [max]="maxValue" [step]="step" [(ngModel)]="count" class="w-full" (onSlideEnd)="handleCountSelectChange()"/>
+    <p-inputNumber [disabled]="locked" [min]="0" [max]="maxValue" [step]="step" [showButtons]="true" [(ngModel)]="count" inputStyleClass="w-4rem" (onInput)="handleCountSelectChange()"/> 
+    <p-checkbox [disabled]="locked || count === 0 || name === 'sync-sleep-sort' || name === 'async-sleep-sort'" variant="filled" [binary]="true" [label]="TRANSLATION_MESSAGES[11]" [(ngModel)]="unique" labelStyleClass="font-bold text-xl text-primary white-space-nowrap"/>
     <p-button [disabled]="locked || count === 0" [raised]="true" icon="pi pi-sync" [label]="TRANSLATION_MESSAGES[7]" class="white-space-nowrap" (onClick)="handleShuffleSourceEvent()"/>
     <p-button [disabled]="locked || count === 0" [raised]="true" icon="pi pi-play" [label]="TRANSLATION_MESSAGES[8]" class="white-space-nowrap" (onClick)="handleRunSortEvent()"/>
 </div>
-<div class="flex justify-content-between align-items-center surface-border border-round-sm border-1 p-3 gap-4 h-5rem">
+<div class="flex align-items-center surface-border border-round-sm border-1 p-3 gap-4 h-5rem">
     <div class="flex align-items-center gap-4">
         <span class="font-bold text-xl text-primary white-space-nowrap">{{ TRANSLATION_MESSAGES[2] }}</span>
         <p-selectButton [disabled]="locked || count === 0" [options]="orderOptions" optionLabel="label" optionValue="value" [(ngModel)]="order"/>
@@ -25,6 +26,7 @@
             <p-selectButton [disabled]="locked || count === 0" [options]="heapNodeOptions" optionLabel="label" optionValue="value" [(ngModel)]="heapNode"/>
         </ng-container>
     </div>
+    <div class="flex-auto"></div>
     <div class="flex align-items-center gap-4">
         <span class="font-bold text-xl text-primary white-space-nowrap">
             {{ TRANSLATION_MESSAGES[5] }}：{{times | number:'0.0-0'}}
@@ -33,4 +35,11 @@
             {{ TRANSLATION_MESSAGES[6] }}：{{timer | timer}}
         </span>
     </div>
+    <div class="flex align-items-center gap-4">
+        <p-button [disabled]="locked" [raised]="true" icon="pi pi-file-import" severity="success" [label]="TRANSLATION_MESSAGES[9]" class="white-space-nowrap" (onClick)="handleImportDataListEvent(input)"/>
+        <p-button [disabled]="locked || count === 0" [raised]="true" icon="pi pi-file-export" severity="danger" [label]="TRANSLATION_MESSAGES[10]" class="white-space-nowrap" (onClick)="handleExportDataListEvent(anchor)"/>
+    </div>
 </div>
+<a href="javascript:void(0)" download="sort.data.json" class="hidden" #anchor></a>
+<input type="file" accept="application/json" class="hidden" #input/>
+<p-toast position="top-right"/>

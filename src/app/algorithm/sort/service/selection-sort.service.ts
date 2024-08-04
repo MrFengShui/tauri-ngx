@@ -55,7 +55,7 @@ export class SelectionSortService {
             callback({ times, datalist: source});
 
             if (source[pivot].value < source[i].value) {
-                await swap(source, i, pivot, temp);
+                await swap(source, i, pivot);
                 times += 1;
             }
             
@@ -100,7 +100,7 @@ export class SelectionSortService {
             callback({ times, datalist: source});
 
             if (source[pivot].value > source[i].value) {
-                await swap(source, i, pivot, temp);
+                await swap(source, i, pivot);
                 times += 1;
             }
             
@@ -171,7 +171,7 @@ export class ShakerSelectionSortService {
             callback({ times, datalist: source });
 
             if (source[pivot].value < source[i].value) {
-                await swap(source, i, pivot, temp);
+                await swap(source, i, pivot);
                 times += 1;
             }
             
@@ -210,7 +210,7 @@ export class ShakerSelectionSortService {
             callback({ times, datalist: source });
 
             if (source[pivot].value > source[k].value) {
-                await swap(source, k, pivot, temp);
+                await swap(source, k, pivot);
                 times += 1;
             }
             
@@ -260,7 +260,7 @@ export class ShakerSelectionSortService {
             callback({ times, datalist: source });
 
             if (source[pivot].value > source[i].value) {
-                await swap(source, i, pivot, temp);
+                await swap(source, i, pivot);
                 times += 1;
             }
             
@@ -299,7 +299,7 @@ export class ShakerSelectionSortService {
             callback({ times, datalist: source });
 
             if (source[pivot].value < source[k].value) {
-                await swap(source, k, pivot, temp);
+                await swap(source, k, pivot);
                 times += 1;
             }
             
@@ -383,8 +383,8 @@ export class TwoWaySelectionSortService {
             source[maxIndex].color = SECONDARY_ONE_COLOR;
             callback({ times, datalist: source });
 
-            await swap(source, i, minIndex, temp);
-            await swap(source, j, maxIndex, temp);
+            await swap(source, i, minIndex);
+            await swap(source, j, maxIndex);
             await delay(SORT_DELAY_DURATION);
 
             source[i].color = CLEAR_COLOR;
@@ -447,8 +447,8 @@ export class TwoWaySelectionSortService {
             source[maxIndex].color = SECONDARY_ONE_COLOR;
             callback({ times, datalist: source });
 
-            await swap(source, i, minIndex, temp);
-            await swap(source, j, maxIndex, temp);
+            await swap(source, i, minIndex);
+            await swap(source, j, maxIndex);
             await delay(SORT_DELAY_DURATION);
 
             source[i].color = CLEAR_COLOR;

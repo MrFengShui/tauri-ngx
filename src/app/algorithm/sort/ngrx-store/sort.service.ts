@@ -1,18 +1,19 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, of, map } from "rxjs";
+import { Observable, of, map, AsyncSubject, Subject, debounceTime, BehaviorSubject } from "rxjs";
 import { random } from 'lodash';
+import { DES, HmacSHA256, enc } from 'crypto-js';
 
-import { SortDataModel, SortStateModel, SortOrder, SortRadix, SortOrderOptionModel, SortRadixOptionModel, SortMergeWayOptionModel, SortHeapNodeOptionModel } from "../ngrx-store/sort.state";
+import { SortDataModel, SortStateModel, SortOrder, SortRadix, SortOrderOptionModel, SortRadixOptionModel, SortMergeWayOptionModel, SortHeapNodeOptionModel, SortMetadataModel } from "../ngrx-store/sort.state";
 
 import { SORT_DELAY_DURATION, delay, swap } from "../sort.utils";
-import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR } from "../../../public/values.utils";
+import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR } from "../../../public/values.utils";
 
 import { BubbleSortService, CooktailSortService, ExchangeSortService, TwoWayBubbleSortService } from "../service/bubble-sort.service";
 import { BinarySearchInserionSortService, InsertionSortService, ShellSortService } from "../service/insertion-sort.service";
 import { LibrarySortService } from "../service/insertion-sort.service";
 import { ShakerSelectionSortService, SelectionSortService, TwoWaySelectionSortService } from "../service/selection-sort.service";
-import { BogoBubbleSortService, BogoCocktailSortService, BogoSortService } from "../service/bogo-sort.service";
+import { BogoBubbleSortService, BogoCocktailSortService, BogoInsertionSortService, BogoSelectionSortService, BogoSortService } from "../service/bogo-sort.service";
 import { AverageIterativeQuickSortService, AverageRecursiveQuickSortService, DualPivotIterativeQuickSortService, DualPivotRecursiveQuickSortService, IterativeQuickSortService, RecursiveQuickSortService, ThreeWayIterativeQuickSortService, ThreeWayRecursiveQuickSortService, TwoWayIterativeQuickSortService, TwoWayRecursiveQuickSortService } from "../service/quick-sort.service";
 import { CountSortService } from "../service/count-sort.service";
 import { BucketSortService, InterpolationSortService, PigeonholeSortService } from "../service/bucket-sort.service";
@@ -38,6 +39,8 @@ import { LocaleIDType } from "../../../main/ngrx-store/main.state";
 import { BinarySearchTreeSortService } from "../service/tree-sort.service";
 import { SmoothSortService } from "../service/heap-sort.service";
 import { OptimalShearSortService, ShearSortService } from "../service/shear-sort.service";
+
+export const SORT_DATA_SECRET_KEY: string = HmacSHA256('SORT_DATA_SECRET_KEY', 'SORT_DATA_SECRET_KEY').toString();
 
 @Injectable()
 export class SortLoadConfigService {
@@ -67,40 +70,89 @@ export class SortLoadConfigService {
 @Injectable()
 export class SortUtilsService {
 
-    public createDataList(size: number, name: string): Observable<SortDataModel[]> {
-        return new Observable(subscriber => {
-            const list: SortDataModel[] = Array.from([]);
-            const binMaxLength: number = size.toString(2).length;
-            const octMaxLength: number = size.toString(8).length;
-            const decMaxLength: number = size.toString(10).length;
-            const hexMaxLength: number = size.toString(16).length;
+    private source: SortDataModel[] = Array.from([]);
+    private subject: Subject<SortDataModel[]> = new BehaviorSubject<SortDataModel[]>(this.source);
     
-            for(let i = 0; i < size; i++) {
-                list.push({ 
-                    color: CLEAR_COLOR, value: i + 1, 
-                    radix: name.includes('radix-sort') ? { 
-                        bin: (i + 1).toString(2).padStart(binMaxLength, '0'),
-                        oct: (i + 1).toString(8).padStart(octMaxLength, '0'),
-                        dec: (i + 1).toString(10).padStart(decMaxLength, '0'),
-                        hex: (i + 1).toString(16).padStart(hexMaxLength, '0')
-                    } : undefined
-                });
+    public createDataList(size: number, name: string, unique: boolean): Observable<SortDataModel[]> {
+        const binMaxLength: number = size.toString(2).length;
+        const octMaxLength: number = size.toString(8).length;
+        const decMaxLength: number = size.toString(10).length;
+        const hexMaxLength: number = size.toString(16).length;
+
+        if (this.source.length > 0) {
+            this.source.splice(0);
+        }
+
+        for(let i = 0; i < size; i++) {
+            this.source.push({ 
+                color: CLEAR_COLOR, value: unique ? i + 1 : (i === size - 1 ? size : random(1, size - 1, false)), 
+                radix: name.includes('radix-sort') ? { 
+                    bin: (i + 1).toString(2).padStart(binMaxLength, '0'),
+                    oct: (i + 1).toString(8).padStart(octMaxLength, '0'),
+                    dec: (i + 1).toString(10).padStart(decMaxLength, '0'),
+                    hex: (i + 1).toString(16).padStart(hexMaxLength, '0')
+                } : undefined
+            });
+        }
+        
+        this.subject.next(this.source);
+        return this.subject.asObservable().pipe(debounceTime(100));
+    }
+
+    public importDataList(file: File | null, name: string): Observable<SortDataModel[]> {
+        if (file) {
+            const reader = new window.FileReader();
+            reader.onload = event => {
+                const result: string = event.target?.result as string;
+                const target: SortMetadataModel = JSON.parse(result);
+                const text: string = DES.decrypt(target.data, SORT_DATA_SECRET_KEY).toString(enc.Utf8);
+                const list: number[] = JSON.parse(text);
+                const size: number = list.length;
+                
+                if (this.source.length > 0) {
+                    this.source.splice(0);
+                }
+
+                const binMaxLength: number = size.toString(2).length;
+                const octMaxLength: number = size.toString(8).length;
+                const decMaxLength: number = size.toString(10).length;
+                const hexMaxLength: number = size.toString(16).length;
+    
+                for(let i = 0; i < size; i++) {
+                    this.source.push({ 
+                        color: CLEAR_COLOR, value: list[i], 
+                        radix: name.includes('radix-sort') ? { 
+                            bin: (i + 1).toString(2).padStart(binMaxLength, '0'),
+                            oct: (i + 1).toString(8).padStart(octMaxLength, '0'),
+                            dec: (i + 1).toString(10).padStart(decMaxLength, '0'),
+                            hex: (i + 1).toString(16).padStart(hexMaxLength, '0')
+                        } : undefined
+                    });
+                }
+                
+                this.subject.next(this.source);
             }
-            
-            subscriber.next(list);
-            subscriber.complete();
-        });
+            reader.readAsText(file);
+        }
+        
+        return this.subject.asObservable().pipe(debounceTime(100));
     }
 
     public shuffleDataList(source: SortDataModel[]): Observable<SortStateModel> {
+        for (let i = 0, length = source.length; i < length; i++) {
+            source[i].color = CLEAR_COLOR;
+        }
+        
         return new Observable(subscriber => {
-            this.shuffle(source, param => subscriber.next(param)).then(() => subscriber.complete());
+            this.shuffle(source, param => subscriber.next(param))
+                .then(() => subscriber.complete())
+                .catch(error => subscriber.error(error));
         });
     }
 
     private async shuffle(source: SortDataModel[], callback: (param: SortStateModel) => void): Promise<void> {
         const threshold: number = source.length - 1, temp: SortDataModel = { color: '', value: Number.NaN };
-        let m: number = Number.NaN, n: number = Number.NaN;
+        let m: number = -1, n: number = -1;
 
         for (let i = 0, j = threshold; i <= threshold && j >= 0; i++, j--) {
             if (i < j) {
@@ -113,23 +165,41 @@ export class SortUtilsService {
                 n = random(j + 1, i - 1, false);
             }            
 
-            source[i].color = PRIMARY_COLOR;
-            source[j].color = SECONDARY_COLOR;
+            source[i].color = PRIMARY_ONE_COLOR;
+            source[m].color = SECONDARY_ONE_COLOR;
+            source[j].color = PRIMARY_TWO_COLOR;
+            source[n].color = SECONDARY_TWO_COLOR;
             callback({ times: 0, datalist: source });
 
-            await swap(source, i, m, temp);
-            await swap(source, j, n, temp);
+            await swap(source, i, m);
+            await swap(source, j, n);
             await delay(SORT_DELAY_DURATION);
-            
+
+            source[i].color = SECONDARY_ONE_COLOR;
+            source[m].color = PRIMARY_ONE_COLOR;
+            source[j].color = SECONDARY_TWO_COLOR;
+            source[n].color = PRIMARY_TWO_COLOR;
+            callback({ times: 0, datalist: source });
+
+            await delay(SORT_DELAY_DURATION);
+
             source[i].color = CLEAR_COLOR;
-            source[j].color = CLEAR_COLOR;
             source[m].color = CLEAR_COLOR;
+            source[j].color = CLEAR_COLOR;
             source[n].color = CLEAR_COLOR;
             callback({ times: 0, datalist: source });
         }
 
         await delay(SORT_DELAY_DURATION);
         callback({ times: 0, datalist: source });
+    }
+
+    public dispose(): void {
+        if (this.source.length > 0) {
+            this.source.splice(0);
+        }
+
+        this.subject.complete();
     }
 
 }
@@ -139,7 +209,7 @@ export class SortToolsService {
 
     private array: number[] = Array.from([]);
 
-    public async mergeByAscent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
+    public async mergeByAscent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let i: number = lhs, j: number = mid + 1;
         
         while (i <= mid && j <= rhs) {
@@ -211,7 +281,7 @@ export class SortToolsService {
         return times;
     }
 
-    public async mergeByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
+    public async mergeByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let i: number = lhs, j: number = mid + 1;
         
         while (i <= mid && j <= rhs) {
@@ -283,43 +353,17 @@ export class SortToolsService {
         return times;
     }
 
-    public async stableGapSortByAscent(source: SortDataModel[], lhs: number, rhs: number, gap: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        for (let i = lhs + gap; i <= rhs; i += gap) {
-            for (let j = i; j > lhs && source[j - gap].value > source[j].value; j -= gap) {
+    public async stableGapSortByAscent(source: SortDataModel[], lhs: number, rhs: number, gap: number, step: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        for (let i = lhs + gap; i <= rhs; i += step) {
+            for (let j = i - gap; j >= lhs && source[j].value > source[j + gap].value; j -= gap) {
                 times += 1;
-
-                source[i].color = ACCENT_COLOR;
-                source[j].color = PRIMARY_COLOR;
-                source[j - gap].color = SECONDARY_COLOR;
-                callback({ times, datalist: source });
-
-                await swap(source, j - gap, j, temp);
-                await delay(SORT_DELAY_DURATION);
-
-                source[i].color = ACCENT_COLOR;
-                source[j].color = CLEAR_COLOR;
-                source[j - gap].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
-            }
-
-            source[i].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
-        }
-        
-        return times;
-    }
-
-    public async stableGapSortByDescent(source: SortDataModel[], lhs: number, rhs: number, gap: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        for (let i = rhs - gap; i >= lhs; i -= gap) {
-            for (let j = i; j < rhs && source[j + gap].value > source[j].value; j += gap) {
-                times += 1;
-
+                
                 source[i].color = ACCENT_COLOR;
                 source[j].color = PRIMARY_COLOR;
                 source[j + gap].color = SECONDARY_COLOR;
                 callback({ times, datalist: source });
 
-                await swap(source, j + gap, j, temp);
+                await swap(source, j + gap, j);
                 await delay(SORT_DELAY_DURATION);
 
                 source[i].color = ACCENT_COLOR;
@@ -335,15 +379,33 @@ export class SortToolsService {
         return times;
     }
 
-    public async stableSortByAscent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        return await this.stableGapSortByAscent(source, lhs, rhs, 1, temp, times, callback);
-    }
-    
-    public async stableSortByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        return await this.stableGapSortByDescent(source, lhs, rhs, 1, temp, times, callback);
+    public async stableGapSortByDescent(source: SortDataModel[], lhs: number, rhs: number, gap: number, step: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        for (let i = rhs - gap; i >= lhs; i -= step) {
+            for (let j = i + gap; j <= rhs && source[j].value > source[j - gap].value; j += gap) {
+                times += 1;
+                
+                callback({ times, datalist: source});
+                source[j].color = PRIMARY_COLOR;
+                source[j - gap].color = SECONDARY_COLOR;
+                callback({ times, datalist: source});
+                
+                await swap(source, j, j - gap);
+                await delay(SORT_DELAY_DURATION);
+
+                callback({ times, datalist: source});
+                source[j].color = CLEAR_COLOR;
+                source[j - gap].color = CLEAR_COLOR;
+                callback({ times, datalist: source});
+            }
+
+            source[i].color = CLEAR_COLOR;
+            callback({ times, datalist: source});
+        }
+        
+        return times;
     }
 
-    public async swapAndRenderer(source: SortDataModel[], completed: boolean, flag: boolean, m: number, n: number, temp: SortDataModel, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<[boolean, number]> {
+    public async swapAndRenderer(source: SortDataModel[], completed: boolean, flag: boolean, m: number, n: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<[boolean, number]> {
         source[m].color = flag ? primaryColor : accentColor;
         source[n].color = flag ? secondaryColor : (m === n ? accentColor : CLEAR_COLOR);
         callback({ times, datalist: source });
@@ -352,7 +414,7 @@ export class SortToolsService {
             completed = false;
             times += 1;
     
-            await swap(source, n, m, temp);
+            await swap(source, n, m);
             await delay(SORT_DELAY_DURATION);
     
             source[m].color = flag ? secondaryColor : accentColor;
@@ -443,7 +505,7 @@ export class SortToolsService {
         return -1;
     } 
 
-    public indexOfFirstGreaterThan(source: SortDataModel[], target: SortDataModel, lhs: number, rhs: number): number {
+    public indexOfFGTByAscent(source: SortDataModel[], target: SortDataModel, lhs: number, rhs: number): number {
         let mid: number;
 
         while (lhs <= rhs) {
@@ -456,14 +518,10 @@ export class SortToolsService {
             }
         }
         
-        if (lhs === source.length) {
-            return -1;
-        }
-
-        return source[lhs].value === target.value ? lhs + 1 : lhs;
+        return lhs === source.length ? -1 : lhs;
     } 
 
-    public indexOfFirstLessThan(source: SortDataModel[], target: SortDataModel, lhs: number, rhs: number): number {
+    public indexOfFGTByDescent(source: SortDataModel[], target: SortDataModel, lhs: number, rhs: number): number {
         let mid: number;
 
         while (lhs <= rhs) {
@@ -476,11 +534,23 @@ export class SortToolsService {
             }
         }
         
-        if (lhs === source.length) {
-            return -1;
-        }
+        return rhs === -1 ? -1 : lhs - 1;
+    } 
 
-        return source[lhs].value === target.value ? lhs + 1 : lhs;
+    public indexOfFLT(source: SortDataModel[], target: SortDataModel, lhs: number, rhs: number): number {
+        let mid: number;
+
+        while (lhs <= rhs) {
+            mid = Math.floor((rhs - lhs) * 0.5 + lhs);
+
+            if (source[mid].value > target.value) {
+                lhs = mid + 1;
+            } else {
+                rhs = mid - 1;
+            }
+        }
+        
+        return lhs === source.length ? -1 : lhs;
     } 
 
     public async clear(dict: { [key: string | number]: any[] }): Promise<void> {
@@ -546,6 +616,8 @@ export class SortMatchService {
         private _bogo: BogoSortService,
         private _bogoBubble: BogoBubbleSortService,
         private _bogoCocktail: BogoCocktailSortService,
+        private _bogoInsertion: BogoInsertionSortService,
+        private _bogoSelection: BogoSelectionSortService,
         private _cycle: CycleSortService,
         private _gnome: GnomeSortService,
         private _gravity: GravitySortService,
@@ -563,6 +635,12 @@ export class SortMatchService {
 
     public match(name: string, array: SortDataModel[], order: SortOrder, radix: SortRadix, way: number, node: number): Observable<SortStateModel | null> {
         console.warn('name:', name, 'radix:', radix, 'way:', way, 'node:', node);
+        if (!array.every(item => item.color === CLEAR_COLOR)) {
+            for (let i = 0, length = array.length; i < length; i++) {
+                array[i].color = CLEAR_COLOR;
+            }
+        }
+        
         if (name === 'bubble-sort') {
             return this._bubble.sort(array, order);
         }
@@ -728,8 +806,12 @@ export class SortMatchService {
             return this._shear.sort(array, order);
         }
 
-        if (name === 'opt-shear-sort') {
-            return this._optShear.sort(array, order);
+        if (name === 'insertion-shear-sort') {
+            return this._optShear.sort(array, order, 'insertion');
+        }
+
+        if (name === 'selection-shear-sort') {
+            return this._optShear.sort(array, order, 'selection');
         }
 
 
@@ -747,6 +829,14 @@ export class SortMatchService {
 
         if (name === 'bogo-cocktail-sort') {
             return this._bogoCocktail.sort(array, order);
+        }
+
+        if (name === 'bogo-insertion-sort') {
+            return this._bogoInsertion.sort(array, order);
+        }
+
+        if (name === 'bogo-selection-sort') {
+            return this._bogoSelection.sort(array, order);
         }
 
         if (name === 'cycle-sort') {

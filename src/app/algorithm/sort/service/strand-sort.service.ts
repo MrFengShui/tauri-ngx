@@ -313,6 +313,9 @@ export class StrandSortService {
 
 }
 
+/**
+ * 股排序（优化）
+ */
 @Injectable()
 export class OptimalStrandSortService {
 
@@ -445,7 +448,7 @@ export class OptimalStrandSortService {
 
     private async mergeByAscent(source: SortDataModel[], fst: number, snd: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         const lhs: number = fst, mid: number = snd - 1;
-        let rhs: number = this._toolsService.indexOfFirstGreaterThan(source, source[mid], snd, source.length - 1);
+        let rhs: number = this._toolsService.indexOfFGTByAscent(source, source[mid], snd, source.length - 1);
         let i: number = fst, j: number = snd;
         const array: number[] = Array.from([]);
         
@@ -517,7 +520,7 @@ export class OptimalStrandSortService {
 
     private async mergeByDescent(source: SortDataModel[], fst: number, snd: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         const lhs: number = fst, mid: number = snd - 1;
-        let rhs: number = this._toolsService.indexOfFirstLessThan(source, source[mid], snd, source.length - 1);
+        let rhs: number = this._toolsService.indexOfFLT(source, source[mid], snd, source.length - 1);
         let i: number = fst, j: number = snd;
         const array: number[] = Array.from([]);
         

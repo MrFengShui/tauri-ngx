@@ -36,7 +36,7 @@ export class PancakeSortService {
                 source[k].color = SECONDARY_ONE_COLOR;
                 callback({ times, datalist: source});
 
-                await swap(source, j, k, temp);
+                await swap(source, j, k);
                 await delay(SORT_DELAY_DURATION);
 
                 source[index].color = ACCENT_COLOR;
@@ -53,7 +53,7 @@ export class PancakeSortService {
                 source[0].color = SECONDARY_TWO_COLOR;
                 callback({ times, datalist: source});
 
-                await swap(source, i, 0, temp);
+                await swap(source, i, 0);
                 await delay(SORT_DELAY_DURATION);
 
                 source[index].color = ACCENT_COLOR;
@@ -72,7 +72,7 @@ export class PancakeSortService {
                 source[k].color = SECONDARY_TWO_COLOR;
                 callback({ times, datalist: source});
 
-                await swap(source, j, k, temp);
+                await swap(source, j, k);
                 await delay(SORT_DELAY_DURATION);
 
                 source[index].color = ACCENT_COLOR;
@@ -102,7 +102,7 @@ export class PancakeSortService {
                 source[k].color = SECONDARY_ONE_COLOR;
                 callback({ times, datalist: source});
 
-                await swap(source, j, k, temp);
+                await swap(source, j, k);
                 await delay(SORT_DELAY_DURATION);
 
                 source[index].color = ACCENT_COLOR;
@@ -119,7 +119,7 @@ export class PancakeSortService {
                 source[0].color = SECONDARY_TWO_COLOR;
                 callback({ times, datalist: source});
 
-                await swap(source, i, 0, temp);
+                await swap(source, i, 0);
                 await delay(SORT_DELAY_DURATION);
 
                 source[index].color = ACCENT_COLOR;
@@ -138,7 +138,7 @@ export class PancakeSortService {
                 source[k].color = SECONDARY_TWO_COLOR;
                 callback({ times, datalist: source});
 
-                await swap(source, j, k, temp);
+                await swap(source, j, k);
                 await delay(SORT_DELAY_DURATION);
 
                 source[index].color = ACCENT_COLOR;

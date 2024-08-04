@@ -24,6 +24,11 @@
         "sort_component_ts_6": "Time",
         "sort_component_ts_7": "Shuffle",
         "sort_component_ts_8": "Run",
+        "sort_component_ts_9": "Import",
+        "sort_component_ts_10": "Export",
+        "sort_component_ts_11": "Unique or Not",
+        "sort_component_ts_12_1": "The length of list must be divided with no remainder by 32.",
+        "sort_component_ts_12_2": "The length of list must be the power of 2 (N > 0).",
 
         "login_component_ts_1": "User Login",
         "login_component_ts_2": "Adminstrator Login",
