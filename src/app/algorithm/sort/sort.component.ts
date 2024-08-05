@@ -128,7 +128,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     protected handleRunSortEvent(): void {
         if (this.name.includes('shear-sort') && this.count % 32 !== 0) {
             this.showAlert($localize `:@@sort_component_ts_12_1:sort_component_ts_12_1`);
-        } else if ((this.name.includes('odd-even-merge-sort') || this.name.includes('bitonic-merge-sort')) && !Number.isSafeInteger(Math.log2(this.count))) {
+        } else if ((this.name.includes('odd-even-merge-sort') || this.name.includes('bitonic-merge-sort')) && (this.count & (this.count - 1)) === 0) {
             this.showAlert($localize `:@@sort_component_ts_12_2:sort_component_ts_12_2`);
         } else {
             this.locked = true;
@@ -226,11 +226,11 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         this.locked = false;
         this.order = 'ascent';
         this.radix = 10;
+        this.mergeWay = 3;
+        this.heapNode = 3;
 
         this.source.splice(0);
-
         this.factory?.erase();
-
         this._cdr.markForCheck();
     }
 

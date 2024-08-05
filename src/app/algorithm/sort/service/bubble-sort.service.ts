@@ -42,7 +42,7 @@ export class ExchangeSortService {
                 k = Math.min(j + 1, length - 1);
                 flag = source[k].value < source[j].value;
 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
         }
 
@@ -60,7 +60,7 @@ export class ExchangeSortService {
                 k = Math.max(j - 1, 0);
                 flag = source[k].value < source[j].value;
 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
         }
 
@@ -104,7 +104,7 @@ export class BubbleSortService {
                 k = Math.min(j + 1, length - 1);
                 flag = source[k].value < source[j].value;
 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
         }
 
@@ -122,7 +122,7 @@ export class BubbleSortService {
                 k = Math.max(j - 1, 0);
                 flag = source[k].value < source[j].value;
 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
         }
 
@@ -168,7 +168,7 @@ export class CooktailSortService {
                 k = Math.min(j + 1, length - i - 2);
                 flag = source[k].value < source[j].value;
 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, flag, j, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
             }
 
             pivot = j;
@@ -177,7 +177,7 @@ export class CooktailSortService {
                 k = Math.max(j - 1, i);
                 flag = source[k].value > source[j].value;
 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, flag, j, k, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
             }
 
             pivot = k;
@@ -197,7 +197,7 @@ export class CooktailSortService {
                 k = Math.max(j - 1, i);
                 flag = source[k].value < source[j].value;
 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, flag, j, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
             }
 
             pivot = k;
@@ -206,7 +206,7 @@ export class CooktailSortService {
                 k = Math.min(j + 1, length - i - 2);
                 flag = source[k].value > source[j].value;
                 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, flag, j, k, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
             }
 
             pivot = j;
@@ -257,11 +257,11 @@ export class TwoWayBubbleSortService {
 
                 fstFlag = source[m].value < source[i].value;
 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, fstFlag, i, m, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, fstFlag, i, m, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
 
                 sndFlag = source[n].value > source[j].value;
                 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, sndFlag, j, n, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, sndFlag, j, n, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
             }
         }
         
@@ -282,11 +282,11 @@ export class TwoWayBubbleSortService {
 
                 fstFlag = source[m].value > source[i].value;
 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, fstFlag, i, m, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, fstFlag, i, m, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
 
                 sndFlag = source[n].value < source[j].value;
                 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, sndFlag, j, n, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, sndFlag, j, n, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
             }
         }
 
@@ -332,7 +332,7 @@ export class CombSortService {
                 k = Math.min(j + gap, length - 1);
                 flag = source[k].value < source[j].value;
 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
         }
 
@@ -350,7 +350,7 @@ export class CombSortService {
                 k = Math.max(j - gap, 0);
                 flag = source[k].value < source[j].value;
 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
         }
 
@@ -396,7 +396,7 @@ export class OddEvenSortService {
                 k = Math.min(j + 1, length - 1);
                 flag = source[k].value < source[j].value;
                 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, flag, j, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
             }
         }
         
@@ -414,7 +414,7 @@ export class OddEvenSortService {
                 k = Math.max(j - 1, 0);
                 flag = source[k].value < source[j].value;
                 
-                [completed, times] = await this._service.swapAndRenderer(source, completed, flag, j, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
             }
         }
 

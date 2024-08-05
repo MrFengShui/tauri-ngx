@@ -87,7 +87,7 @@ export class BinarySearchInserionSortService {
                 source[threshold].color = FINAL_COLOR;
                 callback({ times, datalist: source });
 
-                [completed, times] = await this._service.swapAndRenderer(source, false, true, k, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, false, true, k, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
 
                 source[i].color = START_COLOR;
                 source[threshold].color = FINAL_COLOR;
@@ -118,7 +118,7 @@ export class BinarySearchInserionSortService {
                 source[threshold].color = FINAL_COLOR;
                 callback({ times, datalist: source });
 
-                [completed, times] = await this._service.swapAndRenderer(source, false, true, k, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, false, true, k, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
 
                 source[i].color = START_COLOR;
                 source[threshold].color = FINAL_COLOR;
@@ -471,7 +471,7 @@ export class GnomeSortService {
                 source[k].color = ACCENT_COLOR;
                 callback({ times, datalist: source });
 
-                [completed, times] = await this._service.swapAndRenderer(source, false, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, false, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
 
                 source[k].color = ACCENT_COLOR;
                 callback({ times, datalist: source });
@@ -502,7 +502,7 @@ export class GnomeSortService {
                 source[k].color = ACCENT_COLOR;
                 callback({ times, datalist: source });
 
-                [completed, times] = await this._service.swapAndRenderer(source, false, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, false, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
 
                 source[k].color = ACCENT_COLOR;
                 callback({ times, datalist: source });

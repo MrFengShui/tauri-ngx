@@ -40,7 +40,9 @@ import { BucketSortService, InterpolationSortService, PigeonholeSortService } fr
 import { RadixLSDSortService, RadixMSDSortService } from "./sort/service/radix-sort.service";
 import { AsyncSleepSortService, SyncSleepSortService } from "./sort/service/sleep-sort.service";
 import { CycleSortService } from "./sort/service/cycle-sort.service";
-import { HeapSortService, SmoothSortService, TernaryHeapSortService } from "./sort/service/heap-sort.service";
+import { SmoothSortService } from "./sort/service/heap-sort.service";
+import { TernaryHeapSortService } from "./sort/service/selection-sort.service";
+import { HeapSortService } from "./sort/service/selection-sort.service";
 import { BottomUpMergeSortService, MultiWayMergeSortService, InPlaceMergeSortService, TopDownMergeSortService } from "./sort/service/merge-sort.service";
 import { IterativeStoogeSortService, RecursiveStoogeSortService } from "./sort/service/stooge-sort.service";
 import { SlowSortService } from "./sort/service/slow-sort.service";

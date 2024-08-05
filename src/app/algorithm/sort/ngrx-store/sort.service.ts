@@ -20,7 +20,8 @@ import { BucketSortService, InterpolationSortService, PigeonholeSortService } fr
 import { RadixLSDSortService, RadixMSDSortService } from "../service/radix-sort.service";
 import { AsyncSleepSortService, SyncSleepSortService } from "../service/sleep-sort.service";
 import { CycleSortService } from "../service/cycle-sort.service";
-import { HeapSortService, TernaryHeapSortService } from "../service/heap-sort.service";
+import { TernaryHeapSortService } from "../service/selection-sort.service";
+import { HeapSortService } from "../service/selection-sort.service";
 import { TopDownMergeSortService, MultiWayMergeSortService, BottomUpMergeSortService, InPlaceMergeSortService } from "../service/merge-sort.service";
 import { IterativeStoogeSortService, RecursiveStoogeSortService } from "../service/stooge-sort.service";
 import { SlowSortService } from "../service/slow-sort.service";
@@ -405,7 +406,7 @@ export class SortToolsService {
         return times;
     }
 
-    public async swapAndRenderer(source: SortDataModel[], completed: boolean, flag: boolean, m: number, n: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<[boolean, number]> {
+    public async swapAndRender(source: SortDataModel[], completed: boolean, flag: boolean, m: number, n: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<[boolean, number]> {
         source[m].color = flag ? primaryColor : accentColor;
         source[n].color = flag ? secondaryColor : (m === n ? accentColor : CLEAR_COLOR);
         callback({ times, datalist: source });

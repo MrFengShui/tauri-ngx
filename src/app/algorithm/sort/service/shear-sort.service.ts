@@ -538,7 +538,7 @@ export class OptimalShearSortService {
                 callback({ times, datalist: source });
             }
 
-            await this._service.swapAndRenderer(source, false, k !== i, k, i, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            await this._service.swapAndRender(source, false, k !== i, k, i, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
 
             times += 1;
         }
@@ -575,7 +575,7 @@ export class OptimalShearSortService {
                 callback({ times, datalist: source });
             }
 
-            await this._service.swapAndRenderer(source, false, k !== i, k, i, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            await this._service.swapAndRender(source, false, k !== i, k, i, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
 
             times += 1;
         }
