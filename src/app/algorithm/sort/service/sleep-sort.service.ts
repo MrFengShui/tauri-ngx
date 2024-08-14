@@ -2,8 +2,8 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
-import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR } from "../../../public/values.utils";
+import { delay } from "../../../public/global.utils";
+import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR } from "../../../public/global.utils";
 
 /**
  * 睡眠排序
@@ -34,7 +34,7 @@ export class SyncSleepSortService {
             source[i].color = ACCENT_ONE_COLOR;
             callback({ times, datalist: source});
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
             
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source});
@@ -51,14 +51,14 @@ export class SyncSleepSortService {
             source[index].color = ACCENT_TWO_COLOR;
             callback({ times, datalist: source});
 
-            await delay(value * SORT_DELAY_DURATION);
+            await delay(value);
 
             source[index].color = CLEAR_COLOR;
             callback({ times, datalist: source});
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
         this.cache.splice(0);
     }
 
@@ -71,7 +71,7 @@ export class SyncSleepSortService {
             source[i].color = ACCENT_ONE_COLOR;
             callback({ times, datalist: source});
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
             
             source[i].color = CLEAR_COLOR;
             this.cache.push(source[i].value);
@@ -86,14 +86,14 @@ export class SyncSleepSortService {
             source[index].color = ACCENT_TWO_COLOR;
             callback({ times, datalist: source});
 
-            await delay(value * SORT_DELAY_DURATION);
+            await delay(value);
 
             source[index].color = CLEAR_COLOR;
             callback({ times, datalist: source});
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
         this.cache.splice(0);
     }
 
@@ -128,7 +128,7 @@ export class AsyncSleepSortService {
             source[i].color = ACCENT_ONE_COLOR;
             callback({ times, datalist: source});
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
             
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source});
@@ -147,8 +147,8 @@ export class AsyncSleepSortService {
             }, this.cache[i]);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
         this.cache.splice(0);
     }
 
@@ -161,7 +161,7 @@ export class AsyncSleepSortService {
             source[i].color = ACCENT_ONE_COLOR;
             callback({ times, datalist: source});
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
             
             source[i].color = CLEAR_COLOR;
             this.cache.push(source[i].value);
@@ -178,8 +178,8 @@ export class AsyncSleepSortService {
             }, this.cache[i]);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
         this.cache.splice(0);
     }
 

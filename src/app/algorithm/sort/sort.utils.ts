@@ -1,13 +1,4 @@
-import { FINAL_COLOR } from "../../public/values.utils";
-import { SortDataModel, SortStateModel } from "./ngrx-store/sort.state";
-
-export const delay = (duration: number = 10): Promise<void> => 
-    new Promise<void>(resolve => {
-        const task = setTimeout(() => {
-            clearTimeout(task);
-            resolve();
-        }, duration);
-    });
+import { SortDataModel } from "./ngrx-store/sort.state";
 
 export const swap = (source: SortDataModel[], fst: number, snd: number) => 
     new Promise<void>(resolve => {
@@ -16,25 +7,6 @@ export const swap = (source: SortDataModel[], fst: number, snd: number) =>
         source[snd] = temp;
         resolve();
     });
-
-export const complete = (source: SortDataModel[], times: number, callback: (param: SortStateModel) => void) => 
-    new Promise<void>(async (resolve) => {
-        for (let i = 0; i < source.length; i++) {
-            source[i].color = FINAL_COLOR;
-            callback({ times, datalist: source });
-            
-            await delay(SORT_DELAY_DURATION);
-        }
-
-        callback({ times, datalist: source });
-
-        if (source.length > 0) {
-            source.splice(0);
-            resolve();
-        }
-    });
-
-export const SORT_DELAY_DURATION: number = 1;
 
 export class SortDataVisualBuilder {
 

@@ -1,17 +1,17 @@
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
-import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
-import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR } from "../../../public/values.utils";
-import { BaseSortService } from "./base-sort.service";
+import { SortDataModel, SortStateModel } from "../ngrx-store/sort.state";
+import { delay } from "../../../public/global.utils";
+import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR } from "../../../public/global.utils";
+import { AbstractSortService } from "./base-sort.service";
 import { SortToolsService } from "../ngrx-store/sort.service";
 
 /**
  * 选择排序（单向）
  */
 @Injectable()
-export class SelectionSortService extends BaseSortService {
+export class SelectionSortService extends AbstractSortService {
 
     constructor(private _service: SortToolsService) {
         super();
@@ -29,7 +29,7 @@ export class SelectionSortService extends BaseSortService {
                 source[k].color = ACCENT_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 if (source[j].value < source[k].value) {
                     source[k].color = CLEAR_COLOR;
@@ -45,8 +45,8 @@ export class SelectionSortService extends BaseSortService {
             [completed, times] = await this._service.swapAndRender(source, false, k !== i, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
@@ -61,7 +61,7 @@ export class SelectionSortService extends BaseSortService {
                 source[k].color = ACCENT_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 if (source[j].value < source[k].value) {
                     source[k].color = CLEAR_COLOR;
@@ -77,8 +77,8 @@ export class SelectionSortService extends BaseSortService {
             [completed, times] = await this._service.swapAndRender(source, false, k !== i, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
 }
@@ -87,7 +87,7 @@ export class SelectionSortService extends BaseSortService {
  * 选择排序（双向）
  */
 @Injectable()
-export class ShakerSelectionSortService extends BaseSortService {
+export class ShakerSelectionSortService extends AbstractSortService {
 
     constructor(private _service: SortToolsService) {
         super();
@@ -106,7 +106,7 @@ export class ShakerSelectionSortService extends BaseSortService {
                 source[k].color = ACCENT_ONE_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 if (source[j].value < source[k].value) {
                     source[k].color = CLEAR_COLOR;
@@ -131,7 +131,7 @@ export class ShakerSelectionSortService extends BaseSortService {
                 source[k].color = ACCENT_TWO_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 if (source[j].value > source[k].value) {
                     source[k].color = CLEAR_COLOR;
@@ -149,8 +149,8 @@ export class ShakerSelectionSortService extends BaseSortService {
             [completed, times] = await this._service.swapAndRender(source, completed, k !== rhs - i, rhs - i, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
@@ -166,7 +166,7 @@ export class ShakerSelectionSortService extends BaseSortService {
                 source[k].color = ACCENT_ONE_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 if (source[j].value < source[k].value) {
                     source[k].color = CLEAR_COLOR;
@@ -191,7 +191,7 @@ export class ShakerSelectionSortService extends BaseSortService {
                 source[k].color = ACCENT_TWO_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 if (source[j].value > source[k].value) {
                     source[k].color = CLEAR_COLOR;
@@ -209,8 +209,8 @@ export class ShakerSelectionSortService extends BaseSortService {
             [completed, times] = await this._service.swapAndRender(source, completed, k !== rhs - i, rhs - i, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
 }
@@ -219,7 +219,7 @@ export class ShakerSelectionSortService extends BaseSortService {
  * 二路选择排序
  */
 @Injectable()
-export class TwoWaySelectionSortService extends BaseSortService {
+export class TwoWaySelectionSortService extends AbstractSortService {
 
     constructor(private _service: SortToolsService) {
         super();
@@ -241,7 +241,7 @@ export class TwoWaySelectionSortService extends BaseSortService {
                 source[maxIndex].color = ACCENT_TWO_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 if (source[m].value < source[minIndex].value) {
                     source[minIndex].color = CLEAR_COLOR;
@@ -269,8 +269,8 @@ export class TwoWaySelectionSortService extends BaseSortService {
             flag = !flag;
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
@@ -289,7 +289,7 @@ export class TwoWaySelectionSortService extends BaseSortService {
                 source[maxIndex].color = ACCENT_TWO_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 if (source[m].value > source[minIndex].value) {
                     source[minIndex].color = CLEAR_COLOR;
@@ -317,8 +317,8 @@ export class TwoWaySelectionSortService extends BaseSortService {
             flag = !flag;
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
 }
@@ -328,7 +328,7 @@ export class TwoWaySelectionSortService extends BaseSortService {
  */
 
 @Injectable()
-export class HeapSortService extends BaseSortService {
+export class HeapSortService extends AbstractSortService {
 
     constructor(private _service: SortToolsService) {
         super();
@@ -346,8 +346,8 @@ export class HeapSortService extends BaseSortService {
             times = await this.heapifyByAscent(source, i, lhs, times, callback);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
@@ -362,8 +362,8 @@ export class HeapSortService extends BaseSortService {
             times = await this.heapifyByDescent(source, i, rhs, length, times, callback);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
     private async heapifyByAscent(source: SortDataModel[], threshold: number, root: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
@@ -427,7 +427,7 @@ export class HeapSortService extends BaseSortService {
  */
 
 @Injectable()
-export class TernaryHeapSortService extends BaseSortService {
+export class TernaryHeapSortService extends AbstractSortService {
 
     constructor(private _service: SortToolsService) {
         super();
@@ -447,8 +447,8 @@ export class TernaryHeapSortService extends BaseSortService {
             }
         }        
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
@@ -465,8 +465,8 @@ export class TernaryHeapSortService extends BaseSortService {
             }
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
     private async heapifyByAscent(source: SortDataModel[], threshold: number, root: number, option: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
@@ -538,6 +538,248 @@ export class TernaryHeapSortService extends BaseSortService {
         }
 
         return times;
+    }
+
+}
+
+/**
+ * 平滑排序
+ */
+@Injectable()
+export class SmoothSortService extends AbstractSortService {
+
+    constructor(private _service: SortToolsService) {
+        super();
+    }
+
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let index: number = 0, times: number = 0;
+
+        for (let i = lhs + 1; i <= rhs; i++) {
+            if (index > 0 && this.array[index - 1] - this.array[index] === 1) {
+                index -= 1;
+                this.array[index] += 1;
+
+                times = await this.buildMaxHeap(source, i, index, times, callback);
+                continue;
+            }
+
+            if (!this.array[index]) {
+                this.array[index] = 1;
+            }
+
+            if (this.array[index] !== 1) {
+                index += 1;
+                this.array[index] = 1;
+            } else {
+                index += 1;
+                this.array[index] = 0;
+            }
+
+            times = await this.buildMaxHeap(source, i, index, times, callback);
+        }
+
+        for (let i = rhs - 1; i > lhs; i--) {
+            if (this.array[index] <= 1) {
+                index -= 1;
+            } else {
+                this.array[index] -= 1;
+                this.array[index + 1] = this.array[index] - 1;
+                index += 1;
+
+                times = await this.buildMaxHeap(source, i - this.leonardo(this.array[index]), index - 1, times, callback);
+                times = await this.buildMaxHeap(source, i, index, times, callback);
+            }
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+        this.array.splice(0);
+    }
+
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let index: number = 0, times: number = 0;
+
+        for (let i = lhs + 1; i <= rhs; i++) {
+            if (index > 0 && this.array[index - 1] - this.array[index] === 1) {
+                index -= 1;
+                this.array[index] += 1;
+
+                times = await this.buildMinHeap(source, i, index, times, callback);
+                continue;
+            }
+
+            if (!this.array[index]) {
+                this.array[index] = 1;
+            }
+
+            if (this.array[index] !== 1) {
+                index += 1;
+                this.array[index] = 1;
+            } else {
+                index += 1;
+                this.array[index] = 0;
+            }
+
+            times = await this.buildMinHeap(source, i, index, times, callback);
+        }
+
+        for (let i = rhs - 1; i > lhs; i--) {
+            if (this.array[index] <= 1) {
+                index -= 1;
+            } else {
+                this.array[index] -= 1;
+                this.array[index + 1] = this.array[index] - 1;
+                index += 1;
+
+                times = await this.buildMinHeap(source, i - this.leonardo(this.array[index]), index - 1, times, callback);
+                times = await this.buildMinHeap(source, i, index, times, callback);
+            }
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+        this.array.splice(0);
+    }
+
+    private async buildMaxHeap(source: SortDataModel[], i: number, index: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let root: number, left: number, right: number, level: number;
+
+        while (index > 0) {
+            level = this.array[index];
+            root = i - this.leonardo(level);
+
+            if (source[i].value > source[root].value) break;
+
+            if (level > 1) {
+                left = i - 1 - this.leonardo(level - 2);
+                right = i - 1;
+
+                if (source[root].value < source[left].value) break;
+
+                if (source[root].value < source[right].value) break;
+            }
+
+            await this._service.swapAndRender(source, false, true, i, root, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+            i = root;
+            index -= 1;
+            times += 1;
+        }
+
+        return await this.maxHeapify(source, i, this.array[index], times, callback);
+    }
+
+    private async buildMinHeap(source: SortDataModel[], i: number, index: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let root: number, left: number, right: number, level: number;
+
+        while (index > 0) {
+            level = this.array[index];
+            root = i - this.leonardo(level);
+
+            if (source[i].value < source[root].value) break;
+
+            if (level > 1) {
+                left = i - 1 - this.leonardo(level - 2);
+                right = i - 1;
+
+                if (source[root].value > source[left].value) break;
+
+                if (source[root].value > source[right].value) break;
+            }
+
+            await this._service.swapAndRender(source, false, true, i, root, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+            i = root;
+            index -= 1;
+            times += 1;
+        }
+
+        return await this.minHeapify(source, i, this.array[index], times, callback);
+    }
+
+    private async maxHeapify(source: SortDataModel[], root: number, level: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let left: number, right: number, pivot: number;
+
+        while (level > 1) {
+            left = root - 1 - this.leonardo(level - 2);
+            right = root - 1;
+            pivot = root;
+
+            if (source[pivot].value < source[left].value) {
+                pivot = left;
+            }
+
+            if (source[pivot].value < source[right].value) {
+                pivot = right;
+            }
+
+            if (pivot === root) break;
+
+            await this._service.swapAndRender(source, false, true, root, pivot, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+            root = pivot;
+            level = pivot === left ? level - 1 : level - 2;
+            times += 1;
+        }
+
+        return times;
+    }
+
+    private async minHeapify(source: SortDataModel[], root: number, level: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let left: number, right: number, pivot: number;
+
+        while (level > 1) {
+            left = root - 1 - this.leonardo(level - 2);
+            right = root - 1;
+            pivot = root;
+
+            if (source[pivot].value > source[left].value) {
+                pivot = left;
+            }
+
+            if (source[pivot].value > source[right].value) {
+                pivot = right;
+            }
+
+            if (pivot === root) break;
+
+            await this._service.swapAndRender(source, false, true, root, pivot, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+            root = pivot;
+            level = pivot === left ? level - 1 : level - 2;
+            times += 1;
+        }
+
+        return times;
+    }
+
+    /**
+     * k = ceil(log(n) + 1)
+     * root: L(k) - 1
+     * left: L(k - 1) - 1
+     * right: L(k) - 2
+     * @param index
+     * @param fst
+     * @param snd
+     * @returns
+     */
+    private leonardo(index: number, fst: number = 1, snd: number = 1): number {
+        if (index === 0) {
+            return fst;
+        } else if (index === 1) {
+            return snd;
+        } else {
+            let sum: number = 0;
+
+            for (let i = 2; i <= index; i++) {
+                sum = fst + snd + 1;
+                fst = snd;
+                snd = sum;
+            }
+
+            return sum;
+        }
     }
 
 }

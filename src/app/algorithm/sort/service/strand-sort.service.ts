@@ -2,9 +2,9 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortOrder, SortStateModel } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { delay } from "../../../public/global.utils";
 import { SortToolsService } from "../ngrx-store/sort.service";
-import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR } from "../../../public/values.utils";
+import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR } from "../../../public/global.utils";
 
 /**
  * 股排序
@@ -44,7 +44,7 @@ export class StrandSortService {
                 source[i].color = ACCENT_ONE_COLOR;
                 callback({ times, datalist: source });
     
-                await delay(SORT_DELAY_DURATION);
+                await delay();
     
                 source[i].color = CLEAR_COLOR;
                 callback({ times, datalist: source });
@@ -68,8 +68,8 @@ export class StrandSortService {
             newUnsorted.forEach(item => oldUnsorted.push(item));
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
@@ -92,7 +92,7 @@ export class StrandSortService {
                 source[i].color = ACCENT_ONE_COLOR;
                 callback({ times, datalist: source });
     
-                await delay(SORT_DELAY_DURATION);
+                await delay();
     
                 source[i].color = CLEAR_COLOR;
                 callback({ times, datalist: source });
@@ -116,8 +116,8 @@ export class StrandSortService {
             newUnsorted.forEach(item => oldUnsorted.push(item));
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     public async merge(source: SortDataModel[], newUnsorted: number[], newSorted: number[], oldSorted: number[], times: number, callback: (param: SortStateModel) => void): Promise<[number, number, number]> {
@@ -130,7 +130,7 @@ export class StrandSortService {
             source[index].color = ACCENT_TWO_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[index].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -139,7 +139,7 @@ export class StrandSortService {
         }
 
         fst = index;
-        await delay(SORT_DELAY_DURATION);
+        await delay();
 
         for (let i = 0, length = newSorted.length; i < length; i++) {
             times += 1;
@@ -148,7 +148,7 @@ export class StrandSortService {
             source[index].color = ACCENT_TWO_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[index].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -157,7 +157,7 @@ export class StrandSortService {
         }
 
         snd = index;
-        await delay(SORT_DELAY_DURATION);
+        await delay();
 
         for (let i = 0, length = oldSorted.length; i < length; i++) {
             times += 1;
@@ -166,7 +166,7 @@ export class StrandSortService {
             source[index].color = ACCENT_TWO_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[index].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -187,7 +187,7 @@ export class StrandSortService {
             source[j].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             source[j].color = CLEAR_COLOR;
@@ -206,7 +206,7 @@ export class StrandSortService {
             source[i].color = PRIMARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -219,7 +219,7 @@ export class StrandSortService {
             source[j].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[j].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -235,7 +235,7 @@ export class StrandSortService {
             source[k + lhs].color = ACCENT_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[k + lhs].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -254,7 +254,7 @@ export class StrandSortService {
             source[j].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             source[j].color = CLEAR_COLOR;
@@ -273,7 +273,7 @@ export class StrandSortService {
             source[i].color = PRIMARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -286,7 +286,7 @@ export class StrandSortService {
             source[j].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[j].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -302,7 +302,7 @@ export class StrandSortService {
             source[k + lhs].color = ACCENT_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[k + lhs].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -362,7 +362,7 @@ export class OptimalStrandSortService {
                 source[i].color = ACCENT_ONE_COLOR;
                 callback({ times, datalist: source });
     
-                await delay(SORT_DELAY_DURATION);
+                await delay();
     
                 source[i].color = CLEAR_COLOR;
                 callback({ times, datalist: source });
@@ -387,8 +387,8 @@ export class OptimalStrandSortService {
             length = oldUnsorted.length;
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
@@ -417,7 +417,7 @@ export class OptimalStrandSortService {
                 source[i].color = ACCENT_ONE_COLOR;
                 callback({ times, datalist: source });
     
-                await delay(SORT_DELAY_DURATION);
+                await delay();
     
                 source[i].color = CLEAR_COLOR;
                 callback({ times, datalist: source });
@@ -442,8 +442,8 @@ export class OptimalStrandSortService {
             length = oldUnsorted.length;
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async mergeByAscent(source: SortDataModel[], fst: number, snd: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
@@ -461,7 +461,7 @@ export class OptimalStrandSortService {
             source[j].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             source[j].color = CLEAR_COLOR;
@@ -480,7 +480,7 @@ export class OptimalStrandSortService {
             source[i].color = PRIMARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -493,7 +493,7 @@ export class OptimalStrandSortService {
             source[j].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[j].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -509,7 +509,7 @@ export class OptimalStrandSortService {
             source[k + lhs].color = ACCENT_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[k + lhs].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -533,7 +533,7 @@ export class OptimalStrandSortService {
             source[j].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             source[j].color = CLEAR_COLOR;
@@ -552,7 +552,7 @@ export class OptimalStrandSortService {
             source[i].color = PRIMARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -565,7 +565,7 @@ export class OptimalStrandSortService {
             source[j].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[j].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -581,7 +581,7 @@ export class OptimalStrandSortService {
             source[k + lhs].color = ACCENT_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[k + lhs].color = CLEAR_COLOR;
             callback({ times, datalist: source });

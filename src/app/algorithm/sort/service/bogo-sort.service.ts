@@ -3,99 +3,83 @@ import { Observable } from "rxjs";
 import { floor, random } from "lodash";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { delay } from "../../../public/global.utils";
 import { SortToolsService } from "../ngrx-store/sort.service";
-import { PRIMARY_COLOR, SECONDARY_COLOR, CLEAR_COLOR, ACCENT_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR } from "../../../public/values.utils";
+import { PRIMARY_COLOR, SECONDARY_COLOR, CLEAR_COLOR, ACCENT_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, START_COLOR, FINAL_COLOR } from "../../../public/global.utils";
+import { AbstractSortService } from "./base-sort.service";
 
 /**
  * 猴子排序
  */
 @Injectable()
-export class BogoSortService {
+export class BogoSortService extends AbstractSortService {
 
-    constructor(private _service: SortToolsService) {}
-
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: '' };
-
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-        });
+    constructor(private _service: SortToolsService) {
+        super();
     }
 
-    private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        const length: number = source.length;
-        let i: number, j: number, completed: boolean, flag: boolean;
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let i: number, j: number, threshold: number = -1, completed: boolean, flag: boolean, times: number = 0;
         
         while (true) {
             completed = true;
 
-            for (let k = length - 1; k >= 0 && completed; k--) {
+            for (let k = rhs; k >= lhs && completed; k--) {
                 i = k;
-                j = Math.max(k - 1, 0);
+                j = Math.max(k - 1, lhs);
                 completed = source[j].value <= source[i].value;
+                threshold = i;
 
-                [completed, times] = await this._service.swapAndRender(source, completed, false, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, false, false, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
             
             if (completed) break;
 
-            i = random(0, length - 1, false);
-            j = random(0, length - 1, false);
+            i = random(lhs, threshold, false);
+            j = random(lhs, threshold, false);
             flag = (i < j && source[i].value > source[j].value) || (i > j && source[i].value < source[j].value);
 
+            times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+
             if (!flag) continue;
 
             [completed, times] = await this._service.swapAndRender(source, completed, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-            await delay(SORT_DELAY_DURATION);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        const length: number = source.length;
-        let i: number, j: number, completed: boolean, flag: boolean;
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (parram: SortStateModel) => void): Promise<void> {
+        let i: number, j: number, threshold: number = -1, completed: boolean, flag: boolean, times: number = 0;
         
         while (true) {
             completed = true;
 
-            for (let k = 0; k <= length - 1 && completed; k++) {
+            for (let k = lhs; k <= rhs && completed; k++) {
                 i = k;
-                j = Math.min(k + 1, length - 1);
+                j = Math.min(k + 1, rhs);
                 completed = source[j].value <= source[i].value;
-                flag = random(0, 1, true) < 0.005 && !completed;
+                threshold = i;
 
-                [completed, times] = await this._service.swapAndRender(source, completed, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-
-                if (flag) break;
+                [completed, times] = await this._service.swapAndRender(source, false, false, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
 
             if (completed) break;
 
-            i = random(0, length - 1, false);
-            j = random(0, length - 1, false);
+            i = random(threshold, rhs, false);
+            j = random(threshold, rhs, false);
             flag = (i < j && source[i].value < source[j].value) || (i > j && source[i].value > source[j].value);
             
+            times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+
             if (!flag) continue;
 
             [completed, times] = await this._service.swapAndRender(source, completed, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-            await delay(SORT_DELAY_DURATION);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
 }
@@ -104,94 +88,78 @@ export class BogoSortService {
  * 猴子冒泡排序（单向）
  */
 @Injectable()
-export class BogoBubbleSortService {
+export class BogoBubbleSortService extends AbstractSortService {
 
-    constructor(private _service: SortToolsService) {}
-
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: '' };
-
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-        });
+    constructor(private _service: SortToolsService) {
+        super();
     }
 
-    private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        const length: number = source.length;
-        let completed: boolean, flag: boolean, threshold: number = length - 1, k: number;
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let completed: boolean, flag: boolean, threshold: number = -1, times: number = 0, k: number;
 
         while (true) {
             completed = true;
 
-            for (let i = length - 1; i >= 0; i--) {
-                k = Math.max(i - 1, 0);
-
-                [completed, times] = await this._service.swapAndRender(source, completed, false, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-
+            for (let i = rhs; i >= lhs && completed; i--) {
+                k = Math.max(i - 1, lhs);
                 completed = source[k].value <= source[i].value;
+                threshold = i;
 
-                if (!completed) {
-                    threshold = i;
-                    break;
-                }
+                await this._service.swapAndRender(source, false, false, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
 
             if (completed) break;
 
-            for (let i = 0; i <= threshold; i++) {
+            for (let i = lhs; i <= threshold; i++) {
                 k = random(Math.min(i + 1, threshold), threshold, false);
                 flag = source[k].value < source[i].value;
 
+                source[threshold].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
+    
                 [completed, times] = await this._service.swapAndRender(source, completed, flag, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
+            
+            source[threshold].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        const length: number = source.length;
-        let completed: boolean, flag: boolean, threshold: number = 0, k: number;
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let completed: boolean, flag: boolean, threshold: number = -1, times: number = 0, k: number;
 
         while (true) {
             completed = true;
 
-            for (let i = 0; i <= length - 1; i++) {
-                k = Math.min(i + 1, length - 1);
-
-                [completed, times] = await this._service.swapAndRender(source, completed, false, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-
+            for (let i = lhs; i <= rhs && completed; i++) {
+                k = Math.min(i + 1, rhs);
                 completed = source[k].value <= source[i].value;
+                threshold = i;
 
-                if (!completed) {
-                    threshold = i;
-                    break;
-                }
+                await this._service.swapAndRender(source, false, false, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
 
             if (completed) break;
 
-            for (let i = length - 1; i >= threshold; i--) {
+            for (let i = rhs; i >= threshold; i--) {
                 k = random(Math.max(i - 1, threshold), threshold, false);
                 flag = source[k].value < source[i].value;
 
+                source[threshold].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
+    
                 [completed, times] = await this._service.swapAndRender(source, completed, flag, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
+            
+            source[threshold].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
 }
@@ -200,142 +168,137 @@ export class BogoBubbleSortService {
  * 猴子冒泡排序（双向）
  */
 @Injectable()
-export class BogoCocktailSortService {
+export class BogoShakerBubbleSortService extends AbstractSortService {
 
-    constructor(private _service: SortToolsService) {}
-
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: 'whitesmoke' };
-
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-        });
+    constructor(private _service: SortToolsService) {
+        super();
     }
 
-    private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        const length: number = source.length;
-        let k: number, lhs: number = 0, rhs: number = length - 1, completed: boolean, flag: boolean;
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let completed: boolean, flag: boolean, start: number = lhs, final: number = rhs, times: number = 0, k: number;
         
         while (true) {
             completed = true;
 
-            for (let i = 0; i <= length - 1; i++) {
-                k = Math.min(i + 1, length - 1);
-
-                [completed, times] = await this._service.swapAndRender(source, completed, false, i, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
-
+            for (let i = lhs; i <= rhs && completed; i++) {
+                k = Math.min(i + 1, rhs);
                 completed = source[k].value >= source[i].value;
+                start = i;
 
-                if (!completed) {
-                    lhs = i;
-                    break;
-                }
+                await this._service.swapAndRender(source, false, false, i, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
             }
             
             if (completed) break;
 
-            for (let i = lhs; i <= rhs; i++) {
-                k = random(Math.min(i + 1, rhs), rhs, false);
+            for (let i = start; i <= final; i++) {
+                k = random(Math.min(i + 1, final), final, false);
                 flag = source[k].value < source[i].value;
+
+                source[start].color = START_COLOR;
+                source[final].color = FINAL_COLOR;
+                callback({ times, datalist: source });
 
                 [completed, times] = await this._service.swapAndRender(source, completed, flag, i, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
             }
 
+            source[start].color = CLEAR_COLOR;
+            source[final].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+
             completed = true;
 
-            for (let i = length - 1; i >= 0; i--) {
-                k = Math.max(i - 1, 0);
-                
-                [completed, times] = await this._service.swapAndRender(source, completed, false, i, k, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
-
+            for (let i = rhs; i >= lhs && completed; i--) {
+                k = Math.max(i - 1, lhs);
                 completed = source[k].value <= source[i].value;
+                final = i;
 
-                if (!completed) {
-                    rhs = i;
-                    break;
-                }
+                await this._service.swapAndRender(source, false, false, i, k, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
             }
 
             if (completed) break;
 
-            for (let i = rhs; i >= lhs; i--) {
-                k = random(lhs, Math.max(i - 1, lhs), false);
+            for (let i = final; i >= start; i--) {
+                k = random(start, Math.max(i - 1, start), false);
                 flag = source[k].value > source[i].value;
+
+                source[start].color = START_COLOR;
+                source[final].color = FINAL_COLOR;
+                callback({ times, datalist: source });
 
                 [completed, times] = await this._service.swapAndRender(source, completed, flag, i, k, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
             }
+            
+            source[start].color = CLEAR_COLOR;
+            source[final].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (parram: SortStateModel) => void): Promise<void> {
         const length: number = source.length;
-        let k: number, lhs: number = 0, rhs: number = length - 1, completed: boolean, flag: boolean;
-        
+        let completed: boolean, flag: boolean, start: number = rhs, final: number = lhs, times: number = 0, k: number;
+
         while (true) {
             completed = true;
 
-            for (let i = length - 1; i >= 0; i--) {
-                k = Math.max(i - 1, 0);
-                
-                [completed, times] = await this._service.swapAndRender(source, completed, false, i, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
-
+            for (let i = rhs; i >= lhs && completed; i--) {
+                k = Math.max(i - 1, lhs);
                 completed = source[k].value >= source[i].value;
+                start = i;
 
-                if (!completed) {
-                    rhs = i;
-                    break;
-                }
+                await this._service.swapAndRender(source, false, false, i, k, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
             }
 
             if (completed) break;
 
-            for (let i = rhs; i >= lhs; i--) {
-                k = random(lhs, Math.max(i - 1, lhs), false);
+            for (let i = start; i >= final; i--) {
+                k = random(final, Math.max(i - 1, final), false);
                 flag = source[k].value < source[i].value;
 
-                [completed, times] = await this._service.swapAndRender(source, completed, flag, i, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                source[start].color = START_COLOR;
+                source[final].color = FINAL_COLOR;
+                callback({ times, datalist: source });
+
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, i, k, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
             }
+            
+            source[start].color = CLEAR_COLOR;
+            source[final].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
 
             completed = true;
-
-            for (let i = 0; i <= length - 1; i++) {
-                k = Math.min(i + 1, length - 1);
-
-                [completed, times] = await this._service.swapAndRender(source, completed, false, i, k, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
-
+            
+            for (let i = lhs; i <= rhs && completed; i++) {
+                k = Math.min(i + 1, rhs);
                 completed = source[k].value <= source[i].value;
+                final = i;
 
-                if (!completed) {
-                    lhs = i;
-                    break;
-                }
+                await this._service.swapAndRender(source, false, false, i, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
             }
             
             if (completed) break;
 
-            for (let i = lhs; i <= rhs; i++) {
-                k = random(Math.min(i + 1, rhs), rhs, false);
+            for (let i = final; i <= start; i++) {
+                k = random(Math.min(i + 1, start), start, false);
                 flag = source[k].value > source[i].value;
 
-                [completed, times] = await this._service.swapAndRender(source, completed, flag, i, k, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+                source[start].color = START_COLOR;
+                source[final].color = FINAL_COLOR;
+                callback({ times, datalist: source });
+
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, i, k, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
             }
+
+            source[start].color = CLEAR_COLOR;
+            source[final].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
 }
@@ -344,96 +307,88 @@ export class BogoCocktailSortService {
  * 猴子插入排序
  */
 @Injectable()
-export class BogoInsertionSortService {
+export class BogoInsertionSortService extends AbstractSortService {
 
-    constructor(private _service: SortToolsService) {}
+    constructor(private _service: SortToolsService) {
+        super();
+    }
 
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: '' };
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let k: number, threshold: number = 0, times: number = 0, completed: boolean, flag: boolean;
+        
+        while (true) {
+            completed = true;
 
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
+            for (let i = lhs; i <= rhs && completed; i++) {
+                k = Math.min(i + 1, rhs);
+                completed = source[k].value >= source[i].value;
+                threshold = i;
+
+                [completed, times] = await this._service.swapAndRender(source, completed, false, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
+            
+            if (completed) break;
+
+            flag = true;
+
+            if (this.COIN_FLAG()) {
+                for (let i = Math.min(threshold + 1, rhs); i >= lhs && flag; i--) {
+                    k = Math.max(i - 1, lhs);
+                    flag = source[k].value > source[i].value;
     
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
+                    [completed, times] = await this._service.swapAndRender(source, completed, flag, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                }
+            } else {
+                for (let i = random(Math.min(threshold + 1, rhs), rhs, false); i >= threshold && flag; i--) {
+                    k = Math.max(i - 1, threshold);
+                    flag = source[k].value > source[i].value;
+    
+                    [completed, times] = await this._service.swapAndRender(source, completed, flag, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                }
             }
-        });
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
     }
 
-    private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        const length: number = source.length;
-        let i: number, k: number, threshold: number = 0, completed: boolean = false, flag: boolean;
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (parram: SortStateModel) => void): Promise<void> {
+        let k: number, threshold: number = 0, times: number = 0, completed: boolean, flag: boolean;
         
         while (true) {
             completed = true;
 
-            for (let j = 0; j <= length - 1 && completed; j++) {
-                k = Math.min(j + 1, length - 1);
-                completed = source[k].value >= source[j].value;
+            for (let i = rhs; i >= lhs && completed; i--) {
+                k = Math.max(i - 1, lhs);
+                completed = source[k].value >= source[i].value;
+                threshold = i;
 
-                if (!completed) {
-                    threshold = j;
-                }
-
-                [completed, times] = await this._service.swapAndRender(source, completed, false, k, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                [completed, times] = await this._service.swapAndRender(source, completed, false, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
             
             if (completed) break;
 
-            i = random(Math.max(threshold, 1), length - 1, false);
             flag = true;
-            
-            for (let j = i; j >= 0 && flag; j--) {
-                k = Math.max(j - 1, 0);
-                flag = source[k].value > source[j].value;
 
-                [completed, times] = await this._service.swapAndRender(source, completed, flag, k, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-            }
-        }
-
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
-    }
-
-    private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        const length: number = source.length;
-        let i: number, k: number, threshold: number = length - 2, completed: boolean = false, flag: boolean;
-        
-        while (true) {
-            completed = true;
-
-            for (let j = length - 1; j >= 0 && completed; j--) {
-                k = Math.max(j - 1, 0);
-                completed = source[k].value >= source[j].value;
-
-                if (!completed) {
-                    threshold = j;
+            if (this.COIN_FLAG()) {
+                for (let i = Math.max(threshold - 1, lhs); i <= rhs && flag; i++) {
+                    k = Math.min(i + 1, rhs);
+                    flag = source[k].value > source[i].value;
+    
+                    [completed, times] = await this._service.swapAndRender(source, completed, flag, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
                 }
-
-                [completed, times] = await this._service.swapAndRender(source, completed, false, k, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-            }
-            
-            if (completed) break;
-
-            i = random(0, Math.min(threshold, length - 2), false);
-            flag = true;
-            
-            for (let j = i; j <= length - 1 && flag; j++) {
-                k = Math.min(j + 1, length - 1);
-                flag = source[k].value > source[j].value;
-
-                [completed, times] = await this._service.swapAndRender(source, completed, flag, k, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            } else {
+                for (let i = random(lhs, Math.max(threshold - 1, lhs), false); i <= threshold && flag; i++) {
+                    k = Math.min(i + 1, threshold);
+                    flag = source[k].value > source[i].value;
+    
+                    [completed, times] = await this._service.swapAndRender(source, completed, flag, i, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                }
             }
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
 }
@@ -442,129 +397,102 @@ export class BogoInsertionSortService {
  * 猴子选择排序
  */
 @Injectable()
-export class BogoSelectionSortService {
+export class BogoSelectionSortService extends AbstractSortService {
 
-    constructor(private _service: SortToolsService) {}
-
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: '' };
-
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-        });
+    constructor(private _service: SortToolsService) {
+        super();
     }
 
-    private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        const length: number = source.length;
-        let i: number, j: number, completed: boolean = false, flag: boolean;
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let j: number, k: number = -1, times: number = 0, completed: boolean;
         
         while (true) {
             completed = true;
 
-            for (let k = length - 1; k >= 0 && completed; k--) {
-                i = k;
-                j = Math.max(k - 1, 0);
-                completed = source[j].value <= source[i].value;
+            for (let i = lhs; i <= rhs && completed; i++) {
+                j = Math.min(i + 1, rhs);
+                completed = source[j].value >= source[i].value;
+                k = i;
 
-                [completed, times] = await this._service.swapAndRender(source, completed, false, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                await this._service.swapAndRender(source, false, false, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
             
             if (completed) break;
 
-            i = random(0, length - 1, false);
-            j = i;
-            
-            for (let k = Math.min(i + 1, length - 1); k <= length - 1; k++) {
-                flag = source[k].value < source[j].value;
-                
-                source[i].color = PRIMARY_COLOR;
-                source[j].color = i === j ? PRIMARY_COLOR : SECONDARY_COLOR;
+            j = this.COIN_FLAG() ? Math.min(k, rhs) : random(Math.min(k, rhs), rhs, false);
+            k = j;
+
+            for (let i = Math.min(j + 1, rhs); i <= rhs; i++) {
+                source[j].color = PRIMARY_COLOR;
+                source[i].color = SECONDARY_COLOR;
                 source[k].color = ACCENT_COLOR;
                 callback({ times, datalist: source });
 
-                if (flag) {
-                    source[j].color = CLEAR_COLOR;
-                    j = k;
+                if (source[i].value < source[k].value) {
+                    source[k].color = CLEAR_COLOR;
+
+                    k = i;
                 }
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
-                source[i].color = PRIMARY_COLOR;
-                source[j].color = i === j ? PRIMARY_COLOR : SECONDARY_COLOR;
-                source[k].color = CLEAR_COLOR;
+                source[j].color = PRIMARY_COLOR;
+                source[i].color = CLEAR_COLOR;
+                source[k].color = ACCENT_COLOR;
                 callback({ times, datalist: source });
             }
 
-            flag = i < j && source[i].value > source[j].value;
-
-            [completed, times] = await this._service.swapAndRender(source, completed, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            [completed, times] = await this._service.swapAndRender(source, completed, j !== k, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        const length: number = source.length;
-        let i: number, j: number, completed: boolean = false, flag: boolean;
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (parram: SortStateModel) => void): Promise<void> {
+        let j: number, k: number = -1, times: number = 0, completed: boolean;
         
         while (true) {
             completed = true;
 
-            for (let k = 0; k <= length - 1 && completed; k++) {
-                i = k;
-                j = Math.min(k + 1, length - 1);
-                completed = source[j].value <= source[i].value;
-                flag = random(0, 1, true) < 0.005 && !completed;
+            for (let i = rhs; i >= lhs && completed; i--) {
+                j = Math.max(i - 1, lhs);
+                completed = source[j].value >= source[i].value;
+                k = i;
 
-                [completed, times] = await this._service.swapAndRender(source, completed, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-
-                if (flag) break;
+                await this._service.swapAndRender(source, false, false, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
-
+            
             if (completed) break;
 
-            i = random(0, length - 1, false);
-            j = i;
-            
-            for (let k = Math.max(i - 1, 0); k >= 0; k--) {
-                flag = source[k].value < source[j].value;
-                
-                source[i].color = PRIMARY_COLOR;
-                source[j].color = i === j ? PRIMARY_COLOR : SECONDARY_COLOR;
+            j = this.COIN_FLAG() ? Math.max(k, lhs) : random(lhs, Math.max(k, lhs), false);
+            k = j;
+
+            for (let i = Math.max(k - 1, lhs); i >= lhs; i--) {
+                source[j].color = PRIMARY_COLOR;
+                source[i].color = SECONDARY_COLOR;
                 source[k].color = ACCENT_COLOR;
                 callback({ times, datalist: source });
 
-                if (flag) {
-                    source[j].color = CLEAR_COLOR;
-                    j = k;
+                if (source[i].value < source[k].value) {
+                    source[k].color = CLEAR_COLOR;
+
+                    k = i;
                 }
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
-                source[i].color = PRIMARY_COLOR;
-                source[j].color = i === j ? PRIMARY_COLOR : SECONDARY_COLOR;
-                source[k].color = CLEAR_COLOR;
+                source[j].color = PRIMARY_COLOR;
+                source[i].color = CLEAR_COLOR;
+                source[k].color = ACCENT_COLOR;
                 callback({ times, datalist: source });
             }
 
-            flag = i > j && source[i].value > source[j].value;
-
-            [completed, times] = await this._service.swapAndRender(source, completed, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            [completed, times] = await this._service.swapAndRender(source, completed, j !== k, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
 }

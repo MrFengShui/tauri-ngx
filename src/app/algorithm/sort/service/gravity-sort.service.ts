@@ -3,9 +3,9 @@ import { Observable } from "rxjs";
 import { cloneDeep } from "lodash";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { delay } from "../../../public/global.utils";
 import { SortToolsService } from "../ngrx-store/sort.service";
-import { ACCENT_COLOR, CLEAR_COLOR } from "../../../public/values.utils";
+import { ACCENT_COLOR, CLEAR_COLOR } from "../../../public/global.utils";
 
 /**
  * 重力排序
@@ -37,7 +37,7 @@ export class GravitySortService {
             source[i].color = ACCENT_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -76,11 +76,11 @@ export class GravitySortService {
             }
 
             callback({ times, datalist: source });
-            await delay(SORT_DELAY_DURATION);
+            await delay();
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
@@ -93,7 +93,7 @@ export class GravitySortService {
             source[i].color = ACCENT_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -132,11 +132,11 @@ export class GravitySortService {
             }
 
             callback({ times, datalist: source });
-            await delay(SORT_DELAY_DURATION);
+            await delay();
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
 }

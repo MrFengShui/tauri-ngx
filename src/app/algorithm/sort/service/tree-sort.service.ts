@@ -2,8 +2,8 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
-import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR } from "../../../public/values.utils";
+import { delay } from "../../../public/global.utils";
+import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR } from "../../../public/global.utils";
 
 type Node = { index: number, value: number, parent?: Node };
 type BSTNode = { value: number; left?: BSTNode; right?: BSTNode; };
@@ -37,7 +37,7 @@ export class BinarySearchTreeSortService {
             source[i].color = ACCENT_ONE_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -54,14 +54,14 @@ export class BinarySearchTreeSortService {
             source[i].color = ACCENT_TWO_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
         this.target.splice(0);
     }
 
@@ -74,7 +74,7 @@ export class BinarySearchTreeSortService {
             source[i].color = ACCENT_ONE_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -91,14 +91,14 @@ export class BinarySearchTreeSortService {
             source[i].color = ACCENT_TWO_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
         this.target.splice(0);
     }
 
@@ -203,7 +203,7 @@ export class TournamentSortService {
             source[index].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             source[index].color = CLEAR_COLOR;
@@ -212,8 +212,8 @@ export class TournamentSortService {
             this.tree[depth - 1][index].value = Number.MAX_SAFE_INTEGER;
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
         await this.clear();
     }
 
@@ -234,7 +234,7 @@ export class TournamentSortService {
             source[index].color = SECONDARY_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             source[index].color = CLEAR_COLOR;
@@ -243,8 +243,8 @@ export class TournamentSortService {
             this.tree[depth - 1][index].value = Number.MIN_SAFE_INTEGER;
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async createTree(source: SortDataModel[], depth: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
@@ -258,7 +258,7 @@ export class TournamentSortService {
                     source[j].color = ACCENT_COLOR;
                     callback({ times, datalist: source });
 
-                    await delay(SORT_DELAY_DURATION);
+                    await delay();
 
                     source[j].color = CLEAR_COLOR;
                     callback({ times, datalist: source });

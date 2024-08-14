@@ -2,8 +2,9 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
-import { PRIMARY_COLOR, SECONDARY_COLOR, CLEAR_COLOR } from "../../../public/values.utils";
+import { swap } from "../sort.utils";
+import { delay } from "../../../public/global.utils";
+import { PRIMARY_COLOR, SECONDARY_COLOR, CLEAR_COLOR } from "../../../public/global.utils";
 
 /**
  * 奇偶归并排序（自顶向下）
@@ -27,14 +28,14 @@ export class TopDownOddEvenMergeSortService {
 
     private async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
         times = await this.sortByOrder(source, lhs, rhs, temp, 'ascent', times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
         times = await this.sortByOrder(source, lhs, rhs, temp, 'descent', times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, order: SortOrder, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
@@ -67,7 +68,7 @@ export class TopDownOddEvenMergeSortService {
                 source[i + dist].color = SECONDARY_COLOR;
                 callback({ times, datalist: source});  
     
-                await delay(SORT_DELAY_DURATION);
+                await delay();
     
                 if (source[i].value > source[i + dist].value) {
                     await swap(source, i, i + dist);
@@ -83,7 +84,7 @@ export class TopDownOddEvenMergeSortService {
             source[lhs + dist].color = SECONDARY_COLOR;
             callback({ times, datalist: source});  
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             if (source[lhs].value > source[lhs + dist].value) {
                 await swap(source, lhs, lhs + dist);
@@ -110,7 +111,7 @@ export class TopDownOddEvenMergeSortService {
                 source[i + dist].color = SECONDARY_COLOR;
                 callback({ times, datalist: source});  
     
-                await delay(SORT_DELAY_DURATION);
+                await delay();
     
                 if (source[i].value < source[i + dist].value) {
                     await swap(source, i, i + dist);
@@ -126,7 +127,7 @@ export class TopDownOddEvenMergeSortService {
             source[lhs + dist].color = SECONDARY_COLOR;
             callback({ times, datalist: source});  
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             if (source[lhs].value < source[lhs + dist].value) {
                 await swap(source, lhs, lhs + dist);
@@ -172,8 +173,8 @@ export class BottomUpOddEvenMergeSortService {
             }
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
@@ -185,8 +186,8 @@ export class BottomUpOddEvenMergeSortService {
             }
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async mergeByAscent(source: SortDataModel[], low: number, size: number, span: number, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
@@ -205,7 +206,7 @@ export class BottomUpOddEvenMergeSortService {
                 times += 1;
             }
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i + low].color = CLEAR_COLOR;
             source[i + low + span].color = CLEAR_COLOR;
@@ -231,7 +232,7 @@ export class BottomUpOddEvenMergeSortService {
                 times += 1;
             }
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i + low].color = CLEAR_COLOR;
             source[i + low + span].color = CLEAR_COLOR;

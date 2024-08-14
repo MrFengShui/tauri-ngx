@@ -2,9 +2,10 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { swap } from "../sort.utils";
+import { delay } from "../../../public/global.utils";
 import { SortToolsService } from "../ngrx-store/sort.service";
-import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, FINAL_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, START_COLOR } from "../../../public/values.utils";
+import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, FINAL_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, START_COLOR } from "../../../public/global.utils";
 
 /**
  * 插入排序
@@ -34,14 +35,14 @@ export class InsertionSortService {
 
     private async sortByAscent(source: SortDataModel[], times: number, temp: SortDataModel, callback: (param: SortStateModel) => void): Promise<void> {
         times = await this._service.stableGapSortByAscent(source, 0, source.length - 1, 1, 1, times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, temp: SortDataModel, callback: (parram: SortStateModel) => void): Promise<void> {
         times = await this._service.stableGapSortByDescent(source, 0, source.length - 1, 1, 1, times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
 }
@@ -99,8 +100,8 @@ export class BinarySearchInserionSortService {
             callback({ times, datalist: source });
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, temp: SortDataModel, callback: (parram: SortStateModel) => void): Promise<void> {
@@ -130,8 +131,8 @@ export class BinarySearchInserionSortService {
             callback({ times, datalist: source });
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
 }
@@ -169,8 +170,8 @@ export class ShellSortService {
             times = await this._service.stableGapSortByAscent(source, 0, length - 1, gap, 1, times, callback);
         }
         
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], times: number, temp: SortDataModel, callback: (parram: SortStateModel) => void): Promise<void> {
@@ -178,8 +179,8 @@ export class ShellSortService {
             times = await this._service.stableGapSortByDescent(source, 0, length - 1, gap, 1, times, callback);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
 }
@@ -231,7 +232,7 @@ export class LibrarySortService {
                 this.cache[cacheIndex].color = ACCENT_COLOR;
                 callback({ times, datalist: this.cache });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 this.cache[cacheIndex].color = CLEAR_COLOR;
                 callback({ times, datalist: this.cache });
@@ -250,7 +251,7 @@ export class LibrarySortService {
 
             times = await this.load(source, times, callback);
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
             callback({ times, datalist: source });
 
             this.cache.splice(0);
@@ -262,8 +263,8 @@ export class LibrarySortService {
             }
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], gap: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
@@ -287,7 +288,7 @@ export class LibrarySortService {
                 this.cache[cacheIndex].color = PRIMARY_COLOR;
                 callback({ times, datalist: this.cache });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 this.cache[cacheIndex].color = CLEAR_COLOR;
                 callback({ times, datalist: this.cache });
@@ -306,7 +307,7 @@ export class LibrarySortService {
 
             times = await this.load(source, times, callback);
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
             callback({ times, datalist: source });
 
             this.cache.splice(0);
@@ -318,8 +319,8 @@ export class LibrarySortService {
             }
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async insert(flag: boolean, lhs: number, rhs: number, cacheIndex: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[boolean, number]> {
@@ -339,7 +340,7 @@ export class LibrarySortService {
                 break;
             }
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             this.cache[cacheIndex].color = CLEAR_COLOR;
             this.cache[i].color = CLEAR_COLOR;
@@ -356,7 +357,7 @@ export class LibrarySortService {
             source[i].color = ACCENT_ONE_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             callback({ times, datalist: source });
@@ -384,7 +385,7 @@ export class LibrarySortService {
                 source[pivot].color = ACCENT_TWO_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[pivot].color = CLEAR_COLOR;
                 callback({ times, datalist: source });
@@ -485,8 +486,8 @@ export class GnomeSortService {
             callback({ times, datalist: source });
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
@@ -516,8 +517,8 @@ export class GnomeSortService {
             callback({ times, datalist: source });
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
 }

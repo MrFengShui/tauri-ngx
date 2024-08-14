@@ -2,8 +2,9 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
-import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR } from "../../../public/values.utils";
+import { swap } from "../sort.utils";
+import { delay } from "../../../public/global.utils";
+import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR } from "../../../public/global.utils";
 
 /**
  * 慢速排序
@@ -27,14 +28,14 @@ export class SlowSortService {
 
     private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
         times = await this.sortByOrder(source, 0, source.length - 1, temp, 'ascent', times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
         times = await this.sortByOrder(source, 0, source.length - 1, temp, 'descent', times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, order: SortOrder, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
@@ -62,7 +63,7 @@ export class SlowSortService {
 
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[lhs].color = CLEAR_COLOR;
             source[mid].color = CLEAR_COLOR;

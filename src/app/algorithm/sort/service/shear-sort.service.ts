@@ -2,9 +2,10 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+import { swap } from "../sort.utils";
+import { delay } from "../../../public/global.utils";
 import { SortToolsService } from "../ngrx-store/sort.service";
-import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR, ACCENT_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
+import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR, ACCENT_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
 
 type ShearMode = 'insertion' | 'selection';
 
@@ -64,8 +65,8 @@ export class ShearSortService {
 
         times = await this.walk(source, rows, times, callback);
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await this.complete(source, times, callback);
         this.matrix.forEach(array => array.splice(0));
         this.matrix.splice(0);
     }
@@ -89,8 +90,8 @@ export class ShearSortService {
 
         times = await this.walk(source, rows, times, callback);
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await this.complete(source, times, callback);
         this.matrix.forEach(array => array.splice(0));
         this.matrix.splice(0);
     }
@@ -219,7 +220,7 @@ export class ShearSortService {
                 source[index].color = ACCENT_ONE_COLOR;
                 callback({ times, datalist: source });
     
-                await delay(SORT_DELAY_DURATION);
+                await delay();
     
                 source[index].color = CLEAR_COLOR;
                 callback({ times, datalist: source });
@@ -245,7 +246,7 @@ export class ShearSortService {
                 source[index].color = ACCENT_TWO_COLOR;
                 callback({ times, datalist: source });
     
-                await delay(SORT_DELAY_DURATION);
+                await delay();
     
                 source[index].color = CLEAR_COLOR;
                 callback({ times, datalist: source });
@@ -269,7 +270,7 @@ export class ShearSortService {
                     source[index].color = ACCENT_COLOR;
                     callback({ times, datalist: source });
         
-                    await delay(SORT_DELAY_DURATION);
+                    await delay();
         
                     source[index].color = CLEAR_COLOR;
                     callback({ times, datalist: source });
@@ -284,7 +285,7 @@ export class ShearSortService {
                     source[index].color = ACCENT_COLOR;
                     callback({ times, datalist: source });
         
-                    await delay(SORT_DELAY_DURATION);
+                    await delay();
         
                     source[index].color = CLEAR_COLOR;
                     callback({ times, datalist: source });
@@ -384,8 +385,8 @@ export class OptimalShearSortService {
             }
         } 
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await this.complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], mode: ShearMode, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
@@ -447,8 +448,8 @@ export class OptimalShearSortService {
             }
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await this.complete(source, times, callback);
     }
 
     private async insertionSortByAscent(source: SortDataModel[], lhs: number, rhs: number, gap: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[boolean, number]> {
@@ -465,7 +466,7 @@ export class OptimalShearSortService {
                 callback({ times, datalist: source });
 
                 await swap(source, j + gap, j);
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[i].color = ACCENT_COLOR;
                 source[j].color = CLEAR_COLOR;
@@ -494,7 +495,7 @@ export class OptimalShearSortService {
                 callback({ times, datalist: source});
                 
                 await swap(source, j, j - gap);
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 callback({ times, datalist: source});
                 source[j].color = CLEAR_COLOR;
@@ -522,7 +523,7 @@ export class OptimalShearSortService {
                 source[k].color = ACCENT_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 if (source[j].value < value) {
                     source[k].color = CLEAR_COLOR;
@@ -559,7 +560,7 @@ export class OptimalShearSortService {
                 source[k].color = ACCENT_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 if (source[j].value < value) {
                     source[k].color = CLEAR_COLOR;

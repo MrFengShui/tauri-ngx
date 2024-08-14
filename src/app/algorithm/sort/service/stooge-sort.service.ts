@@ -2,76 +2,67 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
-import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
+import { delay } from "../../../public/global.utils";
+import { ACCENT_COLOR, CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
+import { AbstractSortService } from "./base-sort.service";
+import { SortToolsService } from "../ngrx-store/sort.service";
 
 /**
  * 臭皮匠排序（递归）
  */
 @Injectable()
-export class RecursiveStoogeSortService {
+export class RecursiveStoogeSortService extends AbstractSortService {
 
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+    constructor(private _service: SortToolsService) {
+        super();
+    }
 
-            if (order === 'ascent') {
-                this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = await this.sortByOrder(source, lhs, rhs, 'ascent', 0, callback);
+        await delay();
+        // await complete(source, times, callback);
+    }
+
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = await this.sortByOrder(source, lhs, rhs, 'descent', 0, callback);
+        await delay();
+        // await complete(source, times, callback);
+    }
+
+    private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let mid: number;
+
+        if (order === 'ascent') {
+            if (source[lhs].value > source[rhs].value) {
+                await this._service.swapAndRender(source, false, true, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+                times += 1;
             }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+
+            if (rhs - lhs + 1 >= 3) {
+                mid = Math.floor((rhs - lhs + 1)  / 3);
+                times = await this.sortByOrder(source, lhs, rhs - mid, order, times, callback);
+                times = await this.sortByOrder(source, lhs + mid, rhs, order, times, callback);
+                times = await this.sortByOrder(source, lhs, rhs - mid, order, times, callback);
             }
-        });
-    }
-
-    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        times = await this.sortByOrder(source, 0, source.length - 1, temp, 'ascent', times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
-    }
-
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        times = await this.sortByOrder(source, 0, source.length - 1, temp, 'descent', times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
-    }
-
-    private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        if (order === 'ascent' && source[lhs].value > source[rhs].value) {
-            source[lhs].color = PRIMARY_COLOR;
-            source[rhs].color = SECONDARY_COLOR;
-            callback({ times, datalist: source });
-
-            times += 1;
-            await swap(source, lhs, rhs);
-            await delay(SORT_DELAY_DURATION);
-
-            source[lhs].color = CLEAR_COLOR;
-            source[rhs].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
         }
 
-        if (order === 'descent' && source[lhs].value < source[rhs].value) {
-            source[lhs].color = PRIMARY_COLOR;
-            source[rhs].color = SECONDARY_COLOR;
-            callback({ times, datalist: source });
+        if (order === 'descent') {
+            if (source[lhs].value < source[rhs].value) {
+                await this._service.swapAndRender(source, false, true, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
 
-            times += 1;
-            await swap(source, lhs, rhs);
-            await delay(SORT_DELAY_DURATION);
-
-            source[lhs].color = CLEAR_COLOR;
-            source[rhs].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
+                times += 1;
+            }
+            
+            if (rhs - lhs + 1 >= 3) {
+                mid = Math.floor((rhs - lhs + 1)  / 3);
+                times = await this.sortByOrder(source, lhs + mid, rhs, order, times, callback);
+                times = await this.sortByOrder(source, lhs, rhs - mid, order, times, callback);
+                times = await this.sortByOrder(source, lhs + mid, rhs, order, times, callback);
+            }
         }
 
-        if (rhs - lhs + 1 >= 3) {
-            const mid: number = Math.floor((rhs - lhs + 1)  / 3);
-            times = await this.sortByOrder(source, lhs, rhs - mid, temp, order, times, callback);
-            times = await this.sortByOrder(source, lhs + mid, rhs, temp, order, times, callback);
-            times = await this.sortByOrder(source, lhs, rhs - mid, temp, order, times, callback);
-        }
+        
 
         return times;
     }
@@ -82,105 +73,90 @@ export class RecursiveStoogeSortService {
  * 臭皮匠排序（迭代）
  */
 @Injectable()
-export class IterativeStoogeSortService {
+export class IterativeStoogeSortService extends AbstractSortService {
 
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
-
-            if (order === 'ascent') {
-                this.sortByAscent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-        });
+    constructor(private _service: SortToolsService) {
+        super();
     }
 
-    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let stack: number[] = Array.from([]), lhs: number = 0, rhs: number = source.length - 1, mid: number;
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let mid: number, times: number = 0;
 
-        stack.push(rhs);
-        stack.push(lhs);
+        this.stack.push(rhs);
+        this.stack.push(lhs);
 
-        while (stack.length > 0) {
-            lhs = stack.pop() as number;
-            rhs = stack.pop() as number;
+        while (this.stack.length > 0) {
+            lhs = this.stack.pop() as number;
+            rhs = this.stack.pop() as number;
 
             if (source[lhs].value > source[rhs].value) {
-                source[lhs].color = PRIMARY_COLOR;
-                source[rhs].color = SECONDARY_COLOR;
-                callback({ times, datalist: source });
+                await this._service.swapAndRender(source, false, true, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
 
                 times += 1;
-                await swap(source, lhs, rhs);
-                await delay(SORT_DELAY_DURATION);
-
-                source[lhs].color = CLEAR_COLOR;
-                source[rhs].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
             }
 
-            stack = await this.push(stack, lhs, rhs);
+            if (rhs - lhs + 1 >= 3) {
+                mid = Math.floor((rhs - lhs + 1)  / 3);
+    
+                if (lhs < rhs - mid) {
+                    this.stack.push(rhs - mid);
+                    this.stack.push(lhs);
+                }
+    
+                if (lhs + mid < rhs) {
+                    this.stack.push(rhs);
+                    this.stack.push(lhs + mid);
+                }
+    
+                if (lhs < rhs - mid) {
+                    this.stack.push(rhs - mid);
+                    this.stack.push(lhs);
+                }
+            }
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let stack: number[] = Array.from([]), lhs: number = 0, rhs: number = source.length - 1, mid: number;
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let mid: number, times: number = 0;
 
-        stack.push(rhs);
-        stack.push(lhs);
+        this.stack.push(lhs);
+        this.stack.push(rhs);
 
-        while (stack.length > 0) {
-            lhs = stack.pop() as number;
-            rhs = stack.pop() as number;
+        while (this.stack.length > 0) {
+            rhs = this.stack.pop() as number;
+            lhs = this.stack.pop() as number;
 
             if (source[lhs].value < source[rhs].value) {
-                source[lhs].color = PRIMARY_COLOR;
-                source[rhs].color = SECONDARY_COLOR;
-                callback({ times, datalist: source });
+                await this._service.swapAndRender(source, false, true, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
 
                 times += 1;
-                await swap(source, lhs, rhs);
-                await delay(SORT_DELAY_DURATION);
-
-                source[lhs].color = CLEAR_COLOR;
-                source[rhs].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
             }
 
-            stack = await this.push(stack, lhs, rhs);
-        }
-
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
-    }
-
-    private async push(stack: number[], lhs: number, rhs: number): Promise<number[]> { 
-        if (rhs - lhs + 1 >= 3) {
-            const mid: number = Math.floor((rhs - lhs + 1)  / 3);
-
-            if (lhs < rhs - mid) {
-                stack.push(rhs - mid);
-                stack.push(lhs);
-            }
-
-            if (lhs + mid < rhs) {
-                stack.push(rhs);
-                stack.push(lhs + mid);
-            }
-
-            if (lhs < rhs - mid) {
-                stack.push(rhs - mid);
-                stack.push(lhs);
+            if (rhs - lhs + 1 >= 3) {
+                mid = Math.floor((rhs - lhs + 1)  / 3);
+    
+                if (lhs + mid < rhs) {
+                    this.stack.push(lhs + mid);
+                    this.stack.push(rhs);
+                }
+    
+                if (lhs < rhs - mid) {
+                    this.stack.push(lhs);
+                    this.stack.push(rhs - mid);
+                }
+    
+                if (lhs + mid < rhs) {
+                    this.stack.push(lhs + mid);
+                    this.stack.push(rhs);
+                }
             }
         }
 
-        return stack;
+        await delay();
+        // await complete(source, times, callback);
     }
 
 }

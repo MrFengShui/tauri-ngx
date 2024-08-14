@@ -2,8 +2,9 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
-import { CLEAR_COLOR, ACCENT_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR } from "../../../public/values.utils";
+import { swap } from "../sort.utils";
+import { delay } from "../../../public/global.utils";
+import { CLEAR_COLOR, ACCENT_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR } from "../../../public/global.utils";
 
 @Injectable()
 export class PancakeSortService {
@@ -37,7 +38,7 @@ export class PancakeSortService {
                 callback({ times, datalist: source});
 
                 await swap(source, j, k);
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[index].color = ACCENT_COLOR;
                 source[j].color = CLEAR_COLOR;
@@ -54,14 +55,14 @@ export class PancakeSortService {
                 callback({ times, datalist: source});
 
                 await swap(source, i, 0);
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[index].color = ACCENT_COLOR;
                 source[i].color = CLEAR_COLOR;
                 source[0].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
             }
 
             for (let j = i - 1, k = 1; j > k; j--, k++) {
@@ -73,7 +74,7 @@ export class PancakeSortService {
                 callback({ times, datalist: source});
 
                 await swap(source, j, k);
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[index].color = ACCENT_COLOR;
                 source[j].color = CLEAR_COLOR;
@@ -84,8 +85,8 @@ export class PancakeSortService {
             source[index].color = CLEAR_COLOR;
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
@@ -103,7 +104,7 @@ export class PancakeSortService {
                 callback({ times, datalist: source});
 
                 await swap(source, j, k);
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[index].color = ACCENT_COLOR;
                 source[j].color = CLEAR_COLOR;
@@ -120,14 +121,14 @@ export class PancakeSortService {
                 callback({ times, datalist: source});
 
                 await swap(source, i, 0);
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[index].color = ACCENT_COLOR;
                 source[i].color = CLEAR_COLOR;
                 source[0].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
             }
 
             for (let j = i - 1, k = 1; j > k; j--, k++) {
@@ -139,7 +140,7 @@ export class PancakeSortService {
                 callback({ times, datalist: source});
 
                 await swap(source, j, k);
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[index].color = ACCENT_COLOR;
                 source[j].color = CLEAR_COLOR;
@@ -150,8 +151,8 @@ export class PancakeSortService {
             source[index].color = CLEAR_COLOR;
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async indexOfMinData(source: SortDataModel[], lhs: number, rhs: number): Promise<number> {

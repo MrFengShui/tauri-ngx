@@ -5,7 +5,7 @@ import { random } from "lodash";
 import { MazeToolsService } from "../ngrx-store/maze.service";
 import { MazeDataModel, MazeGridCell, MazeGridPoint, MazeGridRange, MazeRunType } from "../ngrx-store/maze.state";
 import { delay, MAZE_DELAY_DURATION } from "../maze.utils";
-import { ACCENT_COLOR, EMPTY_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/values.utils";
+import { ACCENT_COLOR, EMPTY_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
 
 /**
  * 绕线机算法

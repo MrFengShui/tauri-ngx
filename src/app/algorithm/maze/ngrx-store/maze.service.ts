@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { AsyncSubject, BehaviorSubject, debounceTime, Observable, of, Subject, throttleTime } from "rxjs";
 
 import { MazeDataModel, MazeGridPoint } from "./maze.state";
-import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, EMPTY_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR } from "../../../public/values.utils";
+import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, EMPTY_COLOR, PRIMARY_COLOR, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR } from "../../../public/global.utils";
 import { MazeActionType, MazeActionmName, MazeGridCell } from "./maze.state";
 
 import { MazeGenerationRandomizedBacktrackerService } from "../service/backtracker-maze.service";

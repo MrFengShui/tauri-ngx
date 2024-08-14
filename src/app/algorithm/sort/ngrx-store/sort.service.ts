@@ -6,23 +6,25 @@ import { DES, HmacSHA256, enc } from 'crypto-js';
 
 import { SortDataModel, SortStateModel, SortOrder, SortRadix, SortOrderOptionModel, SortRadixOptionModel, SortMergeWayOptionModel, SortHeapNodeOptionModel, SortMetadataModel } from "../ngrx-store/sort.state";
 
-import { SORT_DELAY_DURATION, delay, swap } from "../sort.utils";
-import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR } from "../../../public/values.utils";
+import { delay } from "../../../public/global.utils";
+import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR } from "../../../public/global.utils";
+import { swap } from "../sort.utils";
 
-import { BubbleSortService, CooktailSortService, ExchangeSortService, TwoWayBubbleSortService } from "../service/bubble-sort.service";
+
+import { BubbleSortService, ShakerBubbleSortService, ExchangeSortService, TwoWayBubbleSortService, ShellBubbleSortService } from "../service/bubble-sort.service";
 import { BinarySearchInserionSortService, InsertionSortService, ShellSortService } from "../service/insertion-sort.service";
 import { LibrarySortService } from "../service/insertion-sort.service";
 import { ShakerSelectionSortService, SelectionSortService, TwoWaySelectionSortService } from "../service/selection-sort.service";
-import { BogoBubbleSortService, BogoCocktailSortService, BogoInsertionSortService, BogoSelectionSortService, BogoSortService } from "../service/bogo-sort.service";
-import { AverageIterativeQuickSortService, AverageRecursiveQuickSortService, DualPivotIterativeQuickSortService, DualPivotRecursiveQuickSortService, IterativeQuickSortService, RecursiveQuickSortService, ThreeWayIterativeQuickSortService, ThreeWayRecursiveQuickSortService, TwoWayIterativeQuickSortService, TwoWayRecursiveQuickSortService } from "../service/quick-sort.service";
+import { BogoBubbleSortService, BogoShakerBubbleSortService, BogoInsertionSortService, BogoSelectionSortService, BogoSortService } from "../service/bogo-sort.service";
+import { IterativeAverageQuickSortService, RecursiveAverageQuickSortService, IterativeDualPivotQuickSortService, RecursiveDualPivotQuickSortService, IterativeQuickSortService, RecursiveQuickSortService, ThreeWayIterativeQuickSortService, ThreeWayRecursiveQuickSortService, IterativeTwoWayQuickSortService, RecursiveTwoWayQuickSortService } from "../service/quick-sort.service";
 import { CountSortService } from "../service/count-sort.service";
 import { BucketSortService, InterpolationSortService, PigeonholeSortService } from "../service/bucket-sort.service";
-import { RadixLSDSortService, RadixMSDSortService } from "../service/radix-sort.service";
+import { IterativeRadixMSDSortService, RadixLSDSortService, RecursiveRadixMSDSortService } from "../service/radix-sort.service";
 import { AsyncSleepSortService, SyncSleepSortService } from "../service/sleep-sort.service";
 import { CycleSortService } from "../service/cycle-sort.service";
 import { TernaryHeapSortService } from "../service/selection-sort.service";
 import { HeapSortService } from "../service/selection-sort.service";
-import { TopDownMergeSortService, MultiWayMergeSortService, BottomUpMergeSortService, InPlaceMergeSortService } from "../service/merge-sort.service";
+import { TopDownMergeSortService, MultiWayMergeSortService, BottomUpMergeSortService, RecursiveInPlaceMergeSortService, IterativeInPlaceMergeSortService } from "../service/merge-sort.service";
 import { IterativeStoogeSortService, RecursiveStoogeSortService } from "../service/stooge-sort.service";
 import { SlowSortService } from "../service/slow-sort.service";
 import { GnomeSortService } from "../service/insertion-sort.service";
@@ -35,10 +37,10 @@ import { GravitySortService } from "../service/gravity-sort.service";
 import { BottomUpOddEvenMergeSortService, TopDownOddEvenMergeSortService } from "../service/odd-even-merge-sort.service";
 import { PatienceSortService } from "../service/patience-sort.service";
 import { OptimalStrandSortService, StrandSortService } from "../service/strand-sort.service";
-import { TimSortService } from "../service/tim-sort.service";
+import { TimSortService } from "../service/merge-sort.service";
 import { LocaleIDType } from "../../../main/ngrx-store/main.state";
 import { BinarySearchTreeSortService } from "../service/tree-sort.service";
-import { SmoothSortService } from "../service/heap-sort.service";
+import { SmoothSortService } from "../service/selection-sort.service";
 import { OptimalShearSortService, ShearSortService } from "../service/shear-sort.service";
 
 export const SORT_DATA_SECRET_KEY: string = HmacSHA256('SORT_DATA_SECRET_KEY', 'SORT_DATA_SECRET_KEY').toString();
@@ -79,19 +81,21 @@ export class SortUtilsService {
         const octMaxLength: number = size.toString(8).length;
         const decMaxLength: number = size.toString(10).length;
         const hexMaxLength: number = size.toString(16).length;
+        let value: number;
 
         if (this.source.length > 0) {
             this.source.splice(0);
         }
 
         for(let i = 0; i < size; i++) {
+            value = unique ? i + 1 : (i === size - 1 ? size : random(1, size - 1, false));
             this.source.push({ 
-                color: CLEAR_COLOR, value: unique ? i + 1 : (i === size - 1 ? size : random(1, size - 1, false)), 
+                color: CLEAR_COLOR, value, 
                 radix: name.includes('radix-sort') ? { 
-                    bin: (i + 1).toString(2).padStart(binMaxLength, '0'),
-                    oct: (i + 1).toString(8).padStart(octMaxLength, '0'),
-                    dec: (i + 1).toString(10).padStart(decMaxLength, '0'),
-                    hex: (i + 1).toString(16).padStart(hexMaxLength, '0')
+                    bin: value.toString(2).padStart(binMaxLength, '0'),
+                    oct: value.toString(8).padStart(octMaxLength, '0'),
+                    dec: value.toString(10).padStart(decMaxLength, '0'),
+                    hex: value.toString(16).padStart(hexMaxLength, '0')
                 } : undefined
             });
         }
@@ -154,7 +158,7 @@ export class SortUtilsService {
     private async shuffle(source: SortDataModel[], callback: (param: SortStateModel) => void): Promise<void> {
         const threshold: number = source.length - 1, temp: SortDataModel = { color: '', value: Number.NaN };
         let m: number = -1, n: number = -1;
-
+        
         for (let i = 0, j = threshold; i <= threshold && j >= 0; i++, j--) {
             if (i < j) {
                 m = random(i + 1, j, false);
@@ -174,7 +178,7 @@ export class SortUtilsService {
 
             await swap(source, i, m);
             await swap(source, j, n);
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = SECONDARY_ONE_COLOR;
             source[m].color = PRIMARY_ONE_COLOR;
@@ -182,7 +186,7 @@ export class SortUtilsService {
             source[n].color = PRIMARY_TWO_COLOR;
             callback({ times: 0, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             source[m].color = CLEAR_COLOR;
@@ -190,8 +194,8 @@ export class SortUtilsService {
             source[n].color = CLEAR_COLOR;
             callback({ times: 0, datalist: source });
         }
-
-        await delay(SORT_DELAY_DURATION);
+        
+        await delay();
         callback({ times: 0, datalist: source });
     }
 
@@ -216,11 +220,11 @@ export class SortToolsService {
         while (i <= mid && j <= rhs) {
             times += 1;
 
-            source[i].color = PRIMARY_COLOR;
-            source[j].color = SECONDARY_COLOR;
+            source[i].color = ACCENT_ONE_COLOR;
+            source[j].color = ACCENT_TWO_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             source[j].color = CLEAR_COLOR;
@@ -236,46 +240,29 @@ export class SortToolsService {
         }
 
         while (i <= mid) {
-            times += 1;
-
-            source[i].color = PRIMARY_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-
-            source[i].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
+            await this.swapAndRender(source, false, false, i, i, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
 
             this.array.push(source[i].value);
+
             i += 1;
+            times += 1;
         }
 
         while (j <= rhs) {
-            times += 1;
-
-            source[j].color = PRIMARY_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-
-            source[j].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
+            await this.swapAndRender(source, false, false, j, j, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
 
             this.array.push(source[j].value);
+
             j += 1;
+            times += 1;
         }
 
         for (let k = 0, length = this.array.length; k < length; k++) {
-            times += 1;
-            
             source[k + lhs].value = this.array[k];
-            source[k + lhs].color = ACCENT_COLOR;
-            callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await this.swapAndRender(source, false, false, k + lhs, k + lhs, ACCENT_COLOR, ACCENT_COLOR, ACCENT_COLOR, times, callback);
 
-            source[k + lhs].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
+            times += 1;
         }
 
         this.array.splice(0);
@@ -283,71 +270,54 @@ export class SortToolsService {
     }
 
     public async mergeByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        let i: number = lhs, j: number = mid + 1;
+        let i: number = mid, j: number = rhs;
         
-        while (i <= mid && j <= rhs) {
+        while (i >= lhs && j >= mid + 1) {
             times += 1;
 
-            source[i].color = PRIMARY_COLOR;
-            source[j].color = SECONDARY_COLOR;
+            source[i].color = ACCENT_ONE_COLOR;
+            source[j].color = ACCENT_TWO_COLOR;
             callback({ times, datalist: source });
 
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[i].color = CLEAR_COLOR;
             source[j].color = CLEAR_COLOR;
             callback({ times, datalist: source });
 
-            if (source[i].value > source[j].value) {
+            if (source[i].value < source[j].value) {
                 this.array.push(source[i].value);
-                i += 1;
+                i -= 1;
             } else {
                 this.array.push(source[j].value);
-                j += 1;
+                j -= 1;
             }
         }
 
-        while (i <= mid) {
-            times += 1;
-
-            source[i].color = PRIMARY_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-
-            source[i].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
+        while (i >= lhs) {
+            await this.swapAndRender(source, false, false, i, i, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
 
             this.array.push(source[i].value);
-            i += 1;
+
+            i -= 1;
+            times += 1;
         }
 
-        while (j <= rhs) {
-            times += 1;
-
-            source[j].color = PRIMARY_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-
-            source[j].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
+        while (j >= mid + 1) {
+            await this.swapAndRender(source, false, false, j, j, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
 
             this.array.push(source[j].value);
-            j += 1;
+
+            j -= 1;
+            times += 1;
         }
 
         for (let k = 0, length = this.array.length; k < length; k++) {
+            source[rhs - k].value = this.array[k];
+
+            await this.swapAndRender(source, false, false, rhs - k, rhs - k, ACCENT_COLOR, ACCENT_COLOR, ACCENT_COLOR, times, callback);
+
             times += 1;
-            
-            source[k + lhs].value = this.array[k];
-            source[k + lhs].color = ACCENT_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-
-            source[k + lhs].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
         }
 
         this.array.splice(0);
@@ -365,7 +335,7 @@ export class SortToolsService {
                 callback({ times, datalist: source });
 
                 await swap(source, j + gap, j);
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[i].color = ACCENT_COLOR;
                 source[j].color = CLEAR_COLOR;
@@ -391,7 +361,7 @@ export class SortToolsService {
                 callback({ times, datalist: source});
                 
                 await swap(source, j, j - gap);
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 callback({ times, datalist: source});
                 source[j].color = CLEAR_COLOR;
@@ -416,14 +386,14 @@ export class SortToolsService {
             times += 1;
     
             await swap(source, n, m);
-            await delay(SORT_DELAY_DURATION);
+            await delay();
     
             source[m].color = flag ? secondaryColor : accentColor;
             source[n].color = flag ? primaryColor : (m === n ? accentColor : CLEAR_COLOR);
             callback({ times, datalist: source });
         }
     
-        await delay(SORT_DELAY_DURATION);
+        await delay();
     
         source[m].color = CLEAR_COLOR;
         source[n].color = CLEAR_COLOR;
@@ -568,8 +538,9 @@ export class SortMatchService {
 
     constructor(
         private _bubble: BubbleSortService,
-        private _cooktail: CooktailSortService,
+        private _shakerBubble: ShakerBubbleSortService,
         private _2wBubble: TwoWayBubbleSortService,
+        private _shellBubble: ShellBubbleSortService,
         private _comb: CombSortService,
         private _oddEven: OddEvenSortService,
         private _exchange: ExchangeSortService,
@@ -582,14 +553,14 @@ export class SortMatchService {
         private _biSelection: ShakerSelectionSortService,
         private _recuQuick: RecursiveQuickSortService,
         private _iterQuick: IterativeQuickSortService,
-        private _2wRecuQuick: TwoWayRecursiveQuickSortService,
-        private _2wIterQuick: TwoWayIterativeQuickSortService,
+        private _2wRecuQuick: RecursiveTwoWayQuickSortService,
+        private _2wIterQuick: IterativeTwoWayQuickSortService,
         private _3wRecuQuick: ThreeWayRecursiveQuickSortService,
         private _3wIterQuick: ThreeWayIterativeQuickSortService,
-        private _dpRecuQuick: DualPivotRecursiveQuickSortService,
-        private _dpIterQuick: DualPivotIterativeQuickSortService,
-        private _averRecuQuick: AverageRecursiveQuickSortService,
-        private _averIterQuick: AverageIterativeQuickSortService,
+        private _dpRecuQuick: RecursiveDualPivotQuickSortService,
+        private _dpIterQuick: IterativeDualPivotQuickSortService,
+        private _averRecuQuick: RecursiveAverageQuickSortService,
+        private _averIterQuick: IterativeAverageQuickSortService,
         private _heap: HeapSortService,
         private _knHeap: TernaryHeapSortService,
         private _smooth: SmoothSortService,
@@ -599,10 +570,12 @@ export class SortMatchService {
         private _interpolation: InterpolationSortService,
         private _pigeonhole: PigeonholeSortService,
         private _radixLSD: RadixLSDSortService,
-        private _radixMSD: RadixMSDSortService,
+        private _recuRadixMSD: RecursiveRadixMSDSortService,
+        private _iterRadixMSD: IterativeRadixMSDSortService,
         private _tdMerge: TopDownMergeSortService,
         private _buMerge: BottomUpMergeSortService,
-        private _ipMerge: InPlaceMergeSortService,
+        private _tdIPMerge: RecursiveInPlaceMergeSortService,
+        private _buIPMerge: IterativeInPlaceMergeSortService,
         private _kMerge: MultiWayMergeSortService,
         private _tim: TimSortService,
 
@@ -616,7 +589,7 @@ export class SortMatchService {
         private _bst: BinarySearchTreeSortService,
         private _bogo: BogoSortService,
         private _bogoBubble: BogoBubbleSortService,
-        private _bogoCocktail: BogoCocktailSortService,
+        private _bogoShakerBubble: BogoShakerBubbleSortService,
         private _bogoInsertion: BogoInsertionSortService,
         private _bogoSelection: BogoSelectionSortService,
         private _cycle: CycleSortService,
@@ -646,12 +619,16 @@ export class SortMatchService {
             return this._bubble.sort(array, order);
         }
 
-        if (name === 'cocktail-sort') {
-            return this._cooktail.sort(array, order);
+        if (name === 'shaker-bubble-sort') {
+            return this._shakerBubble.sort(array, order);
         }
 
         if (name === '2w-bubble-sort') {
             return this._2wBubble.sort(array, order);
+        }
+
+        if (name === 'shell-bubble-sort') {
+            return this._shellBubble.sort(array, order);
         }
 
         if (name === 'comb-sort') {
@@ -762,8 +739,12 @@ export class SortMatchService {
             return this._radixLSD.sort(array, order, radix);
         }
 
-        if (name === 'msd-radix-sort') {
-            return this._radixMSD.sort(array, order, radix);
+        if (name === 'recu-msd-radix-sort') {
+            return this._recuRadixMSD.sort(array, order, radix);
+        }
+
+        if (name === 'iter-msd-radix-sort') {
+            return this._iterRadixMSD.sort(array, order, radix);
         }
 
         if (name === 'td-merge-sort') {
@@ -778,8 +759,12 @@ export class SortMatchService {
             return this._kMerge.sort(array, order, way);
         }
 
-        if (name === 'ip-merge-sort') {
-            return this._ipMerge.sort(array, order);
+        if (name === 'td-ip-merge-sort') {
+            return this._tdIPMerge.sort(array, order);
+        }
+
+        if (name === 'bu-ip-merge-sort') {
+            return this._buIPMerge.sort(array, order);
         }
 
         if (name === 'tim-sort') {
@@ -828,8 +813,8 @@ export class SortMatchService {
             return this._bogoBubble.sort(array, order);
         }
 
-        if (name === 'bogo-cocktail-sort') {
-            return this._bogoCocktail.sort(array, order);
+        if (name === 'bogo-shaker-bubble-sort') {
+            return this._bogoShakerBubble.sort(array, order);
         }
 
         if (name === 'bogo-insertion-sort') {

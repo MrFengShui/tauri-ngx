@@ -2,9 +2,9 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { delay } from "../../../public/global.utils";
 import { SortToolsService } from "../ngrx-store/sort.service";
-import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR } from "../../../public/values.utils";
+import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR } from "../../../public/global.utils";
 
 @Injectable()
 export class PatienceSortService {
@@ -37,7 +37,7 @@ export class PatienceSortService {
                 source[i].color = ACCENT_ONE_COLOR;
                 callback({ times, datalist: source});
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[i].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
@@ -76,7 +76,7 @@ export class PatienceSortService {
                     source[index].value = pile[j];
                     callback({ times, datalist: source});
 
-                    await delay(SORT_DELAY_DURATION);
+                    await delay();
 
                     source[index].color = CLEAR_COLOR;
                     callback({ times, datalist: source});
@@ -88,8 +88,8 @@ export class PatienceSortService {
             await this._service.clear(this.piles);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], flag: boolean, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
@@ -104,7 +104,7 @@ export class PatienceSortService {
                 source[i].color = ACCENT_ONE_COLOR;
                 callback({ times, datalist: source});
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[i].color = CLEAR_COLOR;
                 callback({ times, datalist: source});
@@ -143,7 +143,7 @@ export class PatienceSortService {
                     source[index].value = pile[j];
                     callback({ times, datalist: source});
 
-                    await delay(SORT_DELAY_DURATION);
+                    await delay();
 
                     source[index].color = CLEAR_COLOR;
                     callback({ times, datalist: source});
@@ -155,8 +155,8 @@ export class PatienceSortService {
             await this._service.clear(this.piles);
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
 }

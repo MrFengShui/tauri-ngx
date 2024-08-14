@@ -1,54 +1,49 @@
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
+import { floor } from "lodash";
+
+import { delay, PLACE_FST_COLOR, PLACE_FTH_COLOR, PLACE_SND_COLOR, PLACE_TRD_COLOR } from "../../../public/global.utils";
+import { CLEAR_COLOR, ACCENT_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
+
 import { SortToolsService } from "../ngrx-store/sort.service";
-import { CLEAR_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, ACCENT_COLOR, SECONDARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, PRIMARY_ONE_COLOR } from "../../../public/values.utils";
+import { AbstractRecursiveSortService } from "./base-sort.service";
 
 /**
  * 归并排序（自顶向下）
  */
 @Injectable()
-export class TopDownMergeSortService {
+export class TopDownMergeSortService extends AbstractRecursiveSortService {
 
-    constructor(private _service: SortToolsService) {}
-
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-        });
+    constructor(protected _service: SortToolsService) {
+        super();
     }
 
-    private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        times = await this.sortByOrder(source, 0, source.length - 1, 'ascent', times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = await this.sortByOrder(source, lhs, rhs, 'ascent', 0, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        times = await this.sortByOrder(source, 0, source.length - 1, 'descent', times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = await this.sortByOrder(source, lhs, rhs, 'descent', 0, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
-    private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
+    protected override async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         if (lhs < rhs) {
-            const mid: number = Math.floor((rhs - lhs) * 0.5 + lhs);
-            times = await this.sortByOrder(source, lhs, mid, order, times, callback);
-            times = await this.sortByOrder(source, mid + 1, rhs, order, times, callback);
-
+            const mid: number = floor((rhs - lhs) * 0.5 + lhs, 0);
+            
             if (order === 'ascent') {
+                times = await this.sortByOrder(source, lhs, mid, order, times, callback);
+                times = await this.sortByOrder(source, mid + 1, rhs, order, times, callback);
                 times = await this._service.mergeByAscent(source, lhs, mid, rhs, times, callback);
             }
             
             if (order === 'descent') {
+                times = await this.sortByOrder(source, mid + 1, rhs, order, times, callback);
+                times = await this.sortByOrder(source, lhs, mid, order, times, callback);
                 times = await this._service.mergeByDescent(source, lhs, mid, rhs, times, callback);
             }
         }
@@ -62,468 +57,414 @@ export class TopDownMergeSortService {
  * 归并排序（自底向上）
  */
 @Injectable()
-export class BottomUpMergeSortService {
+export class BottomUpMergeSortService extends TopDownMergeSortService {
 
-    constructor(private _service: SortToolsService) {}
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let start: number, final: number, split: number, times: number = 0;
 
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-        });
-    }
-
-    private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let lhs: number, rhs: number, mid: number;
-
-        for (let i = 1, length = source.length; i < length; i = i + i) {
-            for (let j = 0; j < length - i; j += i + i) {
-                lhs = j;
-                rhs = Math.min(j + i + i - 1, length - 1);
-                mid = Math.floor((rhs - lhs) * 0.5 + lhs);
-                times = await this._service.mergeByAscent(source, lhs, mid, rhs, times, callback );
+        for (let gap = 1, length = rhs - lhs + 1; gap < length; gap = gap + gap) {
+            for (let i = lhs; i < length - gap; i += gap + gap) {
+                start = i;
+                split = start + gap - 1;
+                final = Math.min(split + gap, rhs);
+                times = await this._service.mergeByAscent(source, start, split, final, times, callback);
             }
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        let lhs: number, rhs: number, mid: number;
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let start: number, final: number, split: number, times: number = 0;
 
-        for (let i = 1, length = source.length; i < length; i = i + i) {
-            for (let j = 0; j < length - i; j += i + i) {
-                lhs = j;
-                rhs = Math.min(j + i + i - 1, length - 1);
-                mid = Math.floor((rhs - lhs) * 0.5 + lhs);
-                times = await this._service.mergeByDescent(source, lhs, mid, rhs, times, callback );
+        for (let gap = 1, length = rhs - lhs + 1; gap < length; gap = gap + gap) {
+            for (let i = rhs; i > gap; i -= gap + gap) {
+                final = i;
+                split = final - gap;
+                start = Math.max(split - gap + 1, lhs);
+                times = await this._service.mergeByDescent(source, start, split, final, times, callback);
             }
         }
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
     }
 
 }
 
 /**
- * 原地归并排序
+ * 原地归并排序（自顶向下）
  */
 @Injectable()
-export class InPlaceMergeSortService {
+export class RecursiveInPlaceMergeSortService extends TopDownMergeSortService {
 
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+    protected async mergeByAscent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let i: number = lhs, j: number = mid + 1, flag: boolean;
 
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
+        while (i <= mid && j <= rhs) {
+            flag = source[i].value < source[j].value;
+
+            if (flag) {
+                times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+            } else {
+                for (let k = i; k < j; k++) {
+                    source[i].color = ACCENT_COLOR;
+                    callback({ times, datalist: source });
+
+                    await this._service.swapAndRender(source, false, true, k, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+                    times += 1;
+                }
+
+                source[i].color = CLEAR_COLOR;
+                callback({ times, datalist: source });
             }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, array.length - 1, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-        });
-    }
 
-    private async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        times = await this.sortByOrder(source, lhs, rhs, 'ascent', temp, times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
-    }
-
-    private async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        times = await this.sortByOrder(source, lhs, rhs, 'descent', temp, times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
-    }
-
-    private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        if (lhs < rhs) {
-            const mid: number = Math.floor((rhs - lhs) * 0.5 + lhs);
-            times = await this.sortByOrder(source, lhs, mid, order, temp, times, callback);
-            times = await this.sortByOrder(source, mid + 1, rhs, order, temp, times, callback);
-
-            if (order === 'ascent') {
-                times = await this.mergeByAscent(source, lhs, mid, rhs, temp, times, callback);
-            }
-            
-            if (order === 'descent') {
-                times = await this.mergeByDescent(source, lhs, mid, rhs, temp, times, callback);
-            }
+            i += 1;
+            j = flag ? j : j + 1;
+            mid = flag ? mid : mid + 1;
         }
 
         return times;
     }
 
-    private async mergeByAscent(source: SortDataModel[], lhs: number, mid: number, rhs: number, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        let i: number = lhs, j: number = mid + 1;
+    protected async mergeByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let i: number = rhs, j: number = mid, flag: boolean;
+        
+        while (i >= mid - 1 && j >= lhs) {
+            flag = source[i].value < source[j].value;
 
-        while (i <= mid && j <= rhs) {
-            times += 1;
-
-            source[i].color = ACCENT_ONE_COLOR;
-            source[j].color = ACCENT_TWO_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-            
-            if (source[i].value < source[j].value) {
-                source[i].color = CLEAR_COLOR;
-                source[j].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
-
-                i += 1;
+            if (flag) {
+                times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
             } else {
-                for (let k = j; k > i; k--) {
-                    source[j].color = ACCENT_TWO_COLOR;
-                    source[k].color = ACCENT_COLOR;
+                for (let k = i; k > j; k--) {
+                    source[i].color = ACCENT_COLOR;
                     callback({ times, datalist: source });
 
-                    await swap(source, k, k - 1);
-                    await delay(SORT_DELAY_DURATION);
+                    await this._service.swapAndRender(source, false, true, k, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
 
-                    source[j].color = ACCENT_TWO_COLOR;
-                    source[k].color = CLEAR_COLOR;
-                    callback({ times, datalist: source });
+                    times += 1;
                 }
 
                 source[i].color = CLEAR_COLOR;
-                source[j].color = CLEAR_COLOR;
                 callback({ times, datalist: source });
-
-                i += 1;
-                j += 1;
-                mid += 1;
             }
-        }
 
-        return times;
-    }
-
-    private async mergeByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        let i: number = lhs, j: number = mid + 1;
-
-        while (i <= mid && j <= rhs) {
-            times += 1;
-
-            source[i].color = ACCENT_ONE_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-            
-            if (source[i].value > source[j].value) {
-                source[i].color = CLEAR_COLOR;
-                source[j].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
-
-                i += 1;
-            } else {
-                for (let k = j; k > i; k--) {
-                    source[j].color = ACCENT_TWO_COLOR;
-                    source[k].color = ACCENT_COLOR;
-                    callback({ times, datalist: source });
-
-                    await swap(source, k, k - 1);
-                    await delay(SORT_DELAY_DURATION);
-
-                    source[j].color = ACCENT_COLOR;
-                    source[k].color = CLEAR_COLOR;
-                    callback({ times, datalist: source });
-                }
-
-                source[i].color = CLEAR_COLOR;
-                source[j].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
-
-                i += 1;
-                j += 1;
-                mid += 1;
-            }
+            i -= 1;
+            j = flag ? j : j - 1;
+            mid = flag ? mid : mid - 1;
         }
 
         return times;
     }
 
 }
+
+@Injectable()
+export class IterativeInPlaceMergeSortService extends RecursiveInPlaceMergeSortService {
+
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let start: number, final: number, split: number, times: number = 0;
+        
+        for (let gap = 1, length = rhs - lhs + 1; gap < length; gap = gap + gap) {
+            for (let i = lhs; i < length - gap; i += gap + gap) {
+                start = i;
+                split = start + gap - 1;
+                final = Math.min(split + gap, rhs);
+                times = await this.mergeByAscent(source, start, split, final, times, callback);
+            }
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let start: number, final: number, split: number, times: number = 0;
+        
+        for (let gap = 1, length = rhs - lhs + 1; gap < length; gap = gap + gap) {
+            for (let i = rhs; i > gap; i -= gap + gap) {
+                final = i;
+                split = final - gap;
+                start = Math.max(split - gap + 1, lhs);
+                times = await this.mergeByDescent(source, start, split, final, times, callback);
+            }
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+}
+
+type MergeRange = { start: number, final: number };
 
 /**
  * 多路归并排序
  */
 @Injectable()
-export class MultiWayMergeSortService {
+export class MultiWayMergeSortService extends TopDownMergeSortService {
 
-    private points: number[][] = Array.from([]);
-    private final: Array<{ index: number, value: number }> = Array.from([]);
-    private group: { [key: string | number]: number[] } = {};
-    
-    public sort(array: SortDataModel[], order: SortOrder, way: number = 3): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, array.length - 1, way, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, array.length - 1, way, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-        });
+    private points: number[] = Array.from([]);
+    private values: number[] = Array.from([]);
+    private count: number = 0;
+
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        this.count = option as number;
+        await super.sortByAscent(source, lhs, rhs, option, callback);
     }
 
-    private async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, way: number, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        for (let i = 0; i < way; i++) {
-            this.group[i] = Array.from([]);
-        }
-
-        times = await this.sortByOrder(source, lhs, rhs, way, 'ascent', times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
-        await this.clear();
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        this.count = option as number;
+        await super.sortByDescent(source, lhs, rhs, option, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, way: number, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        for (let i = 0; i < way; i++) {
-            this.group[i] = Array.from([]);
-        }
-
-        times = await this.sortByOrder(source, lhs, rhs, way, 'descent', times, callback);
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
-        await this.clear();
-    }
-
-    private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, way: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        const points: number[] = Array.from([]), pairs: Array<[number, number]> = Array.from([]);
-
-        if (rhs - lhs >= way - 1) {
-            for (let i = 0; i < way + 1; i++) {
-                if (i === 0) {
-                    points.push(lhs);
-                } else if (i === way) {
-                    points.push(rhs);
-                } else {
-                    points.push(Math.floor(i * (rhs - lhs) / way + lhs));
-                }
-            }
-
-            this.points.push(points);
-
-            for (let i = 0; i < points.length - 1; i++) {
-                if (i === 0) {
-                    pairs.push([points[i], points[i + 1]]);
-                    times = await this.sortByOrder(source, points[i], points[i + 1], way, order, times, callback);
-                } else {
-                    pairs.push([points[i] + 1, points[i + 1]]);
-                    times = await this.sortByOrder(source, points[i] + 1, points[i + 1], way, order, times, callback);
-                }
-            }
+    protected override async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        if (rhs - lhs + 1 > this.count) {
+            let ranges: MergeRange[] | null = this.createMergeRange(lhs, rhs);
 
             if (order === 'ascent') {
-                times = await this.mergeByAscent(source, pairs, times, callback);
+                for (let i = 0, length = ranges.length; i <= length - 1; i++) {
+                    times = await this.sortByOrder(source, ranges[i].start, ranges[i].final, order, times, callback);
+                }
+    
+                times = await this.mergeByAscent(source, ranges, times, callback);
             }
-            
+
             if (order === 'descent') {
-                times = await this.mergeByDescent(source, pairs, times, callback);
+                for (let length = ranges.length, i = length - 1; i >= 0; i--) {
+                    times = await this.sortByOrder(source, ranges[i].start, ranges[i].final, order, times, callback);
+                }
+
+                times = await this.mergeByDescent(source, ranges, times, callback);
             }
 
-            await this.empty(false);
+            ranges.splice(0);
+            ranges = null;
         }
         
         return times;
     }
 
-    private async mergeByAscent(source: SortDataModel[], pairs: Array<[number, number]>, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        let index: number, color: string;
-        const array: number[] = Array.from([]), lhs: number = pairs[0][0], rhs: number = pairs[pairs.length - 1][1];
+    private async mergeByAscent(source: SortDataModel[], ranges: MergeRange[], times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let range: MergeRange, index: number = Number.NaN, value: number, offset: number = ranges[0].start;
         
-        for (let i = 0; i < pairs.length; i++) {
-            if (i % 4 === 1) {
-                color = SECONDARY_ONE_COLOR;
-            } else if (i % 4 === 2) {
-                color = PRIMARY_TWO_COLOR;
-            } else if (i % 4 === 3) {
-                color = SECONDARY_TWO_COLOR;
-            } else {
-                color = PRIMARY_ONE_COLOR;
+        for (let i = 0, length = ranges.length; i <= length - 1; i++) {
+            range = ranges[i];
+
+            if (range.final - range.start + 1 <= this.count) {
+                times = await this._service.stableGapSortByAscent(source, range.start, range.final, 1, 1, times, callback);
             }
 
-            for (let j = pairs[i][0]; j <= pairs[i][1]; j++) {
-                times += 1;
-    
-                source[j].color = color;
-                callback({ times, datalist: source });
-    
-                await delay(SORT_DELAY_DURATION);
-                
-                source[j].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
-                
-                this.group[i].push(source[j].value);
-            }
+            this.points[i] = range.start;
+            this.values[i] = source[range.start].value;
         }
         
-        while (array.length < rhs - lhs + 1) {
-            for (const key of Object.keys(this.group)) {
-                index = await this.findMinInGroup(this.group[key]);
-                this.final[Number.parseInt(key)] = { index, value: index === -1 ? Number.MAX_SAFE_INTEGER : this.group[Number.parseInt(key)][index] } ;
-            }
-            
-            index = this.findMinInFinal(this.final);
-            array.push(this.final[index].value);
-            this.group[index].splice(this.final[index].index, 1);
-        }
+        while (!this.values.every(value => value === Number.MAX_SAFE_INTEGER)) {
+            value = Number.MAX_SAFE_INTEGER;
 
-        for (let i = 0, length = array.length; i < length; i++) {
-            times += 1;
-
-            source[lhs + i].value = array[i];
-            source[lhs + i].color = ACCENT_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-            
-            source[lhs + i].color = CLEAR_COLOR;            
-            callback({ times, datalist: source });
-        }
-
-        return times;
-    }
-
-    private async mergeByDescent(source: SortDataModel[], pairs: Array<[number, number]>, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
-        let index: number, color: string;
-        const array: number[] = Array.from([]), lhs: number = pairs[0][0], rhs: number = pairs[pairs.length - 1][1]
-        
-        for (let i = 0; i < pairs.length; i++) {
-            if (i % 4 === 1) {
-                color = SECONDARY_ONE_COLOR;
-            } else if (i % 4 === 2) {
-                color = PRIMARY_TWO_COLOR;
-            } else if (i % 4 === 3) {
-                color = SECONDARY_TWO_COLOR;
-            } else {
-                color = PRIMARY_ONE_COLOR;
-            }
-
-            for (let j = pairs[i][0]; j <= pairs[i][1]; j++) {
-                times += 1;
-    
-                source[j].color = color;
-                callback({ times, datalist: source });
-    
-                await delay(SORT_DELAY_DURATION);
-                
-                source[j].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
-                
-                this.group[i].push(source[j].value);
-            }
-        }
-        
-        while (array.length < rhs - lhs + 1) {
-            for (const key of Object.keys(this.group)) {
-                index = await this.findMaxInGroup(this.group[key]);
-                this.final[Number.parseInt(key)] = { index, value: index === -1 ? Number.MIN_SAFE_INTEGER : this.group[Number.parseInt(key)][index] } ;
-            }
-            
-            index = this.findMaxInFinal(this.final);
-            array.push(this.final[index].value);
-            this.group[index].splice(this.final[index].index, 1);
-        }
-
-        for (let i = 0, length = array.length; i < length; i++) {
-            times += 1;
-
-            source[lhs + i].value = array[i];
-            source[lhs + i].color = ACCENT_COLOR;
-            callback({ times, datalist: source });
-
-            await delay(SORT_DELAY_DURATION);
-            
-            source[lhs + i].color = CLEAR_COLOR;            
-            callback({ times, datalist: source });
-        }
-
-        return times;
-    }
-
-    private async findMaxInGroup(list: number[]): Promise<number> {
-        let index: number = -1, value: number = Number.MIN_SAFE_INTEGER;
-
-        for (let i = 0, length = list.length; i < length; i++) {
-            if (list[i] > value) {
-                index = i;
-                value = list[i];
-            }
-        }
-
-        return index;
-    }
-
-    private async findMinInGroup(list: number[]): Promise<number> {
-        let index: number = -1, value: number = Number.MAX_SAFE_INTEGER;
-
-        for (let i = 0, length = list.length; i < length; i++) {
-            if (list[i] < value) {
-                index = i;
-                value = list[i];
-            }
-        }
-
-        return index;
-    }
-
-    private findMaxInFinal(list: Array<{ index: number, value: number }>): number{
-        let index: number = -1, value: number = Number.MIN_SAFE_INTEGER;
-
-        for (let i = 0; i < list.length; i++) {
-            if (list[i].value > value) {
-                index = i;
-                value = list[i].value;
-            }
-        }
-
-        return index;
-    }
-
-    private findMinInFinal(list: Array<{ index: number, value: number }>): number{
-        let index: number = -1, value: number = Number.MAX_SAFE_INTEGER;
-
-        for (let i = 0; i < list.length; i++) {
-            if (list[i].value < value) {
-                index = i;
-                value = list[i].value;
-            }
-        }
-
-        return index;
-    }
-
-    private empty(flag: boolean = true): Promise<void> {
-        return new Promise(resolve => {
-            for (const key of Object.keys(this.group)) {
-                this.group[key].splice(0);
-
-                if (flag) {
-                    delete this.group[key];
+            for (let i = 0, length = this.values.length; i < length; i++) {
+                if (this.values[i] < value) {
+                    index = i;
+                    value = this.values[i];
                 }
             }
-    
-            this.final.splice(0);
-            resolve();
-        });
+
+            this.array.push(value);
+
+            this.values[index] = this.points[index] + 1 > ranges[index].final ? Number.MAX_SAFE_INTEGER : source[this.points[index] + 1].value;
+
+            for (let i = 0, length = this.points.length; i <= length - 1; i++) {
+                if (i % 4 === 1) {
+                    source[this.points[i]].color = PLACE_FST_COLOR;
+                } else if (i % 4 === 2) {
+                    source[this.points[i]].color = PLACE_SND_COLOR;
+                } else if (i % 4 === 3) {
+                    source[this.points[i]].color = PLACE_TRD_COLOR;
+                } else {
+                    source[this.points[i]].color = PLACE_FTH_COLOR;
+                }
+
+                callback({ times, datalist: source });
+            }
+            
+            await delay();
+
+            for (let i = 0, length = this.points.length; i <= length - 1; i++) {
+                source[this.points[i]].color = CLEAR_COLOR;
+                callback({ times, datalist: source });
+            }
+            
+            this.points[index] = Math.min(this.points[index] + 1, ranges[index].final);
+        }
+        
+        for (let i = 0, length = this.array.length; i < length; i++) {
+            source[offset + i].value = this.array[i];
+
+            await this._service.swapAndRender(source, false, false, offset + i, offset + i, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+            times += 1;
+        }
+        
+        this.points.splice(0);
+        this.values.splice(0);
+        this.array.splice(0);        
+        return times;
     }
 
-    private async clear(): Promise<void> {
-        for (const points of this.points) {
-            points.splice(0);
+    private async mergeByDescent(source: SortDataModel[], ranges: MergeRange[], times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let range: MergeRange, index: number = Number.NaN, value: number, offset: number = ranges[ranges.length - 1].final;
+        
+        for (let length = ranges.length, i = length - 1; i >= 0; i--) {
+            range = ranges[i];
+
+            if (range.final - range.start + 1 <= this.count) {
+                times = await this._service.stableGapSortByDescent(source, range.start, range.final, 1, 1, times, callback);
+            }
+
+            this.points[i] = range.final;
+            this.values[i] = source[range.final].value;
+        }
+        
+        while (!this.values.every(value => value === Number.MAX_SAFE_INTEGER)) {
+            value = Number.MAX_SAFE_INTEGER;
+
+            for (let i = 0, length = this.values.length; i < length; i++) {
+                if (this.values[i] < value) {
+                    index = i;
+                    value = this.values[i];
+                }
+            }
+
+            this.array.push(value);
+
+            this.values[index] = this.points[index] - 1 < ranges[index].start ? Number.MAX_SAFE_INTEGER : source[this.points[index] - 1].value;
+
+            for (let length = this.points.length, i = length - 1 ; i >= 0; i--) {
+                if (i % 4 === 1) {
+                    source[this.points[i]].color = PLACE_FST_COLOR;
+                } else if (i % 4 === 2) {
+                    source[this.points[i]].color = PLACE_SND_COLOR;
+                } else if (i % 4 === 3) {
+                    source[this.points[i]].color = PLACE_TRD_COLOR;
+                } else {
+                    source[this.points[i]].color = PLACE_FTH_COLOR;
+                }
+                
+                callback({ times, datalist: source });
+            }
+            
+            await delay();
+
+            for (let length = this.points.length, i = length - 1 ; i >= 0; i--) {
+                source[this.points[i]].color = CLEAR_COLOR;
+                callback({ times, datalist: source });
+            }
+            
+            this.points[index] = Math.max(this.points[index] - 1, ranges[index].start);
+        }
+        
+        for (let i = 0, length = this.array.length; i < length; i++) {
+            source[offset - i].value = this.array[i];
+
+            await this._service.swapAndRender(source, false, false, offset - i, offset - i, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+            times += 1;
+        }
+        
+        this.points.splice(0);
+        this.values.splice(0);
+        this.array.splice(0);        
+        return times;
+    }
+
+    private createMergeRange(lhs: number, rhs: number): MergeRange[] {
+        const ranges: MergeRange[] = Array.from([]), step: number = floor((rhs - lhs + 1) / this.count, 0);
+        let start: number = lhs, final: number = rhs;
+            
+        for (let i = 0; i < this.count; i++) {
+            start = i === 0 ? lhs : final + 1;
+            final = i === this.count - 1 ? rhs : start + step - 1;
+            ranges.push({ start, final });            
         }
 
-        await this.empty();
+        return ranges;
+    }
+
+}
+
+
+/**
+ * 蒂姆排序
+ */
+@Injectable()
+export class TimSortService extends BottomUpMergeSortService {
+
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        const length = rhs - lhs + 1, runLength: number = this.calcRunLength(length);
+        let start: number, final: number, split: number, times: number = 0;
+
+        for (let i = lhs; i <= rhs; i += runLength) {
+            start = i;
+            final = Math.min(rhs, i + runLength - 1);
+            times = await this._service.stableGapSortByAscent(source, start, final, 1, 1, times, callback);
+        }
+
+        for (let gap = runLength; gap < length; gap = gap + gap) {
+            for (let i = lhs; i <= rhs; i += gap + gap) {
+                start = i;
+                split = i + gap - 1;
+                final = Math.min(rhs, split + gap);
+
+                if (split < final) {
+                    times = await this._service.mergeByAscent(source, start, split, final, times, callback);
+                }
+            }
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        const length = rhs - lhs + 1, runLength: number = this.calcRunLength(length);
+        let start: number, final: number, split: number, times: number = 0;
+
+        for (let i = rhs; i >= lhs; i -= runLength) {
+            final = i;
+            start = Math.max(lhs, i - runLength + 1);
+            times = await this._service.stableGapSortByDescent(source, start, final, 1, 1, times, callback);
+        }
+
+        for (let gap = runLength; gap < length; gap = gap + gap) {
+            for (let i = rhs; i >= lhs; i -= gap + gap) {
+                final = i;
+                split = i - gap;
+                start = Math.max(lhs, split - gap + 1);
+
+                if (split > start) {
+                    times = await this._service.mergeByDescent(source, start, split, final, times, callback);
+                }
+            }
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+    private calcRunLength(length: number): number {
+        let runLength: number = length, remainder: number = 0;
+
+        while (runLength > this.THRESHOLD) {
+            if (runLength % 2 === 1) {
+                remainder = 1;
+            }
+
+            runLength = Math.floor(runLength * 0.5);
+        }
+
+        return runLength + remainder;
     }
 
 }

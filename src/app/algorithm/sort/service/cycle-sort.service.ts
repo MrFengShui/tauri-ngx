@@ -2,8 +2,9 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay, swap } from "../sort.utils";
-import { CLEAR_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR } from "../../../public/values.utils";
+import { swap } from "../sort.utils";
+import { delay } from "../../../public/global.utils";
+import { CLEAR_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR } from "../../../public/global.utils";
 
 /**
  * 循环排序
@@ -37,7 +38,7 @@ export class CycleSortService {
                 source[j].color = SECONDARY_ONE_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[i].color = PRIMARY_ONE_COLOR;
                 source[j].color = CLEAR_COLOR;
@@ -64,7 +65,7 @@ export class CycleSortService {
             callback({ times, datalist: source });
 
             await swap(source, point, pivot);
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[point].color = CLEAR_COLOR;
             source[pivot].color = CLEAR_COLOR;
@@ -73,8 +74,8 @@ export class CycleSortService {
             times = await this.searchByAscent(source, i, temp, times, callback);
         }  
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
@@ -89,7 +90,7 @@ export class CycleSortService {
                 source[j].color = SECONDARY_ONE_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[i].color = PRIMARY_ONE_COLOR;
                 source[j].color = CLEAR_COLOR;
@@ -116,7 +117,7 @@ export class CycleSortService {
             callback({ times, datalist: source });
 
             await swap(source, point, pivot);
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[point].color = CLEAR_COLOR;
             source[pivot].color = CLEAR_COLOR;
@@ -125,8 +126,8 @@ export class CycleSortService {
             times = await this.searchByDescent(source, i, temp, times, callback);
         }  
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        // await complete(source, times, callback);
     }
 
     private async searchByAscent(source: SortDataModel[], threshold: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<number> {
@@ -141,7 +142,7 @@ export class CycleSortService {
                 source[i].color = SECONDARY_TWO_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[threshold].color = PRIMARY_TWO_COLOR;
                 source[i].color = CLEAR_COLOR;
@@ -168,7 +169,7 @@ export class CycleSortService {
             callback({ times, datalist: source });
 
             await swap(source, point, pivot);
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[point].color = CLEAR_COLOR;
             source[pivot].color = CLEAR_COLOR;
@@ -191,7 +192,7 @@ export class CycleSortService {
                 source[i].color = SECONDARY_TWO_COLOR;
                 callback({ times, datalist: source });
 
-                await delay(SORT_DELAY_DURATION);
+                await delay();
 
                 source[threshold].color = PRIMARY_TWO_COLOR;
                 source[i].color = CLEAR_COLOR;
@@ -218,7 +219,7 @@ export class CycleSortService {
             callback({ times, datalist: source });
 
             await swap(source, point, pivot);
-            await delay(SORT_DELAY_DURATION);
+            await delay();
 
             source[point].color = CLEAR_COLOR;
             source[pivot].color = CLEAR_COLOR;

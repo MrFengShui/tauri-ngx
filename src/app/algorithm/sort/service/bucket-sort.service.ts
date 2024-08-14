@@ -2,16 +2,16 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { SORT_DELAY_DURATION, complete, delay } from "../sort.utils";
+import { delay } from "../../../public/global.utils";
 import { SortToolsService } from "../ngrx-store/sort.service";
-import { ACCENT_TWO_COLOR, CLEAR_COLOR, ACCENT_ONE_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR } from "../../../public/values.utils";
-import { BaseSortService } from "./base-sort.service";
+import { ACCENT_TWO_COLOR, CLEAR_COLOR, ACCENT_ONE_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR } from "../../../public/global.utils";
+import { AbstractDistributionSortService, AbstractSortService } from "./base-sort.service";
 
 /**
  * 鸽巢排序
  */
 @Injectable()
-export class PigeonholeSortService extends BaseSortService {
+export class PigeonholeSortService extends AbstractDistributionSortService {
 
     private threshold: number = -1;
 
@@ -27,8 +27,8 @@ export class PigeonholeSortService extends BaseSortService {
         times = await this.save(source, 'ascent', times, callback);
         times = await this.load(source, 'ascent', times, callback);
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
         await this.clear(this.cacheOfKeyValues);
     }
 
@@ -40,8 +40,8 @@ export class PigeonholeSortService extends BaseSortService {
         times = await this.save(source, 'descent', times, callback);
         times = await this.load(source, 'descent', times, callback);
         
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
         await this.clear(this.cacheOfKeyValues);
     }
 
@@ -138,7 +138,7 @@ export class PigeonholeSortService extends BaseSortService {
  * 桶排序
  */
 @Injectable()
-export class BucketSortService extends BaseSortService {
+export class BucketSortService extends AbstractDistributionSortService {
 
     constructor(private _service: SortToolsService) {
         super();
@@ -150,8 +150,8 @@ export class BucketSortService extends BaseSortService {
         times = await this.save(source, 'ascent', times, callback);
         times = await this.load(source, 'ascent', times, callback);        
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
         await this.clear(this.cacheOfKeyValues);
     }
 
@@ -161,8 +161,8 @@ export class BucketSortService extends BaseSortService {
         times = await this.save(source, 'descent', times, callback);
         times = await this.load(source, 'descent', times, callback);
 
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
         await this.clear(this.cacheOfKeyValues);
     }
 
@@ -268,7 +268,7 @@ export class BucketSortService extends BaseSortService {
  * 插值排序
  */
 @Injectable()
-export class InterpolationSortService extends BaseSortService {
+export class InterpolationSortService extends AbstractDistributionSortService {
 
     private minValue: number = -1;
     private maxValue: number = -1;
@@ -285,8 +285,8 @@ export class InterpolationSortService extends BaseSortService {
         times = await this.save(source, 'ascent', times, callback);
         times = await this.load(source, 'ascent', times, callback);
         
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
         await this.clear(this.cacheOfKeyValues);
     }
 
@@ -298,8 +298,8 @@ export class InterpolationSortService extends BaseSortService {
         times = await this.save(source, 'descent', times, callback);
         times = await this.load(source, 'descent', times, callback);
         
-        await delay(SORT_DELAY_DURATION);
-        await complete(source, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
         await this._service.clear(this.cacheOfKeyValues);
     }
 

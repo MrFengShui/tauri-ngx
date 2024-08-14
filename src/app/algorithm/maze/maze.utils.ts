@@ -1,4 +1,4 @@
-import { CLEAR_COLOR } from "../../public/values.utils";
+import { CLEAR_COLOR } from "../../public/global.utils";
 import { MazeDataModel } from "./ngrx-store/maze.state";
 
 export const delay = (duration: number = 10): Promise<void> => new Promise<void>(resolve => setTimeout(resolve, duration));

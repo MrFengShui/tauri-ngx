@@ -128,7 +128,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     protected handleRunSortEvent(): void {
         if (this.name.includes('shear-sort') && this.count % 32 !== 0) {
             this.showAlert($localize `:@@sort_component_ts_12_1:sort_component_ts_12_1`);
-        } else if ((this.name.includes('odd-even-merge-sort') || this.name.includes('bitonic-merge-sort')) && (this.count & (this.count - 1)) === 0) {
+        } else if ((this.name.includes('odd-even-merge-sort') || this.name.includes('bitonic-merge-sort')) && (this.count & (this.count - 1)) !== 0) {
             this.showAlert($localize `:@@sort_component_ts_12_2:sort_component_ts_12_2`);
         } else {
             this.locked = true;
@@ -140,14 +140,30 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     protected handleCountSelectChange(): void {
         if (this.name.length > 0) {
             this._ngZone.runOutsideAngular(() => {
-                this.create$ = this._utilsService.createDataList(this.count, this.name, this.unique)
+                if (this.count > 0 && this.count < 32) {
+                    this.showAlert($localize `:@@sort_component_ts_12_2:sort_component_ts_12_2`);
+                } else {
+                    this.create$ = this._utilsService.createDataList(this.count, this.name, this.unique)
                     .subscribe(value => 
                         this._ngZone.run(() => {
                             this.loadAndDraw(value);
                             this.create$?.unsubscribe();
                         }));
+                }
             });
         }        
+    }
+
+    protected handleCountInputChange(event: KeyboardEvent): void {
+        if (event.key === 'Enter') {
+            (event.target as HTMLInputElement).blur();
+        }
+    }
+
+    protected handleCountBlurChange(): void {
+        this.count = Math.max(this.count, 0);
+        this.count = Math.min(this.count, this.maxValue);
+        this.handleCountSelectChange();
     }
 
     protected handleShuffleSourceEvent(): void {
@@ -189,6 +205,10 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
             element.download = `sort.data.${metadata.length}.json`;
             element.click();
         }
+    }
+
+    protected isRadixSort(name: string): boolean {
+        return name.includes('radix-sort');
     }
 
     private initHostLayout(): void {

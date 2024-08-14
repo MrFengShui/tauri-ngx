@@ -4,8 +4,8 @@
 <div class="flex align-items-center border-solid surface-border border-round-sm border-1 p-3 gap-4 h-5rem">
     <span class="font-bold text-xl text-primary white-space-nowrap">{{ TRANSLATION_MESSAGES[1] }}</span>
     <p-slider [disabled]="locked" [animate]="true" [min]="0" [max]="maxValue" [step]="step" [(ngModel)]="count" class="w-full" (onSlideEnd)="handleCountSelectChange()"/>
-    <p-inputNumber [disabled]="locked" [min]="0" [max]="maxValue" [step]="step" [showButtons]="true" [(ngModel)]="count" inputStyleClass="w-4rem" (onInput)="handleCountSelectChange()"/> 
-    <p-checkbox [disabled]="locked || count === 0 || name === 'sync-sleep-sort' || name === 'async-sleep-sort'" variant="filled" [binary]="true" [label]="TRANSLATION_MESSAGES[11]" [(ngModel)]="unique" labelStyleClass="font-bold text-xl text-primary white-space-nowrap"/>
+    <p-inputNumber [disabled]="locked" [min]="0" [max]="maxValue" [step]="step" [showButtons]="true" [(ngModel)]="count" inputStyleClass="w-4rem" (onBlur)="handleCountBlurChange()" (onKeyDown)="handleCountInputChange($event)"/> 
+    <p-checkbox [disabled]="locked || name === 'sync-sleep-sort' || name === 'async-sleep-sort'" variant="filled" [binary]="true" [label]="TRANSLATION_MESSAGES[11]" [(ngModel)]="unique" labelStyleClass="font-bold text-xl text-primary white-space-nowrap"/>
     <p-button [disabled]="locked || count === 0" [raised]="true" icon="pi pi-sync" [label]="TRANSLATION_MESSAGES[7]" class="white-space-nowrap" (onClick)="handleShuffleSourceEvent()"/>
     <p-button [disabled]="locked || count === 0" [raised]="true" icon="pi pi-play" [label]="TRANSLATION_MESSAGES[8]" class="white-space-nowrap" (onClick)="handleRunSortEvent()"/>
 </div>
@@ -13,7 +13,7 @@
     <div class="flex align-items-center gap-4">
         <span class="font-bold text-xl text-primary white-space-nowrap">{{ TRANSLATION_MESSAGES[2] }}</span>
         <p-selectButton [disabled]="locked || count === 0" [options]="orderOptions" optionLabel="label" optionValue="value" [(ngModel)]="order"/>
-        <ng-container *ngIf="name === 'lsd-radix-sort' || name === 'msd-radix-sort'">
+        <ng-container *ngIf="isRadixSort(name)">
             <span class="font-bold text-xl text-primary white-space-nowrap" >{{ TRANSLATION_MESSAGES[31] }}</span>
             <p-selectButton [disabled]="locked || count === 0" [options]="radixOptions" optionLabel="label" optionValue="value" [(ngModel)]="radix"/>
         </ng-container>

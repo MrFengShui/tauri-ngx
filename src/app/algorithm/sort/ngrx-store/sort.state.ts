@@ -1,6 +1,6 @@
 export type ShearMode = 'insertion' | 'selection';
 export type SortOrder = 'ascent' | 'descent';
-export type SortRadix = 2 | 8 | 10 | 16;
+export type SortRadix = 2 | 8 | 10 | 16 | number;
 export type SortMergeWay = 3 | 4 | 6 | 8;
 export type SortHeapNode = 3 | 4 | 6 | 8;
 export type SortStateModel = { times: number, datalist: SortDataModel[] };
