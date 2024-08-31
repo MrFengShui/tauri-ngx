@@ -5,6 +5,7 @@ export type SortMergeWay = 3 | 4 | 6 | 8;
 export type SortHeapNode = 3 | 4 | 6 | 8;
 export type SortStateModel = { times: number, datalist: SortDataModel[] };
 export type SortDataRange = { min: number, max: number };
+export type SortIndexRange = { start: number, final: number };
 
 export interface SortMetadataModel {
 

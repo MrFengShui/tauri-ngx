@@ -29,33 +29,34 @@ import { SORT_OPTION_FEATURE_KEY } from "./sort/ngrx-store/sourt.selector";
 import { SORT_OPTION_LOAD_REDUCER } from "./sort/ngrx-store/sort.reducer";
 
 import { SortLoadConfigService, SortMatchService, SortToolsService, SortUtilsService } from "./sort/ngrx-store/sort.service";
-import { BubbleSortService, ShakerBubbleSortService, ExchangeSortService, TwoWayBubbleSortService, ShellBubbleSortService } from "./sort/service/bubble-sort.service";
+import { BubbleSortService, ShakerBubbleSortService, ExchangeSortService, TwoWayBubbleSortService, ShellBubbleSortService, MergeBubbleSortService } from "./sort/service/bubble-sort.service";
 import { BinarySearchInserionSortService, InsertionSortService, ShellSortService } from "./sort/service/insertion-sort.service";
 import { LibrarySortService } from "./sort/service/insertion-sort.service";
-import { ShakerSelectionSortService, SelectionSortService, TwoWaySelectionSortService } from "./sort/service/selection-sort.service";
-import { BogoBubbleSortService, BogoShakerBubbleSortService, BogoInsertionSortService, BogoSelectionSortService, BogoSortService } from "./sort/service/bogo-sort.service";
+import { ShakerSelectionSortService, SelectionSortService, TwoWaySelectionSortService, ShakerPancakeSortService } from "./sort/service/selection-sort.service";
+import { BubbleBogoSortService, ShakerBubbleBogoSortService, InsertionBogoSortService, SelectionBogoSortService, BogoSortService, BogoInversePairSortService, ParallelBogoSortService, ShakerSelectionBogoSortService, MergeBogoSortService } from "./sort/service/bogo-sort.service";
 import { IterativeAverageQuickSortService, RecursiveAverageQuickSortService, IterativeDualPivotQuickSortService, RecursiveDualPivotQuickSortService, IterativeQuickSortService, RecursiveQuickSortService, ThreeWayIterativeQuickSortService, ThreeWayRecursiveQuickSortService, IterativeTwoWayQuickSortService, RecursiveTwoWayQuickSortService } from "./sort/service/quick-sort.service";
 import { CountSortService } from "./sort/service/count-sort.service";
 import { BucketSortService, InterpolationSortService, PigeonholeSortService } from "./sort/service/bucket-sort.service";
 import { IterativeRadixMSDSortService, RadixLSDSortService, RecursiveRadixMSDSortService } from "./sort/service/radix-sort.service";
-import { AsyncSleepSortService, SyncSleepSortService } from "./sort/service/sleep-sort.service";
-import { CycleSortService } from "./sort/service/cycle-sort.service";
+import { SleepSortService } from "./sort/service/sleep-sort.service";
+import { IterativeCycleSortService, RecursiveCycleSortService } from "./sort/service/cycle-sort.service";
 import { SmoothSortService } from "./sort/service/selection-sort.service";
 import { TernaryHeapSortService } from "./sort/service/selection-sort.service";
 import { HeapSortService } from "./sort/service/selection-sort.service";
-import { BottomUpMergeSortService, IterativeInPlaceMergeSortService, MultiWayMergeSortService, RecursiveInPlaceMergeSortService, TopDownMergeSortService } from "./sort/service/merge-sort.service";
+import { BottomUpMergeSortService, InPlaceWeaveMergeSortService, IterativeInPlaceMergeSortService, MultiWayMergeSortService,  RecursiveInPlaceMergeSortService, TopDownMergeSortService, WeaveMergeSortService } from "./sort/service/merge-sort.service";
 import { IterativeStoogeSortService, RecursiveStoogeSortService } from "./sort/service/stooge-sort.service";
 import { SlowSortService } from "./sort/service/slow-sort.service";
 import { GnomeSortService } from "./sort/service/insertion-sort.service";
-import { TournamentSortService } from "./sort/service/tree-sort.service";
+import { TournamentSortService } from "./sort/service/selection-sort.service";
 import { BottomUpBitonicMergeSortService, TopDownBitonicMergeSortService } from "./sort/service/bitonic-merge-sort.service";
 import { OddEvenSortService } from "./sort/service/bubble-sort.service";
 import { CombSortService } from "./sort/service/bubble-sort.service";
-import { PancakeSortService } from "./sort/service/pancake-sort.service";
+import { PancakeSortService } from "./sort/service/selection-sort.service";
 import { GravitySortService } from "./sort/service/gravity-sort.service";
 import { BottomUpOddEvenMergeSortService, TopDownOddEvenMergeSortService } from "./sort/service/odd-even-merge-sort.service";
 import { PatienceSortService } from "./sort/service/patience-sort.service";
-import { OptimalStrandSortService, StrandSortService } from "./sort/service/strand-sort.service";
+import { IterativeStrandSortService } from "./sort/service/merge-sort.service";
+import { RecursiveStrandSortService } from "./sort/service/merge-sort.service";
 import { TimSortService } from "./sort/service/merge-sort.service";
 import { BinarySearchTreeSortService } from "./sort/service/tree-sort.service";
 import { OptimalShearSortService, ShearSortService } from "./sort/service/shear-sort.service";
@@ -71,6 +72,9 @@ import { MazeGenerationSidewinderService } from "./maze/service/sidewinder-maze.
 import { MazeGenerationGrowTreeService } from "./maze/service/grow-tree-maze.service";
 import { MazeGenerationEllerService } from "./maze/service/eller-maze.service";
 import { MazeGenerationWilsonService } from "./maze/service/wilson-maze.service";
+import { BlockSortService } from "./sort/service/block-sort.service";
+import { GuessSortService } from "./sort/service/cycle-sort.service";
+import { IntrospectiveSortService } from "./sort/service/intro-sort.service";
 
 
 @NgModule({
@@ -106,10 +110,10 @@ import { MazeGenerationWilsonService } from "./maze/service/wilson-maze.service"
     ],
     providers: [
         SortLoadConfigService, SortMatchService, SortUtilsService, SortToolsService,
-        BubbleSortService, ShakerBubbleSortService, TwoWayBubbleSortService, CombSortService, ShellBubbleSortService, OddEvenSortService, ExchangeSortService, InsertionSortService, BinarySearchInserionSortService, ShellSortService, SelectionSortService, ShakerSelectionSortService, TwoWaySelectionSortService, RecursiveQuickSortService, IterativeQuickSortService, RecursiveAverageQuickSortService, IterativeAverageQuickSortService, RecursiveTwoWayQuickSortService, IterativeTwoWayQuickSortService, ThreeWayRecursiveQuickSortService, ThreeWayIterativeQuickSortService, RecursiveDualPivotQuickSortService, IterativeDualPivotQuickSortService, HeapSortService, TernaryHeapSortService, SmoothSortService,
-        BucketSortService, CountSortService, InterpolationSortService, PigeonholeSortService, RadixLSDSortService, RecursiveRadixMSDSortService, IterativeRadixMSDSortService, TopDownMergeSortService, BottomUpMergeSortService, MultiWayMergeSortService, RecursiveInPlaceMergeSortService, IterativeInPlaceMergeSortService, TimSortService, 
+        BubbleSortService, ShakerBubbleSortService, TwoWayBubbleSortService, CombSortService, MergeBubbleSortService, ShellBubbleSortService, OddEvenSortService, ExchangeSortService, InsertionSortService, BinarySearchInserionSortService, ShellSortService, SelectionSortService, ShakerSelectionSortService, TwoWaySelectionSortService, RecursiveQuickSortService, IterativeQuickSortService, RecursiveAverageQuickSortService, IterativeAverageQuickSortService, RecursiveTwoWayQuickSortService, IterativeTwoWayQuickSortService, ThreeWayRecursiveQuickSortService, ThreeWayIterativeQuickSortService, RecursiveDualPivotQuickSortService, IterativeDualPivotQuickSortService, HeapSortService, TernaryHeapSortService, SmoothSortService,
+        BucketSortService, BlockSortService, CountSortService, InterpolationSortService, PigeonholeSortService, RadixLSDSortService, RecursiveRadixMSDSortService, IterativeRadixMSDSortService, TopDownMergeSortService, BottomUpMergeSortService, MultiWayMergeSortService, WeaveMergeSortService, InPlaceWeaveMergeSortService, RecursiveInPlaceMergeSortService, IterativeInPlaceMergeSortService, TimSortService, 
         TopDownBitonicMergeSortService, BottomUpBitonicMergeSortService, TopDownOddEvenMergeSortService, BottomUpOddEvenMergeSortService, ShearSortService, OptimalShearSortService,
-        BogoSortService, BogoBubbleSortService, BogoShakerBubbleSortService, BogoInsertionSortService, BogoSelectionSortService, CycleSortService, GnomeSortService, GravitySortService, SyncSleepSortService, AsyncSleepSortService, RecursiveStoogeSortService, IterativeStoogeSortService, SlowSortService, TournamentSortService, PancakeSortService, PatienceSortService, LibrarySortService, StrandSortService, OptimalStrandSortService, BinarySearchTreeSortService,
+        BogoSortService, ParallelBogoSortService, BogoInversePairSortService, BubbleBogoSortService,  ShakerBubbleBogoSortService, InsertionBogoSortService, SelectionBogoSortService, ShakerSelectionBogoSortService, MergeBogoSortService, RecursiveCycleSortService, IterativeCycleSortService, GnomeSortService, GravitySortService, GuessSortService, SleepSortService, RecursiveStoogeSortService, IterativeStoogeSortService, SlowSortService, TournamentSortService, PancakeSortService, ShakerPancakeSortService, PatienceSortService, LibrarySortService, RecursiveStrandSortService, IterativeStrandSortService, BinarySearchTreeSortService, IntrospectiveSortService,
 
         MazeMatchService, MazeUtilsService, MazeToolsService,
         MazeGenerationAldousBroderService, MazeGenerationRandomizedDivisionService, MazeGenerationEllerService, MazeGenerationGrowTreeService, MazeGenerationHuntAndKillService, MazeGenerationRandomizedBacktrackerService,  MazeGenerationRandomizedKruskalService, MazeGenerationRandomizedPrimService, MazeGenerationSidewinderService, MazeGenerationWilsonService

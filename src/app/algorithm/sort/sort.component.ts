@@ -1,17 +1,18 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Inject, LOCALE_ID, NgZone, OnDestroy, OnInit, Renderer2, ViewChild, ViewEncapsulation } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngrx/store";
+import { MessageService } from "primeng/api";
 import { Observer, Subscription, map, timer, filter } from "rxjs";
-import { cloneDeep, now } from "lodash";
+import { ceil, cloneDeep, now } from "lodash";
 import { DES } from "crypto-js";
 
 import { SORT_DATA_SECRET_KEY, SortMatchService, SortToolsService, SortUtilsService } from "./ngrx-store/sort.service";
 
 import { SortDataModel, SortHeapNode, SortHeapNodeOptionModel, SortMergeWay, SortMergeWayOptionModel, SortMetadataModel, SortOrder, SortOrderOptionModel, SortRadix, SortRadixOptionModel, SortStateModel } from "./ngrx-store/sort.state";
-import { SortDataVisualBuilder, SortDataVisualFactory } from "./sort.utils";
 import { SORT_HEAP_NODE_OPTION_LOAD_ACTION, SORT_MERGE_WAY_OPTION_LOAD_ACTION, SORT_ORDER_OPTION_LOAD_ACTION, SORT_RADIX_OPTION_LOAD_ACTION } from "./ngrx-store/sort.action";
 import { SORT_OPTION_LOAD_SELECTOR } from "./ngrx-store/sourt.selector";
-import { MessageService } from "primeng/api";
+
+import { SortDataSubject, SortDataObserver, SortDataAsyncSubject, SortDataAsyncObserver } from "./sort.pattern";
 
 @Component({
     encapsulation: ViewEncapsulation.None,
@@ -27,12 +28,12 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
 
     @HostListener('window:load', ['$event'])
     private async hostListenWindowOnLoad(): Promise<void> {
-        await this.update();
+        await this.initialize();
     }
 
     @HostListener('window:resize', ['$event'])
     private async hostListenWindowResize(): Promise<void> {
-        await this.update();
+        await this.initialize();
     }
 
     protected readonly TRANSLATION_MESSAGES: { [key: string | number] : string } = {
@@ -63,16 +64,18 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
 
     protected timer: number = 0;
     protected times: number = 0;
-    protected count: number = 0;
+    protected total: number = 0;
     protected step: number = 32;
-    protected maxValue: number = 0;
+    protected threshold: number = 0;
     protected unique: boolean = true;
     protected locked: boolean = false;
     protected name: string = '';
     protected localeID: string = '';
 
-    private builder: SortDataVisualBuilder | null = null;
-    private factory: SortDataVisualFactory | null = null;
+    private subject: SortDataSubject | null = null;
+    private observer: SortDataObserver | null = null;
+
+    private size: { width: number, height: number } = { width: -1, height: -1 };
 
     private event$: Subscription | null = null;
     private shuffle$: Subscription | null = null;
@@ -101,7 +104,8 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     ) { }
 
     ngOnInit(): void {
-        this.builder = new SortDataVisualBuilder();
+        this.subject = new SortDataAsyncSubject();
+        this.observer = new SortDataAsyncObserver(this.subject, this.canvas.nativeElement.getContext('2d'));
 
         this._store.dispatch(SORT_ORDER_OPTION_LOAD_ACTION({ localeID: this._localeID }));
         this._store.dispatch(SORT_RADIX_OPTION_LOAD_ACTION({ localeID: this._localeID }));
@@ -126,9 +130,9 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     }
 
     protected handleRunSortEvent(): void {
-        if (this.name.includes('shear-sort') && this.count % 32 !== 0) {
+        if (this.name.includes('shear-sort') && this.total % 32 !== 0) {
             this.showAlert($localize `:@@sort_component_ts_12_1:sort_component_ts_12_1`);
-        } else if ((this.name.includes('odd-even-merge-sort') || this.name.includes('bitonic-merge-sort')) && (this.count & (this.count - 1)) !== 0) {
+        } else if ((this.name.includes('odd-even-merge-sort') || this.name.includes('bitonic-merge-sort')) && (this.total & (this.total - 1)) !== 0) {
             this.showAlert($localize `:@@sort_component_ts_12_2:sort_component_ts_12_2`);
         } else {
             this.locked = true;
@@ -140,10 +144,10 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     protected handleCountSelectChange(): void {
         if (this.name.length > 0) {
             this._ngZone.runOutsideAngular(() => {
-                if (this.count > 0 && this.count < 32) {
+                if (this.total > 0 && this.total < 32) {
                     this.showAlert($localize `:@@sort_component_ts_12_2:sort_component_ts_12_2`);
                 } else {
-                    this.create$ = this._utilsService.createDataList(this.count, this.name, this.unique)
+                    this.create$ = this._utilsService.createDataList(this.total, this.name, this.unique)
                     .subscribe(value => 
                         this._ngZone.run(() => {
                             this.loadAndDraw(value);
@@ -161,8 +165,8 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     }
 
     protected handleCountBlurChange(): void {
-        this.count = Math.max(this.count, 0);
-        this.count = Math.min(this.count, this.maxValue);
+        this.total = Math.max(this.total, 0);
+        this.total = Math.min(this.total, this.threshold);
         this.handleCountSelectChange();
     }
 
@@ -170,7 +174,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         this._ngZone.runOutsideAngular(() => {
             this.locked = true;
             this.shuffle$ = this._utilsService.shuffleDataList(this.source)
-                .subscribe(this.acceptDataAndShow());
+                .subscribe(this.acceptDataAndDraw());
         });
     }
 
@@ -183,7 +187,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
                 this._ngZone.runOutsideAngular(() => {
                     this.import$ = this._utilsService.importDataList(files.item(0), this.name).subscribe(value => 
                         this._ngZone.run(() => {
-                            this.loadAndDraw(value, true);
+                            this.loadAndDraw(value);
                             this.import$?.unsubscribe();
                         })
                     );
@@ -199,7 +203,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
                 range: { min: -1, max: -1 }, timestamp: now(),
                 data: DES.encrypt(JSON.stringify(this.source.map(item => item.value)), SORT_DATA_SECRET_KEY).toString()
             };
-            [metadata.range.min, metadata.range.max] = this._toolsService.findMinMaxValue(this.source);
+            [metadata.range.min, metadata.range.max] = this._toolsService.findMinMaxValue(this.source, 0, this.source.length - 1);
 
             element.href = window.URL.createObjectURL(new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
             element.download = `sort.data.${metadata.length}.json`;
@@ -209,6 +213,10 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
 
     protected isRadixSort(name: string): boolean {
         return name.includes('radix-sort');
+    }
+
+    protected uniqueForbidden(name: string): boolean {
+        return name.includes('sleep-sort') || name.includes('cycle-sort');
     }
 
     private initHostLayout(): void {
@@ -237,8 +245,23 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         });
     }
 
-    private resetCanvasParams(): void {
-        this.count = 0;
+    private async initialize(): Promise<void> {
+        this.size = await this.calcCanvasDimension();
+
+        this.threshold = Math.pow(2, ceil(Math.log2(this.size.width), 0) - 1);
+
+        this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${this.size.width}`);
+        this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${this.size.height}`);
+        
+        this.resetParams();
+        
+        this.subject?.notify(this.source, this.total, this.size);
+
+        this._cdr.markForCheck();
+    }
+
+    private resetParams(): void {
+        this.total = 0;
         this.timer = 0;
         this.times = 0;
         this.step = 32;
@@ -250,23 +273,20 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         this.heapNode = 3;
 
         this.source.splice(0);
-        this.factory?.erase();
-        this._cdr.markForCheck();
     }
 
-    private acceptDataAndShow(): Partial<Observer<SortStateModel | null>> {
+    private acceptDataAndDraw(): Partial<Observer<SortStateModel | null>> {
         return {
             next: state => this._ngZone.run(() => {
                 this.source = cloneDeep(state?.datalist as SortDataModel[]);
                 this.times = state?.times as number;
                 
-                this.factory?.draw(this.source, this.source.length);
-
+                this.subject?.notify(this.source, this.total, this.size);
                 this._cdr.markForCheck();
             }),
             error: error => this._ngZone.run(() => {console.error('sort error:', error);
                 this.locked = false;
-                this._cdr.detectChanges();
+                this._cdr.markForCheck();
                 this.shuffle$?.unsubscribe();
             }),
             complete: () => this._ngZone.run(() => {
@@ -277,39 +297,12 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         };
     }
 
-    private loadAndDraw(value: SortDataModel[], flag: boolean = false): void {
+    private loadAndDraw(value: SortDataModel[]): void {
         this.source = cloneDeep(value);
+        this.total = this.source.length;
         
-        if (flag) {
-            this.count = this.source.length;
-        }
-        
-        const width: number = this.builder?.getDimension().width as number;
-        const height: number = this.builder?.getDimension().height as number;
-
-        this.factory?.update(this.count, width, height);
-        this.factory?.draw(this.source, this.count);
-
+        this.subject?.notify(this.source, this.total, this.size);
         this._cdr.markForCheck();
-    }
-
-    private async update(): Promise<void> {
-        const size: { width: number, height: number } = await this.calcCanvasDimension();
-
-        this.maxValue = Math.pow(2, Math.ceil(Math.log2(size.width)) - 1);
-
-        this._renderer.setAttribute(this.canvas.nativeElement, 'width', `${size.width}`);
-        this._renderer.setAttribute(this.canvas.nativeElement, 'height', `${size.height}`);
-        
-        this.resetCanvasParams();
-
-        if (this.builder) {
-            this.factory = this.builder
-                .setContext(this.canvas.nativeElement)
-                .setMaxValue(this.maxValue)
-                .setDimension(size.width, size.height)
-                .build();
-        }
     }
 
     private listenStopWatchChange(): void {
@@ -330,7 +323,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         this._ngZone.runOutsideAngular(() => {
             this.locked = true;
             this.match$ = this._matchService.match(this.name, this.source, this.order, this.radix, this.mergeWay, this.heapNode)
-                .subscribe(this.acceptDataAndShow());
+                .subscribe(this.acceptDataAndDraw());
         });
     }
 
@@ -341,7 +334,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
                 .subscribe(name => this._ngZone.run(async () => {
                     this.name = name;
 
-                    await this.update();
+                    await this.initialize();
 
                     this.timer$?.unsubscribe();
                     this.match$?.unsubscribe();
@@ -353,25 +346,26 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         this._ngZone.runOutsideAngular(() => {
             this.store$ = this._store.select(SORT_OPTION_LOAD_SELECTOR)
                 .pipe(filter(state => state.action.length > 0))
-                .subscribe(state => this._ngZone.run(() => {
-                    if (state.action === SORT_ORDER_OPTION_LOAD_ACTION.type) {
-                        this.orderOptions = state.result as SortOrderOptionModel[];
-                    }
+                .subscribe(state => 
+                    this._ngZone.run(() => {
+                        if (state.action === SORT_ORDER_OPTION_LOAD_ACTION.type) {
+                            this.orderOptions = state.result as SortOrderOptionModel[];
+                        }
 
-                    if (state.action === SORT_RADIX_OPTION_LOAD_ACTION.type) {
-                        this.radixOptions = state.result as SortRadixOptionModel[];
-                    }
+                        if (state.action === SORT_RADIX_OPTION_LOAD_ACTION.type) {
+                            this.radixOptions = state.result as SortRadixOptionModel[];
+                        }
 
-                    if (state.action === SORT_MERGE_WAY_OPTION_LOAD_ACTION.type) {
-                        this.mergeWayOptions = state.result as SortMergeWayOptionModel[];
-                    }
+                        if (state.action === SORT_MERGE_WAY_OPTION_LOAD_ACTION.type) {
+                            this.mergeWayOptions = state.result as SortMergeWayOptionModel[];
+                        }
 
-                    if (state.action === SORT_HEAP_NODE_OPTION_LOAD_ACTION.type) {
-                        this.heapNodeOptions = state.result as SortHeapNodeOptionModel[];
-                    }
+                        if (state.action === SORT_HEAP_NODE_OPTION_LOAD_ACTION.type) {
+                            this.heapNodeOptions = state.result as SortHeapNodeOptionModel[];
+                        }
 
-                    this._cdr.markForCheck();
-                }));
+                        this._cdr.markForCheck();
+                    }));
         });
     }
 

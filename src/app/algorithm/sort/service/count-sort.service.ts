@@ -12,19 +12,16 @@ import { SortToolsService } from "../ngrx-store/sort.service";
 @Injectable()
 export class CountSortService extends AbstractDistributionSortService {
 
-    constructor(private _service: SortToolsService) {
-        super();
-    }
-
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = 0, keys: string[];
 
         times = await this.save(source, 'ascent', times, callback);
         times = await this.load(source, 'ascent', times, callback);
 
+        this.freeKeyValues(this.cacheOfKeyValue);
+
         await delay();
         await this.complete(source, times, callback);
-        await this.clear(this.cacheOfKeyValue);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (parram: SortStateModel) => void): Promise<void> {
@@ -33,9 +30,10 @@ export class CountSortService extends AbstractDistributionSortService {
         times = await this.save(source, 'descent', times, callback);
         times = await this.load(source, 'descent', times, callback);
 
+        this.freeKeyValues(this.cacheOfKeyValue);
+
         await delay();
         await this.complete(source, times, callback);
-        await this.clear(this.cacheOfKeyValue);
     }
 
     protected override async save(source: SortDataModel[], order: SortOrder, times: number, callback: (parram: SortStateModel) => void): Promise<number> {

@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { swap } from "../sort.utils";
+
 import { delay } from "../../../public/global.utils";
 import { PRIMARY_COLOR, SECONDARY_COLOR, CLEAR_COLOR } from "../../../public/global.utils";
 
@@ -71,7 +71,7 @@ export class TopDownOddEvenMergeSortService {
                 await delay();
     
                 if (source[i].value > source[i + dist].value) {
-                    await swap(source, i, i + dist);
+                    // await swap(source, i, i + dist);
                     times += 1;
                 }
     
@@ -87,7 +87,7 @@ export class TopDownOddEvenMergeSortService {
             await delay();
 
             if (source[lhs].value > source[lhs + dist].value) {
-                await swap(source, lhs, lhs + dist);
+                // await swap(source, lhs, lhs + dist);
                 times += 1;
             }
 
@@ -114,7 +114,7 @@ export class TopDownOddEvenMergeSortService {
                 await delay();
     
                 if (source[i].value < source[i + dist].value) {
-                    await swap(source, i, i + dist);
+                    // await swap(source, i, i + dist);
                     times += 1;
                 }
     
@@ -130,7 +130,7 @@ export class TopDownOddEvenMergeSortService {
             await delay();
 
             if (source[lhs].value < source[lhs + dist].value) {
-                await swap(source, lhs, lhs + dist);
+                // await swap(source, lhs, lhs + dist);
                 times += 1;
             }
 
@@ -202,7 +202,7 @@ export class BottomUpOddEvenMergeSortService {
             callback({ times, datalist: source});  
 
             if (fst === snd && source[i + low].value > source[i + low + span].value) {
-                await swap(source, i + low, i + low + span);
+                // await swap(source, i + low, i + low + span);
                 times += 1;
             }
 
@@ -228,7 +228,7 @@ export class BottomUpOddEvenMergeSortService {
             callback({ times, datalist: source});  
 
             if (fst === snd && source[i + low].value < source[i + low + span].value) {
-                await swap(source, i + low, i + low + span);
+                // await swap(source, i + low, i + low + span);
                 times += 1;
             }
 

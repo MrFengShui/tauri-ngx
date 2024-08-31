@@ -1,11 +1,12 @@
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
 
-import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
 import { delay } from "../../../public/global.utils";
-import { PRIMARY_COLOR, SECONDARY_COLOR, CLEAR_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR } from "../../../public/global.utils";
-import { SortToolsService } from "../ngrx-store/sort.service";
+import { PRIMARY_COLOR, SECONDARY_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR } from "../../../public/global.utils";
+
+import { SortDataModel, SortOrder, SortStateModel } from "../ngrx-store/sort.state";
+
 import { AbstractSortService } from "./base-sort.service";
+import { floor, times } from "lodash";
 
 /**
  * 交換排序
@@ -13,44 +14,52 @@ import { AbstractSortService } from "./base-sort.service";
 @Injectable()
 export class ExchangeSortService extends AbstractSortService {
 
-    constructor(private _service: SortToolsService) {
-        super();
-    }
-
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let completed: boolean = false, flag: boolean, k: number, times: number = 0;
-
-        for (let i = lhs; i <= rhs && !completed; i++) {
-            completed = true;
-
-            for (let j = lhs; j <= rhs; j++) {
-                k = Math.min(j + 1, rhs);
-                flag = source[k].value < source[j].value;
-
-                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-            }
-        }
+        let times: number = await this.bubbleSortByAscent(source, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 0, callback);
 
         await delay();
         await this.complete(source, times, callback);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let completed: boolean = false, flag: boolean, k: number, times: number = 0;
-
-        for (let i = lhs; i <= rhs && !completed; i++) {
-            completed = true;
-
-            for (let j = rhs; j >= lhs; j--) {
-                k = Math.max(j - 1, 0);
-                flag = source[k].value < source[j].value;
-
-                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-            }
-        }
+        let times: number = await this.bubbleSortByDescent(source, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 0, callback);
 
         await delay();
         await this.complete(source, times, callback);
+    }
+
+    protected async bubbleSortByAscent(source: SortDataModel[], lhs: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let k: number, completed: boolean = false, flag: boolean;
+
+        for (let i = lhs; i <= rhs && !completed; i++) {
+            completed = true;
+            
+            for (let j = lhs; j <= rhs - i + lhs; j++) {
+                k = Math.min(j + 1, rhs);
+                flag = source[k].value < source[j].value;
+
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, primaryColor, secondaryColor, accentColor, times, callback);
+            }
+        }
+
+        return times;
+    }
+
+    protected async bubbleSortByDescent(source: SortDataModel[], lhs: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let k: number, completed: boolean = false, flag: boolean;
+
+        for (let i = rhs; i >= lhs && !completed; i--) {
+            completed = true;
+            
+            for (let j = rhs; j >= rhs - i + lhs; j--) {
+                k = Math.max(j - 1, lhs);
+                flag = source[k].value < source[j].value;
+
+                [completed, times] = await this._service.swapAndRender(source, completed, flag, j, k, primaryColor, secondaryColor, accentColor, times, callback);
+            }
+        }
+
+        return times;
     }
 
 }
@@ -59,11 +68,7 @@ export class ExchangeSortService extends AbstractSortService {
  * 冒泡排序（单向）
  */
 @Injectable()
-export class BubbleSortService extends AbstractSortService {
-
-    constructor(private _service: SortToolsService) {
-        super();
-    }
+export class BubbleSortService extends ExchangeSortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string| number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let completed: boolean = false, flag: boolean, k: number, times: number = 0;
@@ -107,11 +112,7 @@ export class BubbleSortService extends AbstractSortService {
  * 冒泡排序（双向）
  */
 @Injectable()
-export class ShakerBubbleSortService extends AbstractSortService {
-
-    constructor(private _service: SortToolsService) {
-        super();
-    }
+export class ShakerBubbleSortService extends BubbleSortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let completed: boolean, flag: boolean, pivot: number = lhs, k: number = -1, times: number = 0;
@@ -187,22 +188,17 @@ export class ShakerBubbleSortService extends AbstractSortService {
  * 二路冒泡排序
  */
 @Injectable()
-export class TwoWayBubbleSortService extends AbstractSortService {
-
-    constructor(private _service: SortToolsService) {
-        super();
-    }
+export class TwoWayBubbleSortService extends ShakerBubbleSortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        const length: number = source.length;
         let m: number, n: number, fstFlag: boolean, sndFlag: boolean, completed: boolean = false, times: number = 0;
 
-        for (let lhs = 0, rhs = length - 1; lhs <= rhs && !completed; lhs++, rhs--) {
+        for (let start = lhs, final = rhs; start <= final && !completed; start++, final--) {
             completed = true;
 
-            for (let i = lhs, j = rhs; i <= rhs && j >= lhs; i++, j--) {
-                m = Math.min(i + 1, rhs);
-                n = Math.max(j - 1, lhs);
+            for (let i = start, j = final; i <= final && j >= start; i++, j--) {
+                m = Math.min(i + 1, final);
+                n = Math.max(j - 1, start);
 
                 fstFlag = source[m].value < source[i].value;
 
@@ -219,15 +215,14 @@ export class TwoWayBubbleSortService extends AbstractSortService {
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        const length: number = source.length;
         let m: number, n: number, fstFlag: boolean, sndFlag: boolean, completed: boolean = false, times: number = 0;
 
-        for (let lhs = 0, rhs = length - 1; lhs <= rhs && !completed; lhs++, rhs--) {
+        for (let start = lhs, final = rhs; start <= final && !completed; start++, final--) {
             completed = true;
 
-            for (let i = lhs, j = rhs; i <= rhs && j >= lhs; i++, j--) {
-                m = Math.min(i + 1, rhs);
-                n = Math.max(j - 1, lhs);
+            for (let i = start, j = final; i <= final && j >= start; i++, j--) {
+                m = Math.min(i + 1, final);
+                n = Math.max(j - 1, start);
 
                 fstFlag = source[m].value > source[i].value;
 
@@ -246,14 +241,68 @@ export class TwoWayBubbleSortService extends AbstractSortService {
 }
 
 /**
+ * 归并冒泡排序
+ */
+@Injectable()
+export class MergeBubbleSortService extends BubbleSortService {
+
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = await this.sortByOrder(source, lhs, rhs, option, 'ascent', 0, callback);
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = await this.sortByOrder(source, lhs, rhs, option, 'descent', 0, callback);
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+    
+    protected async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        if (lhs < rhs) {
+            const mid: number = floor((rhs - lhs) * 0.5 + lhs, 0);
+
+            if (order === 'ascent') {
+                times = await this.sortByOrder(source, lhs, mid, option, order, times, callback);
+                times = await this.sortByOrder(source, mid + 1, rhs, option, order, times, callback);
+                times = await this.merge(source, lhs, mid, rhs, order, times, callback);
+            }
+
+            if (order === 'descent') {
+                times = await this.sortByOrder(source, mid + 1, rhs, option, order, times, callback);
+                times = await this.sortByOrder(source, lhs, mid, option, order, times, callback);
+                times = await this.merge(source, lhs, mid, rhs, order, times, callback);
+            }
+        }
+        
+        return times;
+    }
+
+    private async merge(source: SortDataModel[], lhs: number, mid: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        if (order === 'ascent') {
+            times = await this.bubbleSortByAscent(source, lhs, mid, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            times = await this.bubbleSortByAscent(source, mid + 1, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            times = await this.bubbleSortByAscent(source, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+        }
+        
+        if (order === 'descent') {
+            times = await this.bubbleSortByDescent(source, mid + 1, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            times = await this.bubbleSortByDescent(source, lhs, mid, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            times = await this.bubbleSortByDescent(source, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+        }
+
+        return times;
+    }
+
+}
+
+/**
  * 希尔冒泡排序
  */
 @Injectable()
-export class ShellBubbleSortService extends AbstractSortService {
-
-    constructor(private _service: SortToolsService) {
-        super();
-    }
+export class ShellBubbleSortService extends BubbleSortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let k: number, times: number = 0, completed: boolean, flag: boolean;
@@ -305,11 +354,7 @@ export class ShellBubbleSortService extends AbstractSortService {
  * 梳排序
  */
 @Injectable()
-export class CombSortService extends AbstractSortService {
-
-    constructor(private _service: SortToolsService) {
-        super();
-    }
+export class CombSortService extends BubbleSortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let completed: boolean = false, flag: boolean, k: number, times: number = 0;
@@ -353,11 +398,7 @@ export class CombSortService extends AbstractSortService {
  * 奇偶排序
  */
 @Injectable()
-export class OddEvenSortService extends AbstractSortService {
-
-    constructor(private _service: SortToolsService) {
-        super();
-    }
+export class OddEvenSortService extends BubbleSortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let completed: boolean = false, flag: boolean, k: number, times: number = 0;

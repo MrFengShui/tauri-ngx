@@ -29,3 +29,26 @@ export const delay = (duration: number = 1): Promise<void> =>
         }, duration);
     });
 
+export const calcGCD = (fst: number, snd: number): number => {
+    while (true) {
+        if (fst > snd) {
+            fst -= snd;
+        } else if (fst < snd) {
+            snd -= fst;
+        } else {
+            break;
+        }
+    }
+    
+    return fst;
+}
+
+export const calcLCM = (fst: number, snd: number): number => {
+    let mult: number = 0, gcd: number = calcGCD(fst, snd);
+    
+    for (let i = 0; i < snd; i++) {
+        mult += fst;
+    }
+    
+    return Math.floor(mult / gcd);
+}

@@ -3,7 +3,7 @@ import { floor } from "lodash";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
 import { delay } from "../../../public/global.utils";
-import { SortToolsService } from "../ngrx-store/sort.service";
+
 import { CLEAR_COLOR, ACCENT_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, START_COLOR, FINAL_COLOR } from "../../../public/global.utils";
 import { AbstractQuickSortService, PartitionMetaInfo } from "./base-sort.service";
 
@@ -13,18 +13,16 @@ import { AbstractQuickSortService, PartitionMetaInfo } from "./base-sort.service
 @Injectable()
 export class RecursiveQuickSortService extends AbstractQuickSortService {
 
-    constructor(protected _service: SortToolsService) {
-        super();
-    }
-
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = await this.sortByOrder(source, lhs, rhs, 'ascent', 0, callback);
+        
         await delay();
         await this.complete(source, times, callback);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = await this.sortByOrder(source, lhs, rhs, 'descent', 0, callback);
+
         await delay();
         await this.complete(source, times, callback);
     }
@@ -105,7 +103,7 @@ export class RecursiveQuickSortService extends AbstractQuickSortService {
             source[lhs].color = CLEAR_COLOR;
             source[rhs].color = CLEAR_COLOR;
             callback({ times, datalist: source });
-            return { times, mid: rhs };
+            return { times, mid: lhs };
         } else {
             const pivot: number = source[lhs].value;
             let j: number = rhs + 1, completed: boolean = false, flag: boolean;
@@ -131,6 +129,14 @@ export class RecursiveQuickSortService extends AbstractQuickSortService {
             await this._service.swapAndRender(source, false, true, j - 1, lhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             return { times: times + 1, mid: j - 1 };
         }
+    }
+
+    public async ascent(source: SortDataModel[], lhs: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<PartitionMetaInfo> {
+        return this.partitionByAscent(source, lhs, rhs, times, callback);
+    }
+
+    public async descent(source: SortDataModel[], lhs: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<PartitionMetaInfo> {
+        return this.partitionByDescent(source, lhs, rhs, times, callback);
     }
 
 }
@@ -963,7 +969,7 @@ export class RecursiveDualPivotQuickSortService extends RecursiveQuickSortServic
         return times;
     }
 
-    protected override async partitionByAscent(source: SortDataModel[], lhs: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<PartitionMetaInfo> {
+    public override async partitionByAscent(source: SortDataModel[], lhs: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<PartitionMetaInfo> {
         if (rhs - lhs < this.THRESHOLD) {
             source[lhs].color = START_COLOR;
             source[rhs].color = FINAL_COLOR;

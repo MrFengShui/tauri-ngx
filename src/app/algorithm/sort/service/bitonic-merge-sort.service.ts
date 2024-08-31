@@ -1,24 +1,18 @@
 import { Injectable } from "@angular/core";
 import { floor } from "lodash";
 
-import { swap } from "../sort.utils";
 import { delay } from "../../../public/global.utils";
 import { PRIMARY_COLOR, SECONDARY_COLOR, CLEAR_COLOR, ACCENT_COLOR } from "../../../public/global.utils";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
 
 import { AbstractSortService } from "./base-sort.service";
-import { SortToolsService } from "../ngrx-store/sort.service";
 
 /**
  * 双调归并排序（自顶向下）
  */
 @Injectable()
 export class TopDownBitonicMergeSortService extends AbstractSortService {
-
-    constructor(protected _service: SortToolsService) {
-        super();
-    }
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = await this.sortByOrder(source, lhs, rhs, 'up', 'ascent', 0, callback);
@@ -116,7 +110,7 @@ export class BottomUpBitonicMergeSortService extends TopDownBitonicMergeSortServ
                         await delay();
                         
                         if ((source[i].value > source[xor].value && and === 0) || (source[i].value < source[xor].value && and !== 0)) {
-                            await swap(source, i, xor);
+                            // await swap(source, i, xor);
                             times += 1;
                         }
         
@@ -150,7 +144,7 @@ export class BottomUpBitonicMergeSortService extends TopDownBitonicMergeSortServ
                         await delay();
                         
                         if ((source[i].value < source[xor].value && and === 0) || (source[i].value > source[xor].value && and !== 0)) {
-                            await swap(source, i, xor);
+                            // await swap(source, i, xor);
                             times += 1;
                         }
         
@@ -165,63 +159,5 @@ export class BottomUpBitonicMergeSortService extends TopDownBitonicMergeSortServ
         await delay();
         await this.complete(source, times, callback);
     }
-
-    // protected override async mergeByAscent(source: SortDataModel[], lhs: number, rhs: number, scale: number, gap: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-    //     let and: number, xor: number;
-
-    //     for (let i = lhs; i <= rhs; i++) {
-    //         xor = gap ^ i;
-
-    //         if (xor > i) {
-    //             and = scale & i;
-
-    //             source[i].color = PRIMARY_COLOR;
-    //             source[xor].color = SECONDARY_COLOR;
-    //             callback({ times, datalist: source});  
-
-    //             await delay();
-                
-    //             if ((source[i].value > source[xor].value && and === 0) || (source[i].value < source[xor].value && and !== 0)) {
-    //                 await swap(source, i, xor);
-    //                 times += 1;
-    //             }
-
-    //             source[i].color = CLEAR_COLOR;
-    //             source[xor].color = CLEAR_COLOR;
-    //             callback({ times, datalist: source});  
-    //         }
-    //     }
-
-    //     return times;
-    // }
-
-    // protected override async mergeByDescent(source: SortDataModel[], lhs: number, rhs: number, scale: number, gap: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-    //     let and: number, xor: number;
-
-    //     for (let i = rhs; i >= lhs; i--) {
-    //         xor = gap ^ i;
-
-    //         if (xor > i) {
-    //             and = scale & i;
-
-    //             source[i].color = PRIMARY_COLOR;
-    //             source[xor].color = SECONDARY_COLOR;
-    //             callback({ times, datalist: source});  
-
-    //             await delay();
-                
-    //             if ((source[i].value < source[xor].value && and === 0) || (source[i].value > source[xor].value && and !== 0)) {
-    //                 await swap(source, i, xor);
-    //                 times += 1;
-    //             }
-
-    //             source[i].color = CLEAR_COLOR;
-    //             source[xor].color = CLEAR_COLOR;
-    //             callback({ times, datalist: source});  
-    //         }
-    //     }
-
-    //     return times;
-    // }
 
 }

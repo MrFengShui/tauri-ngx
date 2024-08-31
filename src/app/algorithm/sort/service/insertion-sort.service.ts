@@ -1,48 +1,101 @@
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
 
-import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { swap } from "../sort.utils";
-import { delay } from "../../../public/global.utils";
+import { ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, delay } from "../../../public/global.utils";
+import { ACCENT_COLOR, CLEAR_COLOR, FINAL_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, START_COLOR } from "../../../public/global.utils";
+
+import { SortDataModel, SortStateModel, SortOrder, SortIndexRange } from "../ngrx-store/sort.state";
+
 import { SortToolsService } from "../ngrx-store/sort.service";
-import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, CLEAR_COLOR, FINAL_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, START_COLOR } from "../../../public/global.utils";
+import { AbstractDistributionSortService, AbstractSortService } from "./base-sort.service";
+
+/**
+ * 侏儒排序
+ */
+@Injectable()
+export class GnomeSortService extends AbstractSortService {
+
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let i: number, j: number, completed: boolean, flag: boolean, times: number = 0;
+ 
+        for (let k = lhs + 1; k <= rhs; k++) {
+            i = k;
+
+            while (true) {
+                j = Math.max(i - 1, lhs);
+                flag = source[j].value > source[i].value;
+                
+                source[k].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
+
+                [completed, times] = await this._service.swapAndRender(source, false, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+                source[k].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
+    
+                i = flag ? i - 1 : i + 1;
+                
+                if (i >= k) break;
+            }
+            
+            source[k].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let i: number, j: number, completed: boolean, flag: boolean, times: number = 0;
+ 
+        for (let k = rhs - 1; k >= lhs; k--) {
+            i = k;
+
+            while (true) {
+                j = Math.min(i + 1, rhs);
+                flag = source[j].value > source[i].value;
+                
+                source[k].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
+
+                [completed, times] = await this._service.swapAndRender(source, false, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+                source[k].color = ACCENT_COLOR;
+                callback({ times, datalist: source });
+    
+                i = flag ? i + 1 : i - 1;
+                
+                if (i <= k) break;
+            }
+            
+            source[k].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+}
 
 /**
  * 插入排序
  */
 @Injectable()
-export class InsertionSortService {
+export class InsertionSortService extends GnomeSortService {
 
-    constructor(private _service: SortToolsService) {}
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = await this._service.stableGapSortByAscent(source, lhs, rhs, 1, 1, 0, callback);
 
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
-
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, temp, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, temp, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-        });
+        await delay();
+        await this.complete(source, times, callback);
     }
 
-    private async sortByAscent(source: SortDataModel[], times: number, temp: SortDataModel, callback: (param: SortStateModel) => void): Promise<void> {
-        times = await this._service.stableGapSortByAscent(source, 0, source.length - 1, 1, 1, times, callback);
-        await delay();
-        // await complete(source, times, callback);
-    }
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = await this._service.stableGapSortByDescent(source, lhs, rhs, 1, 1, 0, callback);
 
-    private async sortByDescent(source: SortDataModel[], times: number, temp: SortDataModel, callback: (parram: SortStateModel) => void): Promise<void> {
-        times = await this._service.stableGapSortByDescent(source, 0, source.length - 1, 1, 1, times, callback);
         await delay();
-        // await complete(source, times, callback);
+        await this.complete(source, times, callback);
     }
 
 }
@@ -51,33 +104,13 @@ export class InsertionSortService {
  * 二分插入排序
  */
 @Injectable()
-export class BinarySearchInserionSortService {
+export class BinarySearchInserionSortService extends InsertionSortService {
 
-    constructor(private _service: SortToolsService) {}
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let threshold: number, k: number, completed: boolean, times: number = 0;
 
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
-
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, temp, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, temp, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-        });
-    }
-
-    private async sortByAscent(source: SortDataModel[], times: number, temp: SortDataModel, callback: (param: SortStateModel) => void): Promise<void> {
-        let threshold: number, k: number, completed: boolean;
-
-        for (let i = 1, length = source.length; i <= length - 1; i++) {
-            threshold = this._service.indexOfFGTByAscent(source, source[i], 0, i - 1);
+        for (let i = lhs + 1; i <= rhs; i++) {
+            threshold = this._service.indexOfFGTByAscent(source, source[i].value, lhs, i - 1);
             
             if (threshold === -1) continue;
 
@@ -101,14 +134,14 @@ export class BinarySearchInserionSortService {
         }
 
         await delay();
-        // await complete(source, times, callback);
+        await this.complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], times: number, temp: SortDataModel, callback: (parram: SortStateModel) => void): Promise<void> {
-        let threshold: number, k: number, completed: boolean;
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let threshold: number, k: number, completed: boolean, times: number = 0;
 
-        for (let length = source.length, i = length - 2; i >= 0; i--) {
-            threshold = this._service.indexOfFGTByDescent(source, source[i], i + 1, length - 1);
+        for (let i = rhs - 1; i >= lhs; i--) {
+            threshold = this._service.indexOfFGTByDescent(source, source[i].value, i + 1, rhs);
             
             if (threshold === -1) continue;
             
@@ -132,7 +165,7 @@ export class BinarySearchInserionSortService {
         }
 
         await delay();
-        // await complete(source, times, callback);
+        await this.complete(source, times, callback);
     }
 
 }
@@ -141,386 +174,280 @@ export class BinarySearchInserionSortService {
  * 希尔排序
  */
 @Injectable()
-export class ShellSortService {
+export class ShellSortService extends InsertionSortService {
 
-    constructor(private _service: SortToolsService) {}
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = 0;
 
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
-
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, temp, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, temp, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-        });
-    }
-
-    private async sortByAscent(source: SortDataModel[], times: number, temp: SortDataModel, callback: (param: SortStateModel) => void): Promise<void> {
-        let k: number;
-
-        for (let length = source.length, gap = length >> 1; gap > 0; gap >>= 1) {
-            times = await this._service.stableGapSortByAscent(source, 0, length - 1, gap, 1, times, callback);
+        for (let gap = (rhs - lhs + 1) >> 1; gap > 0; gap >>= 1) {
+            times = await this._service.stableGapSortByAscent(source, lhs, rhs, gap, 1, times, callback);
         }
         
         await delay();
-        // await complete(source, times, callback);
+        await this.complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], times: number, temp: SortDataModel, callback: (parram: SortStateModel) => void): Promise<void> {
-        for (let length = source.length, gap = Math.floor(length * 0.5); gap > 0; gap = Math.floor(gap * 0.5)) {
-            times = await this._service.stableGapSortByDescent(source, 0, length - 1, gap, 1, times, callback);
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = 0;
+
+        for (let gap = (rhs - lhs + 1) >> 1; gap > 0; gap >>= 1) {
+            times = await this._service.stableGapSortByDescent(source, lhs, rhs, gap, 1, times, callback);
         }
 
         await delay();
-        // await complete(source, times, callback);
+        await this.complete(source, times, callback);
     }
 
 }
 
 /**
  * 图书馆排序
- * 公式1：f(x) = (gap + 1) * x + gap
- * 公式2：g(x) = (x - gap) / (gap + 1)
  */
 @Injectable()
-export class LibrarySortService {
+export class LibrarySortService extends AbstractDistributionSortService<SortDataModel> {
 
-    private cache: SortDataModel[] = Array.from([]);
+    protected readonly BLANKS: number = 4;
 
-    constructor(private _service: SortToolsService) { }
+    protected rmdRange: SortIndexRange = { start: -1, final: -1 };
+    protected bsRange: SortIndexRange = { start: -1, final: -1 };
+    protected threshold: number = -1;
 
-    public sort(array: SortDataModel[], order: SortOrder, gap: number = 4): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = 0;
 
-            if (order === 'ascent') {
-                this.sortByAscent(array, gap, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
+        this.threshold = lhs;
 
-            if (order === 'descent') {
-                this.sortByDescent(array, gap, temp, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-        });
-    }
-
-    private async sortByAscent(source: SortDataModel[], gap: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let sourceIndex: number = 1, cacheIndex: number, sourceThreshold: number, cacheThreshold: number, point: number = 0, index: number = -1, lhs: number, rhs: number, flag: boolean = false;
-
-        while (sourceIndex < source.length) {
-            times = await this.save(source, sourceIndex, gap, times, callback);
-
-            sourceThreshold = sourceIndex - 1;
-            cacheThreshold = (gap + 1) * sourceThreshold + gap;
-
-            for (let i = sourceIndex; i < source.length; i++) {
-                cacheIndex = i - sourceThreshold + cacheThreshold;
-                point = this.searchByAscent(source, source[i].value, sourceThreshold);
-
-                if (point === -1) {
-                    sourceIndex = i + 1;
-                    break;
-                }
-
-                this.cache[cacheIndex].color = ACCENT_COLOR;
-                callback({ times, datalist: this.cache });
-
-                await delay();
-
-                this.cache[cacheIndex].color = CLEAR_COLOR;
-                callback({ times, datalist: this.cache });
-
-                rhs = (gap + 1) * point + gap;
-                lhs = rhs - gap;
-                [flag, times] = await this.insert(flag, lhs, rhs, cacheIndex, temp, times, callback);
-
-                if (flag) {
-                    times = await this._service.stableGapSortByAscent(this.cache, lhs, rhs, 1, 1, times, callback);
-                } else {
-                    sourceIndex = i;
-                    break;
-                }
-            }
-
-            times = await this.load(source, times, callback);
-
-            await delay();
-            callback({ times, datalist: source });
-
-            this.cache.splice(0);
-
-            if (index === cacheThreshold) {
-                break;
-            } else {
-                index = cacheThreshold;
-            }
+        while (this.threshold < rhs) {
+            times = await this.save(source, 'ascent', times, callback);
+            times = await this.load(source, 'ascent', times, callback);
         }
 
         await delay();
-        // await complete(source, times, callback);
+        await this.complete(source, times, callback);
     }
 
-    private async sortByDescent(source: SortDataModel[], gap: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let sourceIndex: number = 1, cacheIndex: number, sourceThreshold: number, cacheThreshold: number, point: number = 0, index: number = -1, lhs: number, rhs: number, flag: boolean = false;
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = 0, completed: boolean;
 
-        while (sourceIndex < source.length) {
-            times = await this.save(source, sourceIndex, gap, times, callback);
+        this.threshold = rhs;
 
-            sourceThreshold = sourceIndex - 1;
-            cacheThreshold = (gap + 1) * sourceThreshold + gap;
-
-            for (let i = sourceIndex; i < source.length; i++) {
-                cacheIndex = i - sourceThreshold + cacheThreshold;
-                point = this.searchByDescent(source, source[i].value, sourceThreshold);
-
-                if (point === -1) {
-                    sourceIndex = i + 1;
-                    break;
-                }
-
-                this.cache[cacheIndex].color = PRIMARY_COLOR;
-                callback({ times, datalist: this.cache });
-
-                await delay();
-
-                this.cache[cacheIndex].color = CLEAR_COLOR;
-                callback({ times, datalist: this.cache });
-
-                rhs = (gap + 1) * point + gap;
-                lhs = rhs - gap;
-                [flag, times] = await this.insert(flag, lhs, rhs, cacheIndex, temp, times, callback);
-
-                if (flag) {
-                    times = await this._service.stableGapSortByDescent(this.cache, lhs, rhs, 1, 1, times, callback);
-                } else {
-                    sourceIndex = i;
-                    break;
-                }
-            }
-
-            times = await this.load(source, times, callback);
-
-            await delay();
-            callback({ times, datalist: source });
-
-            this.cache.splice(0);
-
-            if (index === cacheThreshold) {
-                break;
-            } else {
-                index = cacheThreshold;
-            }
+        while (this.threshold > lhs) {
+            times = await this.save(source, 'descent', times, callback);
+            times = await this.load(source, 'descent', times, callback);
         }
-
+        
         await delay();
-        // await complete(source, times, callback);
+        await this.complete(source, times, callback);
     }
-
-    private async insert(flag: boolean, lhs: number, rhs: number, cacheIndex: number, temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<[boolean, number]> {
-        for (let i = lhs; i < rhs; i++) {
-            flag = this.cache[i].value === 0;
-
-            this.cache[cacheIndex].color = PRIMARY_COLOR;
-            callback({ times, datalist: this.cache });
-
-            if (this.cache[i].value === 0) {
+    
+    protected override async save(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        if (order === 'ascent') {
+            for (let length = source.length, i = 0; i <= length - 1; i++) {
+                if (i <= this.threshold) {
+                    for (let k = 0; k < this.BLANKS; k++) {
+                        this.array.push({ color: CLEAR_COLOR, value: 0 });
+                    }
+                }
+    
+                this.array.push({ color: source[i].color, value: source[i].value });
+                
+                times = await this.render(source, i, i, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
                 times += 1;
+            }
+        }
+        
+        if (order === 'descent') {
+            for (let length = source.length, i = length - 1; i >= 0; i--) {
+                if (i >= this.threshold) {
+                    for (let k = 0; k < this.BLANKS; k++) {
+                        this.array.unshift({ color: CLEAR_COLOR, value: 0 });
+                    }
+                }
+    
+                this.array.unshift({ color: source[i].color, value: source[i].value });
+                
+                times = await this.render(source, i, i, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                times += 1;
+            }
+        }
+        
+        return times;
+    }
 
-                this.cache[i].color = SECONDARY_COLOR;
-                callback({ times, datalist: this.cache });
+    protected override async load(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let index: number, value: number;
+        
+        if (order === 'ascent') {
+            this.rmdRange = { start: this.BLANKS * this.threshold + this.BLANKS + this.threshold + 1, final: this.array.length - 1 };
+            this.bsRange = { start: 0, final: this.threshold };
+            times = await this.insertByAscent(source, this.rmdRange.final, times, callback);
 
-                await swap(this.cache, cacheIndex, i);
+            index = 0;
+            
+            while (this.array.length > 0) {
+                value = (this.array.shift() as SortDataModel).value;
+
+                if (value !== 0) {
+                    source[index].value = value;
+
+                    times = await this.render(source, index, index, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+                    times += 1;
+                    index += 1;
+                }
+            }
+        }
+        
+        if (order === 'descent') {
+            this.rmdRange = { start: 0, final: this.threshold - 1 };
+            this.bsRange = { start: this.threshold, final: source.length - 1 };
+            times = await this.insertByDescent(source, this.rmdRange.start, times, callback);
+
+            index = source.length - 1;
+            
+            while (this.array.length > 0) {
+                value = (this.array.pop() as SortDataModel).value;
+
+                if (value !== 0) {
+                    source[index].value = value;
+
+                    times = await this.render(source, index, index, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+                    times += 1;
+                    index -= 1;
+                }
+            }
+        }
+
+        return times;
+    }
+
+    private async insertByAscent(source: SortDataModel[], threshold: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let start: number, final: number, index: number, flag: boolean;
+         
+        for (let i = this.rmdRange.start; i <= this.rmdRange.final; i++) {
+            index = this._service.indexOfFGTByAscent(source, this.array[i].value, this.bsRange.start, this.bsRange.final);
+            
+            times = await this.renderWithDuration(this.array, i, i, ACCENT_COLOR, ACCENT_COLOR, 100, times, callback);
+
+            if (index === -1) {
+                this.threshold = i - this.threshold * this.BLANKS - this.BLANKS;
                 break;
             }
 
-            await delay();
+            final = index * this.BLANKS + index + this.BLANKS;
+            start = final - this.BLANKS;
+            flag = true;
 
-            this.cache[cacheIndex].color = CLEAR_COLOR;
-            this.cache[i].color = CLEAR_COLOR;
-            callback({ times, datalist: this.cache });
-        }
+            for (let j = final - 1; j >= start; j--) {
+                if (this.array[j].value === 0) {
+                    flag = j === start;
+                    index = j;
+                    break;
+                }
+            }
 
-        return [flag, times];
-    }
+            await this._service.swapAndRender(this.array, false, true, i, index, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
 
-    private async save(source: SortDataModel[], index: number, gap: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        for (let i = 0; i < source.length; i++) {
+            times = await this._service.stableGapSortByAscent(this.array, start, final, 1, 1, times, callback);
             times += 1;
 
-            source[i].color = ACCENT_ONE_COLOR;
-            callback({ times, datalist: source });
+            if (i === threshold) {
+                this.threshold = threshold;
+                break;
+            }
 
-            await delay();
+            if (flag) {
+                this.threshold = i - this.threshold * this.BLANKS - this.BLANKS;
+                break;
+            }
+        }
+        
+        return times;
+    }
 
-            source[i].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
+    private async insertByDescent(source: SortDataModel[], threshold: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let start: number, final: number, index: number, flag: boolean;
+        
+        for (let i = this.rmdRange.final; i >= this.rmdRange.start; i--) {
+            index = this._service.indexOfFGTByDescent(source, this.array[i].value, this.bsRange.start, this.bsRange.final);
+            
+            times = await this.renderWithDuration(this.array, i, i, ACCENT_COLOR, ACCENT_COLOR, 100, times, callback);
 
-            if (i < index) {
-                for (let j = 0; j < gap; j++) {
-                    this.cache.push({ color: CLEAR_COLOR, value: 0 });
+            if (index === -1) {
+                this.threshold = i;
+                break;
+            }
+
+            start = index + this.BLANKS * index - this.BLANKS * this.bsRange.start;
+            final = start + this.BLANKS;
+            flag = true;
+            
+            for (let j = start + 1; j <= final; j++) {
+                if (this.array[j].value === 0) {
+                    flag = j === final;
+                    index = j;
+                    break;
                 }
             }
 
-            this.cache.push(source[i]);
-        }
+            await this._service.swapAndRender(this.array, false, true, i, index, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
 
+            times = await this._service.stableGapSortByDescent(this.array, start, final, 1, 1, times, callback);
+            times += 1;
+
+            if (i === threshold) {
+                this.threshold = threshold;
+                break;
+            }
+
+            if (flag) {
+                this.threshold = i;
+                break;
+            }
+        }
+    
         return times;
-    }
-
-    private async load(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        let pivot: number = 0;
-
-        for (let i = 0, length = this.cache.length; i < length; i++) {
-            if (this.cache[i].value !== 0) {
-                times += 1;
-
-                source[pivot] = this.cache[i];
-                source[pivot].color = ACCENT_TWO_COLOR;
-                callback({ times, datalist: source });
-
-                await delay();
-
-                source[pivot].color = CLEAR_COLOR;
-                callback({ times, datalist: source });
-
-                pivot += 1;
-            }
-        }
-
-        return times;
-    }
-
-    private searchByAscent(source: SortDataModel[], target: number, threshold: number): number {
-        let lhs: number = 0, rhs: number = threshold, mid: number;
-
-        while (lhs <= rhs) {
-            mid = Math.floor((rhs - lhs) * 0.5 + lhs);
-
-            if (source[mid].value > target) {
-                rhs = mid - 1;
-            } else {
-                lhs = mid + 1;
-            }
-        }
-
-        return lhs > threshold ? -1 : lhs;
-    }
-
-    private searchByDescent(source: SortDataModel[], target: number, threshold: number): number {
-        let lhs: number = 0, rhs: number = threshold, mid: number;
-
-        while (lhs <= rhs) {
-            mid = Math.floor((rhs - lhs) * 0.5 + lhs);
-
-            if (source[mid].value < target) {
-                rhs = mid - 1;
-            } else {
-                lhs = mid + 1;
-            }
-        }
-
-        return lhs > threshold ? -1 : lhs;
     }
 
 }
-
-/**
- * 侏儒排序
- */
-
 
 @Injectable()
-export class GnomeSortService {
+export class OptimalLibrarySortService extends LibrarySortService {
 
-    constructor(private _service: SortToolsService) {}
+    protected override async save(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let minValue: number, maxValue: number;
 
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            const temp: SortDataModel = { value: 0, color: CLEAR_COLOR };
+        if (order === 'ascent') {
+            this.rmdRange = { 
+                ...this.rmdRange, 
+                start: this.threshold + 1, 
+                final: Math.min(this.threshold + 16, source.length - 1) 
+            };
 
-            if (order === 'ascent') {
-                this.sortByAscent(array, temp, 0, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
+            [minValue, maxValue] = this._service.findMinMaxValue(source, this.rmdRange.start, this.rmdRange.final);
 
-            if (order === 'descent') {
-                this.sortByDescent(array, temp, 0, param => subscriber.next(param))
-                    .then(() => subscriber.complete())
-                    .catch(error => subscriber.error(error));
-            }
-        });
-    }
-
-    private async sortByAscent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let i: number, j: number, completed: boolean, flag: boolean;
- 
-        for (let k = 1, length = source.length; k <= length - 1; k++) {
-            i = k;
-
-            while (true) {
-                j = Math.max(i - 1, 0);
-                flag = source[j].value > source[i].value;
-                
-                source[k].color = ACCENT_COLOR;
-                callback({ times, datalist: source });
-
-                [completed, times] = await this._service.swapAndRender(source, false, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-
-                source[k].color = ACCENT_COLOR;
-                callback({ times, datalist: source });
-    
-                i = flag ? i - 1 : i + 1;
-                
-                if (i >= k) break;
-            }
-            
-            source[k].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
+            this.bsRange = {
+                start: this._service.indexOfFGTByAscent(source, minValue, 0, this.threshold),
+                final: this._service.indexOfFGTByAscent(source, maxValue, 0, this.threshold)
+            };
         }
 
-        await delay();
-        // await complete(source, times, callback);
-    }
+        if (order === 'descent') {
 
-    private async sortByDescent(source: SortDataModel[], temp: SortDataModel, times: number, callback: (parram: SortStateModel) => void): Promise<void> {
-        let i: number, j: number, completed: boolean, flag: boolean;
- 
-        for (let length = source.length, k = length - 2; k >= 0; k--) {
-            i = k;
-
-            while (true) {
-                j = Math.min(i + 1, length - 1);
-                flag = source[j].value > source[i].value;
-                
-                source[k].color = ACCENT_COLOR;
-                callback({ times, datalist: source });
-
-                [completed, times] = await this._service.swapAndRender(source, false, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-
-                source[k].color = ACCENT_COLOR;
-                callback({ times, datalist: source });
-    
-                i = flag ? i + 1 : i - 1;
-                
-                if (i <= k) break;
-            }
-            
-            source[k].color = CLEAR_COLOR;
-            callback({ times, datalist: source });
         }
 
-        await delay();
-        // await complete(source, times, callback);
+        return times;
+    }
+
+    protected override async load(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        if (order === 'ascent') {
+
+        }
+
+        if (order === 'descent') {
+
+        }
+        
+        return times;
     }
 
 }
-
-

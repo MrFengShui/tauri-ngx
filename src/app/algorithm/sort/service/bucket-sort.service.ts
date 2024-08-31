@@ -1,11 +1,11 @@
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
+
 import { delay } from "../../../public/global.utils";
-import { SortToolsService } from "../ngrx-store/sort.service";
-import { ACCENT_TWO_COLOR, CLEAR_COLOR, ACCENT_ONE_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR } from "../../../public/global.utils";
-import { AbstractDistributionSortService, AbstractSortService } from "./base-sort.service";
+import { ACCENT_TWO_COLOR, ACCENT_ONE_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR } from "../../../public/global.utils";
+
+import { AbstractDistributionSortService } from "./base-sort.service";
 
 /**
  * 鸽巢排序
@@ -15,34 +15,32 @@ export class PigeonholeSortService extends AbstractDistributionSortService {
 
     private threshold: number = -1;
 
-    constructor(private _service: SortToolsService) {
-        super();
-    }
-
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let times: number = 0, values: [number, number] = this._service.findMinMaxValue(source);
+        let times: number = 0, values: [number, number] = this._service.findMinMaxValue(source, lhs, rhs);
         
         this.threshold = values[0];
 
         times = await this.save(source, 'ascent', times, callback);
         times = await this.load(source, 'ascent', times, callback);
 
+        this.freeKeyValues(this.cacheOfKeyValues);
+
         await delay();
         await this.complete(source, times, callback);
-        await this.clear(this.cacheOfKeyValues);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number| undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let times: number = 0, values: [number, number] = this._service.findMinMaxValue(source);
+        let times: number = 0, values: [number, number] = this._service.findMinMaxValue(source, lhs, rhs);
 
         this.threshold = values[0];
 
         times = await this.save(source, 'descent', times, callback);
         times = await this.load(source, 'descent', times, callback);
         
+        this.freeKeyValues(this.cacheOfKeyValues);
+
         await delay();
         await this.complete(source, times, callback);
-        await this.clear(this.cacheOfKeyValues);
     }
 
     protected override async save(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
@@ -140,19 +138,16 @@ export class PigeonholeSortService extends AbstractDistributionSortService {
 @Injectable()
 export class BucketSortService extends AbstractDistributionSortService {
 
-    constructor(private _service: SortToolsService) {
-        super();
-    }
-
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = 0;
         
         times = await this.save(source, 'ascent', times, callback);
         times = await this.load(source, 'ascent', times, callback);        
 
+        this.freeKeyValues(this.cacheOfKeyValues);
+
         await delay();
         await this.complete(source, times, callback);
-        await this.clear(this.cacheOfKeyValues);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
@@ -161,9 +156,10 @@ export class BucketSortService extends AbstractDistributionSortService {
         times = await this.save(source, 'descent', times, callback);
         times = await this.load(source, 'descent', times, callback);
 
+        this.freeKeyValues(this.cacheOfKeyValues);
+
         await delay();
         await this.complete(source, times, callback);
-        await this.clear(this.cacheOfKeyValues);
     }
 
     protected override async save(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
@@ -273,34 +269,32 @@ export class InterpolationSortService extends AbstractDistributionSortService {
     private minValue: number = -1;
     private maxValue: number = -1;
 
-    constructor(private _service: SortToolsService) {
-        super();
-    }
-
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = 0;
 
-        [this.minValue, this.maxValue] = this._service.findMinMaxValue(source);
+        [this.minValue, this.maxValue] = this._service.findMinMaxValue(source, lhs, rhs);
         
         times = await this.save(source, 'ascent', times, callback);
         times = await this.load(source, 'ascent', times, callback);
         
+        this.freeKeyValues(this.cacheOfKeyValues);
+
         await delay();
         await this.complete(source, times, callback);
-        await this.clear(this.cacheOfKeyValues);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = 0;
 
-        [this.minValue, this.maxValue] = this._service.findMinMaxValue(source);
+        [this.minValue, this.maxValue] = this._service.findMinMaxValue(source, lhs, rhs);
 
         times = await this.save(source, 'descent', times, callback);
         times = await this.load(source, 'descent', times, callback);
         
+        this.freeKeyValues(this.cacheOfKeyValues);
+
         await delay();
         await this.complete(source, times, callback);
-        await this._service.clear(this.cacheOfKeyValues);
     }
 
     protected override async save(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {

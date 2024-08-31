@@ -1,11 +1,11 @@
 import { Injectable } from "@angular/core";
-import { cloneDeep, floor } from "lodash";
 
 import { SortDataModel, SortStateModel, SortOrder, SortDataRadixModel, SortRadix } from "../ngrx-store/sort.state";
+
 import { delay } from "../../../public/global.utils";
 import { ACCENT_TWO_COLOR, ACCENT_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR } from "../../../public/global.utils";
-import { AbstractDistributionSortService, AbstractSortService } from "./base-sort.service";
-import { SortToolsService } from "../ngrx-store/sort.service";
+
+import { AbstractDistributionSortService } from "./base-sort.service";
 
 const matchKeyByRadix = (model: SortDataRadixModel | undefined, radix: SortRadix, digit: number): string => {
     if (model) {
@@ -82,10 +82,6 @@ export class RadixLSDSortService extends AbstractDistributionSortService<SortDat
         '0': [], '1': [], '2': [], '3': [], '4': [], '5': [], '6': [], '7': [], '8': [], '9': [], 
         'a': [], 'b': [], 'c': [], 'd': [], 'e': [], 'f': [] 
     };
-
-    constructor(private _service: SortToolsService) {
-        super();
-    }
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let radix: SortRadix = option as number, digits: number = matchDigitsByRadix(source[0].radix, radix), times: number = 0;
@@ -200,10 +196,6 @@ export class RadixLSDSortService extends AbstractDistributionSortService<SortDat
  */
 @Injectable()
 export class RecursiveRadixMSDSortService extends AbstractDistributionSortService<SortDataModel> {
-
-    constructor(protected _service: SortToolsService) {
-        super();
-    }
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         const radix: SortRadix = option as number, digits: number = matchDigitsByRadix(source[0].radix, radix);

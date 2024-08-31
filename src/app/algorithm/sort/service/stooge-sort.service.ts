@@ -1,21 +1,17 @@
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
+
 import { delay } from "../../../public/global.utils";
-import { ACCENT_COLOR, CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
+import { ACCENT_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
+
 import { AbstractSortService } from "./base-sort.service";
-import { SortToolsService } from "../ngrx-store/sort.service";
 
 /**
  * 臭皮匠排序（递归）
  */
 @Injectable()
 export class RecursiveStoogeSortService extends AbstractSortService {
-
-    constructor(private _service: SortToolsService) {
-        super();
-    }
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = await this.sortByOrder(source, lhs, rhs, 'ascent', 0, callback);
@@ -74,10 +70,6 @@ export class RecursiveStoogeSortService extends AbstractSortService {
  */
 @Injectable()
 export class IterativeStoogeSortService extends AbstractSortService {
-
-    constructor(private _service: SortToolsService) {
-        super();
-    }
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let mid: number, times: number = 0;

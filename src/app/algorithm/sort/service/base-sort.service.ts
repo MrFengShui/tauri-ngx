@@ -3,8 +3,11 @@ import { Observable } from "rxjs";
 import { random } from "lodash";
 
 import { SortDataModel, SortOrder, SortStateModel } from "../ngrx-store/sort.state";
+
 import { CLEAR_COLOR, FINAL_COLOR } from "../../../public/global.utils";
 import { delay } from "../../../public/global.utils";
+
+import { SortToolsService } from "../ngrx-store/sort.service";
 
 @Injectable()
 export abstract class AbstractSortService<T = any> {
@@ -17,6 +20,8 @@ export abstract class AbstractSortService<T = any> {
 
     protected array: T[] = Array.from([]);
     protected stack: T[] = Array.from([]);
+
+    constructor(protected _service: SortToolsService) {}
 
     public sort(array: SortDataModel[], order: SortOrder, option?: string | number): Observable<SortStateModel> {
         return new Observable(subscriber => {
@@ -39,11 +44,15 @@ export abstract class AbstractSortService<T = any> {
     protected abstract sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void>;
 
     protected async render(source: SortDataModel[], i: number, j: number, primaryColor: string, secondaryColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        return this.renderWithDuration(source, i, j, primaryColor, secondaryColor, 1, times, callback);
+    }
+
+    protected async renderWithDuration(source: SortDataModel[], i: number, j: number, primaryColor: string, secondaryColor: string, duration: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         source[i].color = primaryColor;
         source[j].color = secondaryColor;
         callback({ times, datalist: source });
 
-        await delay();
+        await delay(duration);
 
         source[i].color = CLEAR_COLOR;
         source[j].color = CLEAR_COLOR;
@@ -64,6 +73,15 @@ export abstract class AbstractSortService<T = any> {
             source.splice(0);
         }
     };
+
+}
+
+@Injectable()
+export abstract class AbstractSelectionSortService<T = number> extends AbstractSortService<T> {
+
+    protected abstract selectByAscent(source: SortDataModel[], lhs: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<number>;
+
+    protected abstract selectByDescent(source: SortDataModel[], lhs: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<number>;
 
 }
 
@@ -96,22 +114,37 @@ export abstract class AbstractDistributionSortService<T = any> extends AbstractS
 
     protected abstract load(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number>;
 
-    protected async clear(cache: { [key: string | number]: any } | null): Promise<void> {
+    protected free(): void {
+        this.freeKeyValue(this.cacheOfKeyValue);
+        this.freeKeyValues(this.cacheOfKeyValues);
+    }
+
+    protected freeKeyValue(cache: { [key: string | number]: T } | null): void {
         if (cache) {
-            let key: string, keys: string[] = Object.keys(cache);
+            let keys: string[] | null = Object.keys(cache);
+
+            for (let i = 0, length = keys.length; i < length; i++) {
+                delete cache[keys[i]];
+            }
+
+            cache = null;
+            keys = null;
+        }
+    }
+
+    protected freeKeyValues(cache: { [key: string | number]: T[] } | null): void {
+        if (cache) {
+            let keys: string[] | null = Object.keys(cache), key: string;
 
             for (let i = 0, length = keys.length; i < length; i++) {
                 key = keys[i];
-    
-                if (Array.isArray(cache[key])) {
-                    cache[key].splice(0);
-                }
-                
+                cache[key].splice(0);
                 delete cache[key];
             }
+
+            cache = null;
+            keys = null;
         }
-        
-        cache = null;
     }
 
 }

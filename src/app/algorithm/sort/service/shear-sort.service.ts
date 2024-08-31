@@ -2,10 +2,11 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
-import { swap } from "../sort.utils";
+
 import { delay } from "../../../public/global.utils";
-import { SortToolsService } from "../ngrx-store/sort.service";
 import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR, ACCENT_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
+
+import { SortToolsService } from "../ngrx-store/sort.service";
 
 type ShearMode = 'insertion' | 'selection';
 
@@ -465,7 +466,7 @@ export class OptimalShearSortService {
                 source[j + gap].color = SECONDARY_COLOR;
                 callback({ times, datalist: source });
 
-                await swap(source, j + gap, j);
+                // await swap(source, j + gap, j);
                 await delay();
 
                 source[i].color = ACCENT_COLOR;
@@ -494,7 +495,7 @@ export class OptimalShearSortService {
                 source[j - gap].color = SECONDARY_COLOR;
                 callback({ times, datalist: source});
                 
-                await swap(source, j, j - gap);
+                // await swap(source, j, j - gap);
                 await delay();
 
                 callback({ times, datalist: source});

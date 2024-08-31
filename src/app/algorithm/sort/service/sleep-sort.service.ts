@@ -1,186 +1,97 @@
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
 
-import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
 import { delay } from "../../../public/global.utils";
 import { ACCENT_ONE_COLOR, CLEAR_COLOR, ACCENT_TWO_COLOR } from "../../../public/global.utils";
 
-/**
- * 睡眠排序
- */
-@Injectable()
-export class SyncSleepSortService {
+import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
 
-    private cache: number[] = Array.from([]);
-
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-        });
-    }
-
-    private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let value: number, index: number;
-
-        for (let i = 0, length = source.length; i < length; i++) {
-            times += 1;
-
-            source[i].color = ACCENT_ONE_COLOR;
-            callback({ times, datalist: source});
-
-            await delay();
-            
-            source[i].color = CLEAR_COLOR;
-            callback({ times, datalist: source});
-
-            this.cache.push(source[i].value);
-        }
-
-        while (this.cache.length > 0) {
-            value = this.cache.pop() as number;
-            index = value - 1;
-            times += 1;
-
-            source[index].value = value;
-            source[index].color = ACCENT_TWO_COLOR;
-            callback({ times, datalist: source});
-
-            await delay(value);
-
-            source[index].color = CLEAR_COLOR;
-            callback({ times, datalist: source});
-        }
-
-        await delay();
-        // await complete(source, times, callback);
-        this.cache.splice(0);
-    }
-
-    private async sortByDescent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let value: number, index: number, length = source.length;
-
-        for (let i = 0; i < length; i++) {
-            times += 1;
-
-            source[i].color = ACCENT_ONE_COLOR;
-            callback({ times, datalist: source});
-
-            await delay();
-            
-            source[i].color = CLEAR_COLOR;
-            this.cache.push(source[i].value);
-        }
-
-        while (this.cache.length > 0) {
-            value = this.cache.pop() as number;
-            index = length - value;
-            times += 1;
-
-            source[index].value = value;
-            source[index].color = ACCENT_TWO_COLOR;
-            callback({ times, datalist: source});
-
-            await delay(value);
-
-            source[index].color = CLEAR_COLOR;
-            callback({ times, datalist: source});
-        }
-
-        await delay();
-        // await complete(source, times, callback);
-        this.cache.splice(0);
-    }
-
-}
+import { AbstractDistributionSortService } from "./base-sort.service";
 
 /**
  * 睡眠排序
  */
 @Injectable()
-export class AsyncSleepSortService {
+export class SleepSortService extends AbstractDistributionSortService<number> {
 
-    private cache: number[] = Array.from([]);
+    protected readonly SCALE: number = 10;
 
-    public sort(array: SortDataModel[], order: SortOrder): Observable<SortStateModel> {
-        return new Observable(subscriber => {
-            if (order === 'ascent') {
-                this.sortByAscent(array, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-    
-            if (order === 'descent') {
-                this.sortByDescent(array, 0, param => subscriber.next(param)).then(() => subscriber.complete());
-            }
-        });
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = 0;
+
+        times = await this.save(source, 'ascent', times, callback);
+        times = await this.load(source, 'ascent', times, callback);
+
+        await delay();
+        await this.complete(source, times, callback);
     }
 
-    private async sortByAscent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let value: number, index: number;
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let times: number = 0;
+
+        times = await this.save(source, 'descent', times, callback);
+        times = await this.load(source, 'descent', times, callback);
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+    protected override async save(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let index: number = -1;
 
         for (let i = 0, length = source.length; i < length; i++) {
+            if (order === 'ascent') {
+                index = i;
+                this.array.push(source[index].value);
+            }
+
+            if (order === 'descent') {
+                index = length - i - 1;
+                this.array.push(source[index].value);
+            }
+            
             times += 1;
 
-            source[i].color = ACCENT_ONE_COLOR;
-            callback({ times, datalist: source});
-
-            await delay();
+            source[index].color = ACCENT_ONE_COLOR;
+            callback({ times, datalist: source });
             
-            source[i].color = CLEAR_COLOR;
-            callback({ times, datalist: source});
+            await delay();
 
-            this.cache.push(source[i].value);
+            source[index].value = 0;
+            source[index].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
         }
 
-        for (let i = 0, length = this.cache.length; i < length; i++) {
-            const task = setTimeout(async () => {
-                clearTimeout(task);
-                value = this.cache[i];
+        return times;
+    }
+
+    protected override async load(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let index: number = -1, value: number, length: number = source.length;
+        
+        while (this.array.length > 0) {
+            value = this.array.pop() as number;
+            
+            if (order === 'ascent') {
                 index = value - 1;
+            }
+            
+            if (order === 'descent') {
+                index = length - value;
+            }
 
-                source[index].value = value;
-                callback({ times, datalist: source});
-            }, this.cache[i]);
-        }
-
-        await delay();
-        // await complete(source, times, callback);
-        this.cache.splice(0);
-    }
-
-    private async sortByDescent(source: SortDataModel[], times: number, callback: (param: SortStateModel) => void): Promise<void> {
-        let value: number, index: number, length = source.length;
-
-        for (let i = 0; i < length; i++) {
             times += 1;
 
-            source[i].color = ACCENT_ONE_COLOR;
-            callback({ times, datalist: source});
+            source[index].value = value;
+            source[index].color = ACCENT_TWO_COLOR;
+            callback({ times, datalist: source });
 
-            await delay();
-            
-            source[i].color = CLEAR_COLOR;
-            this.cache.push(source[i].value);
+            await delay(value * this.SCALE);
+
+            source[index].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
         }
-
-        for (let i = 0, length = this.cache.length; i < length; i++) {
-            const task = setTimeout(async () => {
-                clearTimeout(task);
-                value = this.cache[i];
-                index = length - value;
-
-                source[index].value = value;
-                callback({ times, datalist: source});
-            }, this.cache[i]);
-        }
-
-        await delay();
-        // await complete(source, times, callback);
-        this.cache.splice(0);
+        
+        return times;
     }
 
 }
+
