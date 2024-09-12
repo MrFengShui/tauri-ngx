@@ -1,7 +1,7 @@
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { NgModule, isDevMode } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { HttpClientModule } from "@angular/common/http";
+import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { FormsModule } from "@angular/forms";
 import { BrowserModule } from "@angular/platform-browser";
 import { RouterModule } from "@angular/router";
@@ -36,19 +36,15 @@ import { IDBDatabaseEffect, IDBObjectStoreEffect } from "./public/indexeddb/inde
 import { IDB_OBJECT_STORE_REDUCER } from "./public/indexeddb/indexeddb.reducer";
 import { IDB_FEATURE_KEY } from "./public/indexeddb/indexeddb.selector";
 
-@NgModule({
-    declarations: [
+@NgModule({ declarations: [
         AppComponent
     ],
-    imports: [
-        BrowserModule,
+    bootstrap: [AppComponent], imports: [BrowserModule,
         BrowserAnimationsModule,
         CommonModule,
         FormsModule,
-        HttpClientModule,
         RouterModule,
         AppRouteModule,
-
         EffectsModule.forRoot(AppStyleEffect, IDBDatabaseEffect, IDBObjectStoreEffect),
         StoreModule.forRoot([], {
             runtimeChecks: {
@@ -68,7 +64,6 @@ import { IDB_FEATURE_KEY } from "./public/indexeddb/indexeddb.selector";
             trace: false,
             traceLimit: 128,
         }),
-
         AccordionModule,
         AvatarModule,
         BadgeModule,
@@ -79,14 +74,10 @@ import { IDB_FEATURE_KEY } from "./public/indexeddb/indexeddb.selector";
         ToggleButtonModule,
         ToolbarModule,
         TreeModule,
-
         AlgorithmModule,
         MainModule,
-        OtherModule
-    ],
-    providers: [
-        AppStyleService, IDBDatabaseService, IDBObjectStoreService
-    ],
-    bootstrap: [AppComponent]
-})
+        OtherModule], providers: [
+        AppStyleService, IDBDatabaseService, IDBObjectStoreService,
+        provideHttpClient(withInterceptorsFromDi())
+    ] })
 export class AppModule { }

@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { HttpClientModule } from "@angular/common/http";
+import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { EffectsModule } from "@ngrx/effects";
 import { StoreModule } from "@ngrx/store";
 import { ButtonModule } from 'primeng/button';
@@ -80,16 +80,15 @@ import { StalinSortService, InPlaceStalinSortService, BinaryStalinSortService } 
 import { InPlaceLogSortService, LogSortService } from "./sort/service/log-sort.service";
 
 
-@NgModule({
-    declarations: [
+@NgModule({ declarations: [
         AlgorithmSortPageComponent,
         AlgorithmMazePageComponent,
         TimerPipe
     ],
-    imports: [
-        CommonModule,
+    exports: [
+        AlgorithmSortPageComponent
+    ], imports: [CommonModule,
         FormsModule,
-        HttpClientModule,
         ButtonModule,
         CheckboxModule,
         ConfirmDialogModule,
@@ -104,23 +103,16 @@ import { InPlaceLogSortService, LogSortService } from "./sort/service/log-sort.s
         TagModule,
         ToastModule,
         ToolbarModule,
-
         EffectsModule.forFeature(SortOptionLoadEffect),
-        StoreModule.forFeature(SORT_OPTION_FEATURE_KEY, { 'feature': SORT_OPTION_LOAD_REDUCER }),
-    ],
-    exports: [
-        AlgorithmSortPageComponent
-    ],
-    providers: [
+        StoreModule.forFeature(SORT_OPTION_FEATURE_KEY, { 'feature': SORT_OPTION_LOAD_REDUCER })], providers: [
         SortLoadConfigService, SortMatchService, SortUtilsService, SortToolsService,
-        ExchangeSortService,BubbleSortService, ShakerBubbleSortService, DualBubbleSortService, CombSortService, MergeBubbleSortService, ShellBubbleSortService, OddEvenSortService, ShakerOddEvenSortService,  InsertionSortService, ShakerInsertionSortService, BinaryInserionSortService, ShellSortService, SelectionSortService, ShakerSelectionSortService, TwoWaySelectionSortService, RecursiveQuickSortService, IterativeQuickSortService, RecursiveAverageQuickSortService, IterativeAverageQuickSortService, RecursiveTwoWayQuickSortService, IterativeTwoWayQuickSortService, ThreeWayRecursiveQuickSortService, ThreeWayIterativeQuickSortService, RecursiveDualPivotQuickSortService, IterativeDualPivotQuickSortService, RecursiveCircleSortService, IterativeCircleSortService, HeapSortService, TernaryHeapSortService, SmoothSortService, InPlaceRadixLSDSortService, InPlaceRadixMSDSortService, 
+        ExchangeSortService, BubbleSortService, ShakerBubbleSortService, DualBubbleSortService, CombSortService, MergeBubbleSortService, ShellBubbleSortService, OddEvenSortService, ShakerOddEvenSortService, InsertionSortService, ShakerInsertionSortService, BinaryInserionSortService, ShellSortService, SelectionSortService, ShakerSelectionSortService, TwoWaySelectionSortService, RecursiveQuickSortService, IterativeQuickSortService, RecursiveAverageQuickSortService, IterativeAverageQuickSortService, RecursiveTwoWayQuickSortService, IterativeTwoWayQuickSortService, ThreeWayRecursiveQuickSortService, ThreeWayIterativeQuickSortService, RecursiveDualPivotQuickSortService, IterativeDualPivotQuickSortService, RecursiveCircleSortService, IterativeCircleSortService, HeapSortService, TernaryHeapSortService, SmoothSortService, InPlaceRadixLSDSortService, InPlaceRadixMSDSortService,
         BucketSortService, BlockSortService, CountSortService, InterpolationSortService, PigeonholeSortService, RadixLSDSortService, RecursiveRadixMSDSortService, IterativeRadixMSDSortService, RecursiveMergeSortService, IterativeMergeSortService, RecursiveInPlaceMergeSortService, IterativeInPlaceMergeSortService, RecursiveWeaveMergeSortService, IterativeWeaveMergeSortService, InPlaceRecursiveWeaveMergeSortService, InPlaceIterativeWeaveMergeSortService, MultiWayMergeSortService, TimSortService, RecursiveStrandSortService, IterativeStrandSortService, InPlaceStrandSortService,
         TopDownBitonicMergeSortService, BottomUpBitonicMergeSortService, TopDownOddEvenMergeSortService, BottomUpOddEvenMergeSortService, ShearSortService, OptimalShearSortService,
         RecursiveIntrospectiveSortService, IterativeIntrospectiveSortService,
-        BogoSortService, ParallelBogoSortService, BogoInversePairSortService, BubbleBogoSortService,  ShakerBubbleBogoSortService, InsertionBogoSortService, SelectionBogoSortService, MergeBogoSortService, RecursiveCycleSortService, IterativeCycleSortService, GnomeSortService, GravitySortService, GuessSortService, SleepSortService, RecursiveStoogeSortService, IterativeStoogeSortService, SlowSortService, TournamentSortService, PancakeSortService, ShakerPancakeSortService, PatienceSortService, LibrarySortService, BinarySearchTreeSortService, InPlaceStalinSortService, StalinSortService, BinaryStalinSortService, LogSortService, InPlaceLogSortService,
-
+        BogoSortService, ParallelBogoSortService, BogoInversePairSortService, BubbleBogoSortService, ShakerBubbleBogoSortService, InsertionBogoSortService, SelectionBogoSortService, MergeBogoSortService, RecursiveCycleSortService, IterativeCycleSortService, GnomeSortService, GravitySortService, GuessSortService, SleepSortService, RecursiveStoogeSortService, IterativeStoogeSortService, SlowSortService, TournamentSortService, PancakeSortService, ShakerPancakeSortService, PatienceSortService, LibrarySortService, BinarySearchTreeSortService, InPlaceStalinSortService, StalinSortService, BinaryStalinSortService, LogSortService, InPlaceLogSortService,
         MazeMatchService, MazeUtilsService, MazeToolsService,
-        MazeGenerationAldousBroderService, MazeGenerationRandomizedDivisionService, MazeGenerationEllerService, MazeGenerationGrowTreeService, MazeGenerationHuntAndKillService, MazeGenerationRandomizedBacktrackerService,  MazeGenerationRandomizedKruskalService, MazeGenerationRandomizedPrimService, MazeGenerationSidewinderService, MazeGenerationWilsonService
-    ]
-})
+        MazeGenerationAldousBroderService, MazeGenerationRandomizedDivisionService, MazeGenerationEllerService, MazeGenerationGrowTreeService, MazeGenerationHuntAndKillService, MazeGenerationRandomizedBacktrackerService, MazeGenerationRandomizedKruskalService, MazeGenerationRandomizedPrimService, MazeGenerationSidewinderService, MazeGenerationWilsonService,
+        provideHttpClient(withInterceptorsFromDi())
+    ] })
 export class AlgorithmModule {}
