@@ -23,8 +23,8 @@ export class GravitySortService extends AbstractDistributionSortService {
         this.totalRow = rhs - lhs + 1;
         this.totalCol = source.map(item => item.value).reduce((prev, curr) => Math.max(prev, curr));
         
-        times = await this.save(source, 'ascent', times, callback);
-        times = await this.load(source, 'ascent', times, callback);
+        times = await this.save(source, lhs, rhs, 'ascent', times, callback);
+        times = await this.load(source, lhs, rhs, 'ascent', times, callback);
 
         this.free();
         
@@ -38,8 +38,8 @@ export class GravitySortService extends AbstractDistributionSortService {
         this.totalRow = rhs - lhs + 1;
         this.totalCol = source.map(item => item.value).reduce((prev, curr) => Math.max(prev, curr));
         
-        times = await this.save(source, 'descent', times, callback);
-        times = await this.load(source, 'descent', times, callback);
+        times = await this.save(source, lhs, rhs, 'descent', times, callback);
+        times = await this.load(source, lhs, rhs, 'descent', times, callback);
 
         this.free();
 
@@ -47,7 +47,7 @@ export class GravitySortService extends AbstractDistributionSortService {
         await this.complete(source, times, callback);
     }
 
-    protected override async save(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async save(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = -1;
 
         for (let row = 0; row <= this.totalRow - 1; row++) {
@@ -74,7 +74,7 @@ export class GravitySortService extends AbstractDistributionSortService {
         return times;
     }
 
-    protected override async load(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async load(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = -1, count: number;
 
         for (let col = this.totalCol - 1; col >= 0; col--) {

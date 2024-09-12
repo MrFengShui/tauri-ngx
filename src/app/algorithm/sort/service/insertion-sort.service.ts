@@ -1,18 +1,18 @@
 import { Injectable } from "@angular/core";
+import { floor } from "lodash";
 
-import { ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, delay } from "../../../public/global.utils";
+import { ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, delay, PRIMARY_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_ONE_COLOR, SECONDARY_TWO_COLOR } from "../../../public/global.utils";
 import { ACCENT_COLOR, CLEAR_COLOR, FINAL_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, START_COLOR } from "../../../public/global.utils";
 
 import { SortDataModel, SortStateModel, SortOrder, SortIndexRange } from "../ngrx-store/sort.state";
 
-import { SortToolsService } from "../ngrx-store/sort.service";
-import { AbstractDistributionSortService, AbstractSortService } from "./base-sort.service";
+import { AbstractDistributionSortService, AbstractInsertionSortService, AbstractSortService } from "./base-sort.service";
 
 /**
  * 侏儒排序
  */
 @Injectable()
-export class GnomeSortService extends AbstractSortService {
+export class GnomeSortService extends AbstractInsertionSortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let i: number, j: number, completed: boolean, flag: boolean, times: number = 0;
@@ -76,6 +76,18 @@ export class GnomeSortService extends AbstractSortService {
         await this.complete(source, times, callback);
     }
 
+    protected override sortByOrder(source: SortDataModel[], lhs: number, rhs: number, gap: number, step: number, primaryColor: string, secondaryColor: string, accentColor: string, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        throw new Error("Method not implemented.");
+    }
+
+    protected override insertByAscent(source: SortDataModel[], lhs: number, rhs: number, gap: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        throw new Error("Method not implemented.");
+    }
+
+    protected override insertByDescent(source: SortDataModel[], lhs: number, rhs: number, gap: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        throw new Error("Method not implemented.");
+    }
+
 }
 
 /**
@@ -85,14 +97,140 @@ export class GnomeSortService extends AbstractSortService {
 export class InsertionSortService extends GnomeSortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let times: number = await this._service.stableGapSortByAscent(source, lhs, rhs, 1, 1, 0, callback);
+        let times: number = await this.sortByOrder(source, lhs, rhs, 1, 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'ascent', 0, callback);
 
         await delay();
         await this.complete(source, times, callback);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let times: number = await this._service.stableGapSortByDescent(source, lhs, rhs, 1, 1, 0, callback);
+        let times: number = await this.sortByOrder(source, lhs, rhs, 1, 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'descent', 0, callback);
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+    public override async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, gap: number, step: number, primaryColor: string, secondaryColor: string, accentColor: string, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        if (order === 'ascent') {
+            for (let i = lhs + gap; i <= rhs; i += step) {
+                times = await this.insertByAscent(source, lhs, i, gap, primaryColor, secondaryColor, accentColor, times, callback);
+                times = await this.sweep(source, i, accentColor, times, callback);
+            }
+        }
+
+        if (order === 'descent') {
+            for (let i = rhs - gap; i >= lhs; i -= step) {
+                times = await this.insertByDescent(source, i, rhs, gap, primaryColor, secondaryColor, accentColor, times, callback);
+                times = await this.sweep(source, i, accentColor, times, callback);
+            }
+        }
+
+        return times;
+    }
+
+    protected override async insertByAscent(source: SortDataModel[], lhs: number, rhs: number, gap: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        for (let j = rhs - gap; j >= lhs && source[j].value > source[j + gap].value; j -= gap) {
+            source[rhs].color = accentColor;
+            callback({ times, datalist: source });
+
+            times = await this.exchange(source, true, j, j + gap, primaryColor, secondaryColor, accentColor, times, callback);
+        }
+        
+        return times;
+    }
+
+    protected override async insertByDescent(source: SortDataModel[], lhs: number, rhs: number, gap: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        for (let j = lhs + gap; j <= rhs && source[j].value > source[j - gap].value; j += gap) {
+            source[lhs].color = ACCENT_COLOR;
+            callback({ times, datalist: source });
+
+            times = await this.exchange(source, true, j, j - gap, primaryColor, secondaryColor, accentColor, times, callback);
+        }
+        
+        return times;
+    }
+
+}
+
+/**
+ * 插入排序（双向）
+ */
+@Injectable()
+export class ShakerInsertionSortService extends InsertionSortService {
+
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let start: number = floor((rhs - lhs) * 0.5 + lhs, 0), final: number = start, times: number = 0;
+
+        while (true) {
+            for (let i = final; i > start && source[i - 1].value > source[i].value; i--) {
+                source[start].color = START_COLOR;
+                source[final].color = FINAL_COLOR;
+                callback({ times, datalist: source });
+
+                times = await this.exchange(source, true, i, i - 1, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+            }
+
+            source[start].color = CLEAR_COLOR;
+            source[final].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+
+            if (start === lhs && final === rhs) break;
+
+            start = Math.max(start - 1, lhs);
+
+            for (let i = start; i < final && source[i + 1].value < source[i].value; i++) {
+                source[start].color = START_COLOR;
+                source[final].color = FINAL_COLOR;
+                callback({ times, datalist: source });
+
+                times = await this.exchange(source, true, i, i + 1, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+            }
+
+            source[start].color = CLEAR_COLOR;
+            source[final].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+            
+            final = Math.min(final + 1, rhs);
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let start: number = floor((rhs - lhs) * 0.5 + lhs, 0), final: number = start, times: number = 0;
+
+        while (true) {
+            for (let i = start; i < final && source[i + 1].value > source[i].value; i++) {
+                source[start].color = START_COLOR;
+                source[final].color = FINAL_COLOR;
+                callback({ times, datalist: source });
+
+                times = await this.exchange(source, true, i, i + 1, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+            }
+
+            source[start].color = CLEAR_COLOR;
+            source[final].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+
+            if (start === lhs && final === rhs) break;
+
+            final = Math.min(final + 1, rhs);
+            
+            for (let i = final; i > start && source[i - 1].value < source[i].value; i--) {
+                source[start].color = START_COLOR;
+                source[final].color = FINAL_COLOR;
+                callback({ times, datalist: source });
+
+                times = await this.exchange(source, true, i, i - 1, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+            }
+
+            source[start].color = CLEAR_COLOR;
+            source[final].color = CLEAR_COLOR;
+            callback({ times, datalist: source });
+
+            start = Math.max(start - 1, lhs);
+        }
 
         await delay();
         await this.complete(source, times, callback);
@@ -104,7 +242,7 @@ export class InsertionSortService extends GnomeSortService {
  * 二分插入排序
  */
 @Injectable()
-export class BinarySearchInserionSortService extends InsertionSortService {
+export class BinaryInserionSortService extends InsertionSortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let threshold: number, k: number, completed: boolean, times: number = 0;
@@ -114,23 +252,11 @@ export class BinarySearchInserionSortService extends InsertionSortService {
             
             if (threshold === -1) continue;
 
-            for (let j = i; j >= threshold; j--) {
-                k = Math.max(j - 1, threshold);
-
-                source[i].color = START_COLOR;
-                source[threshold].color = FINAL_COLOR;
-                callback({ times, datalist: source });
-
-                [completed, times] = await this._service.swapAndRender(source, false, true, k, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-
-                source[i].color = START_COLOR;
-                source[threshold].color = FINAL_COLOR;
-                callback({ times, datalist: source });
-            }
-
-            source[i].color = CLEAR_COLOR;
-            source[threshold].color = CLEAR_COLOR;
+            source[threshold].color = ACCENT_COLOR;
             callback({ times, datalist: source });
+
+            times = await this.insertByAscent(source, threshold, i, 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            times = await this.sweep(source, i, ACCENT_COLOR, times, callback);
         }
 
         await delay();
@@ -145,23 +271,11 @@ export class BinarySearchInserionSortService extends InsertionSortService {
             
             if (threshold === -1) continue;
             
-            for (let j = i; j <= threshold; j++) {
-                k = Math.min(j + 1, threshold);
-
-                source[i].color = START_COLOR;
-                source[threshold].color = FINAL_COLOR;
-                callback({ times, datalist: source });
-
-                [completed, times] = await this._service.swapAndRender(source, false, true, k, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-
-                source[i].color = START_COLOR;
-                source[threshold].color = FINAL_COLOR;
-                callback({ times, datalist: source });
-            }
-
-            source[i].color = CLEAR_COLOR;
-            source[threshold].color = CLEAR_COLOR;
+            source[threshold].color = ACCENT_COLOR;
             callback({ times, datalist: source });
+
+            times = await this.insertByDescent(source, i, threshold, 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            times = await this.sweep(source, i, ACCENT_COLOR, times, callback);
         }
 
         await delay();
@@ -180,7 +294,7 @@ export class ShellSortService extends InsertionSortService {
         let times: number = 0;
 
         for (let gap = (rhs - lhs + 1) >> 1; gap > 0; gap >>= 1) {
-            times = await this._service.stableGapSortByAscent(source, lhs, rhs, gap, 1, times, callback);
+            times = await this.sortByOrder(source, lhs, rhs, gap, 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'ascent', times, callback);
         }
         
         await delay();
@@ -191,7 +305,7 @@ export class ShellSortService extends InsertionSortService {
         let times: number = 0;
 
         for (let gap = (rhs - lhs + 1) >> 1; gap > 0; gap >>= 1) {
-            times = await this._service.stableGapSortByDescent(source, lhs, rhs, gap, 1, times, callback);
+            times = await this.sortByOrder(source, lhs, rhs, gap, 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'descent', times, callback);
         }
 
         await delay();
@@ -218,8 +332,8 @@ export class LibrarySortService extends AbstractDistributionSortService<SortData
         this.threshold = lhs;
 
         while (this.threshold < rhs) {
-            times = await this.save(source, 'ascent', times, callback);
-            times = await this.load(source, 'ascent', times, callback);
+            times = await this.save(source, lhs, rhs, 'ascent', times, callback);
+            times = await this.load(source, lhs, rhs, 'ascent', times, callback);
         }
 
         await delay();
@@ -227,20 +341,20 @@ export class LibrarySortService extends AbstractDistributionSortService<SortData
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let times: number = 0, completed: boolean;
+        let times: number = 0;
 
         this.threshold = rhs;
 
         while (this.threshold > lhs) {
-            times = await this.save(source, 'descent', times, callback);
-            times = await this.load(source, 'descent', times, callback);
+            times = await this.save(source, lhs, rhs, 'descent', times, callback);
+            times = await this.load(source, lhs, rhs, 'descent', times, callback);
         }
         
         await delay();
         await this.complete(source, times, callback);
     }
     
-    protected override async save(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async save(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         if (order === 'ascent') {
             for (let length = source.length, i = 0; i <= length - 1; i++) {
                 if (i <= this.threshold) {
@@ -274,7 +388,7 @@ export class LibrarySortService extends AbstractDistributionSortService<SortData
         return times;
     }
 
-    protected override async load(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async load(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number, value: number;
         
         if (order === 'ascent') {
@@ -413,7 +527,7 @@ export class LibrarySortService extends AbstractDistributionSortService<SortData
 @Injectable()
 export class OptimalLibrarySortService extends LibrarySortService {
 
-    protected override async save(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async save(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let minValue: number, maxValue: number;
 
         if (order === 'ascent') {
@@ -438,7 +552,7 @@ export class OptimalLibrarySortService extends LibrarySortService {
         return times;
     }
 
-    protected override async load(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async load(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         if (order === 'ascent') {
 
         }

@@ -1,7 +1,0 @@
-{
-    "list": [
-        { "name": "en-US", "text": "英語（美國）", "flag": "usa" },
-        { "name": "zh-Hans", "text": "簡體中文", "flag": "china" },
-        { "name": "zh-Hant", "text": "繁體中文", "flag": "china" }
-    ]
-}

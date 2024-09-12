@@ -5,13 +5,13 @@ import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.sta
 import { ACCENT_COLOR, delay } from "../../../public/global.utils";
 import { PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
 
-import { AbstractRecursiveSortService, AbstractSortService } from "./base-sort.service";
+import { AbstractBinarySortService, AbstractSortService } from "./base-sort.service";
 
 /**
  * 循环排序（递归）
  */
 @Injectable()
-export class RecursiveCycleSortService extends AbstractRecursiveSortService {
+export class RecursiveCycleSortService extends AbstractBinarySortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = 0;

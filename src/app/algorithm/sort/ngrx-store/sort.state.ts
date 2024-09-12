@@ -58,7 +58,7 @@ export interface SortDataModel {
 
     value: number;
     color: string;
-    radix?: SortDataRadixModel;
+    radix?: string;
 
 }
 

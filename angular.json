@@ -76,6 +76,8 @@
                             "src/assets/styles/primeflex.css",
                             "src/styles.scss"
                         ],
+                        "optimization": true,
+                        "outputHashing": "all",
                         "sourceMap": true,
                         "progress": true,
                         "verbose": true
@@ -85,13 +87,18 @@
                             "budgets": [
                                 {
                                     "type": "initial",
+                                    "maximumWarning": "48mb",
+                                    "maximumError": "64mb"
+                                },
+                                {
+                                    "type": "anyScript",
                                     "maximumWarning": "2mb",
                                     "maximumError": "4mb"
                                 },
                                 {
                                     "type": "anyComponentStyle",
-                                    "maximumWarning": "1mb",
-                                    "maximumError": "2mb"
+                                    "maximumWarning": "64kb",
+                                    "maximumError": "128kb"
                                 }
                             ],
                             "outputHashing": "all"
@@ -124,6 +131,7 @@
                 "serve": {
                     "builder": "ngx-build-plus:dev-server",
                     "options": {
+                        "extraWebpackConfig": "webpack.extra.js",
                         "ssl": true,
                         "verbose": true
                     },

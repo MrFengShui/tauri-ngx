@@ -6,13 +6,13 @@ import { PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR } from "../../../public/gl
 
 import { SortDataModel, SortStateModel, SortOrder } from "../ngrx-store/sort.state";
 
-import { AbstractRecursiveSortService } from "./base-sort.service";
+import { AbstractBinarySortService } from "./base-sort.service";
 
 /**
  * 慢速排序
  */
 @Injectable()
-export class SlowSortService extends AbstractRecursiveSortService {
+export class SlowSortService extends AbstractBinarySortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = await this.sortByOrder(source, lhs, rhs, 'ascent', 0, callback);

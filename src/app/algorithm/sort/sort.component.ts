@@ -147,7 +147,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
                 if (this.total > 0 && this.total < 32) {
                     this.showAlert($localize `:@@sort_component_ts_12_2:sort_component_ts_12_2`);
                 } else {
-                    this.create$ = this._utilsService.createDataList(this.total, this.name, this.unique)
+                    this.create$ = this._utilsService.createDataList(this.total, this.unique)
                     .subscribe(value => 
                         this._ngZone.run(() => {
                             this.loadAndDraw(value);
@@ -185,7 +185,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
             
             if (files && files.length > 0) {
                 this._ngZone.runOutsideAngular(() => {
-                    this.import$ = this._utilsService.importDataList(files.item(0), this.name).subscribe(value => 
+                    this.import$ = this._utilsService.importDataList(files.item(0)).subscribe(value => 
                         this._ngZone.run(() => {
                             this.loadAndDraw(value);
                             this.import$?.unsubscribe();

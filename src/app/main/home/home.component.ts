@@ -223,7 +223,7 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
                 [class.no-underline]="item?.leaf" [class.cursor-pointer]="item?.leaf" 
                 [class.bg-primary]="item?.key === nodeKey" [class.text-white]="item?.key === nodeKey" [class.text-color]="item?.key !== nodeKey"
                 [class.hover:bg-primary]="item.leaf" [class.hover:text-primary]="item.leaf"
-                [style.padding-left]="(depth * 0.5) + 'rem !important'" (click)="handleExpandCollapseEvent(item)">
+                [style.padding-left]="(depth * 0.5) + 'rem !important'" [style.width]="'fit-content'" (click)="handleExpandCollapseEvent(item)">
                 <span class="control-button flex justify-content-center align-items-center"
                     [class.hidden]="item?.leaf">
                     <i [class]="item?.expanded ? collapsedIcon : expandedIcon"></i>
@@ -277,7 +277,13 @@ export class NavlistComponent {
     private initHostLayout(): void {
         this._renderer.addClass(this._element.nativeElement, 'tauri-ngx-navlist');
         this._renderer.addClass(this._element.nativeElement, 'flex-column');
-        this._renderer.addClass(this._element.nativeElement, 'w-full');
+
+        if (this.depth === 1) {
+            this._renderer.addClass(this._element.nativeElement, 'flex');
+        }
+
+        this._renderer.addClass(this._element.nativeElement, 'min-w-full');
+        this._renderer.setStyle(this._element.nativeElement, 'width', 'fit-content');
     }
 
 }

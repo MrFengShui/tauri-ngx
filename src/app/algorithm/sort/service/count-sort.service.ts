@@ -15,8 +15,8 @@ export class CountSortService extends AbstractDistributionSortService {
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = 0, keys: string[];
 
-        times = await this.save(source, 'ascent', times, callback);
-        times = await this.load(source, 'ascent', times, callback);
+        times = await this.save(source, lhs, rhs, 'ascent', times, callback);
+        times = await this.load(source, lhs, rhs, 'ascent', times, callback);
 
         this.freeKeyValues(this.cacheOfKeyValue);
 
@@ -27,8 +27,8 @@ export class CountSortService extends AbstractDistributionSortService {
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (parram: SortStateModel) => void): Promise<void> {
         let index: number, value: number = 0, times: number = 0, keys: string[];
 
-        times = await this.save(source, 'descent', times, callback);
-        times = await this.load(source, 'descent', times, callback);
+        times = await this.save(source, lhs, rhs, 'descent', times, callback);
+        times = await this.load(source, lhs, rhs, 'descent', times, callback);
 
         this.freeKeyValues(this.cacheOfKeyValue);
 
@@ -36,7 +36,7 @@ export class CountSortService extends AbstractDistributionSortService {
         await this.complete(source, times, callback);
     }
 
-    protected override async save(source: SortDataModel[], order: SortOrder, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
+    protected override async save(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (parram: SortStateModel) => void): Promise<number> {
         let index: number;
 
         if (order === 'ascent') {
@@ -64,7 +64,7 @@ export class CountSortService extends AbstractDistributionSortService {
         return times;
     }
 
-    protected override async load(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async load(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = -1, value: number;
 
         this.keys = Object.keys(this.cacheOfKeyValue);

@@ -11,11 +11,11 @@ import { AbstractDistributionSortService } from "./base-sort.service";
 export class PatienceSortService extends AbstractDistributionSortService<number> {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let times: number = 0, flag: boolean = false;
+        let times: number = 0, flag: [number, boolean, number, number] = [0, false, -1, -1];
         
-        while (!flag) {
-            times = await this.save(source, 'ascent', times, callback);
-            times = await this.load(source, 'ascent', times, callback);
+        while (!flag[1]) {
+            times = await this.save(source, lhs, rhs, 'ascent', times, callback);
+            times = await this.load(source, lhs, rhs, 'ascent', times, callback);
             flag = await this.check(source, lhs, rhs, 'ascent', times, callback);
         }
         
@@ -26,11 +26,11 @@ export class PatienceSortService extends AbstractDistributionSortService<number>
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (parram: SortStateModel) => void): Promise<void> {
-        let times: number = 0, flag: boolean = false;
+        let times: number = 0, flag: [number, boolean, number, number] = [0, false, -1, -1];
 
-        while (!flag) {
-            times = await this.save(source, 'descent', times, callback);
-            times = await this.load(source, 'descent', times, callback);
+        while (!flag[1]) {
+            times = await this.save(source, lhs, rhs, 'descent', times, callback);
+            times = await this.load(source, lhs, rhs, 'descent', times, callback);
             flag = await this.check(source, lhs, rhs, 'descent', times, callback);
         }
         
@@ -40,7 +40,7 @@ export class PatienceSortService extends AbstractDistributionSortService<number>
         await this.complete(source, times, callback);
     }
 
-    protected override async save(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async save(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = -1, value: number, key: string | number = 0, flag: boolean;
 
         for (let i = 0, length = source.length; i < length; i++) {
@@ -84,7 +84,7 @@ export class PatienceSortService extends AbstractDistributionSortService<number>
         return times;
     }
 
-    protected override async load(source: SortDataModel[], order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async load(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = -1;
 
         if (order === 'ascent') {
@@ -117,30 +117,6 @@ export class PatienceSortService extends AbstractDistributionSortService<number>
         }
 
         return times;
-    }
-
-    private async check(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<boolean> {
-        if (order === 'ascent') {
-            for (let i = rhs, j = Math.max(i - 1, lhs); i >= lhs; i--, j = Math.max(i - 1, lhs)) {
-                times = await this.render(source, i, i, ACCENT_COLOR, ACCENT_COLOR, times, callback);
-
-                if (source[j].value > source[i].value) {
-                    return false;
-                }
-            }
-        }
-
-        if (order === 'descent') {
-            for (let i = lhs, j = Math.min(i + 1, rhs); i <= rhs; i++, j = Math.min(i + 1, rhs)) {
-                times = await this.render(source, i, i, ACCENT_COLOR, ACCENT_COLOR, times, callback);
-
-                if (source[j].value > source[i].value) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
 }

@@ -10,20 +10,20 @@ import { delay } from "../../../public/global.utils";
 import { CLEAR_COLOR, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR,  PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR } from "../../../public/global.utils";
 
 
-import { BubbleSortService, ShakerBubbleSortService, ExchangeSortService, TwoWayBubbleSortService, ShellBubbleSortService, MergeBubbleSortService } from "../service/bubble-sort.service";
-import { BinarySearchInserionSortService, InsertionSortService, ShellSortService } from "../service/insertion-sort.service";
+import { BubbleSortService, ShakerBubbleSortService, ExchangeSortService, DualBubbleSortService, ShellBubbleSortService, MergeBubbleSortService, ShakerOddEvenSortService } from "../service/bubble-sort.service";
+import { BinaryInserionSortService, InsertionSortService, ShakerInsertionSortService, ShellSortService } from "../service/insertion-sort.service";
 import { LibrarySortService } from "../service/insertion-sort.service";
 import { ShakerSelectionSortService, SelectionSortService, TwoWaySelectionSortService, ShakerPancakeSortService } from "../service/selection-sort.service";
-import { BubbleBogoSortService, ShakerBubbleBogoSortService, InsertionBogoSortService, SelectionBogoSortService, BogoSortService, BogoInversePairSortService, ParallelBogoSortService, ShakerSelectionBogoSortService, MergeBogoSortService } from "../service/bogo-sort.service";
+import { BubbleBogoSortService, ShakerBubbleBogoSortService, InsertionBogoSortService, SelectionBogoSortService, BogoSortService, BogoInversePairSortService, ParallelBogoSortService, MergeBogoSortService } from "../service/bogo-sort.service";
 import { IterativeAverageQuickSortService, RecursiveAverageQuickSortService, IterativeDualPivotQuickSortService, RecursiveDualPivotQuickSortService, IterativeQuickSortService, RecursiveQuickSortService, ThreeWayIterativeQuickSortService, ThreeWayRecursiveQuickSortService, IterativeTwoWayQuickSortService, RecursiveTwoWayQuickSortService } from "../service/quick-sort.service";
 import { CountSortService } from "../service/count-sort.service";
 import { BucketSortService, InterpolationSortService, PigeonholeSortService } from "../service/bucket-sort.service";
-import { IterativeRadixMSDSortService, RadixLSDSortService, RecursiveRadixMSDSortService } from "../service/radix-sort.service";
+import { InPlaceRadixLSDSortService, InPlaceRadixMSDSortService, IterativeRadixMSDSortService, RadixLSDSortService, RecursiveRadixMSDSortService } from "../service/radix-sort.service";
 import { SleepSortService } from "../service/sleep-sort.service";
 import { IterativeCycleSortService, RecursiveCycleSortService } from "../service/cycle-sort.service";
 import { TernaryHeapSortService } from "../service/selection-sort.service";
 import { HeapSortService } from "../service/selection-sort.service";
-import { TopDownMergeSortService, MultiWayMergeSortService, BottomUpMergeSortService, RecursiveInPlaceMergeSortService, IterativeInPlaceMergeSortService, WeaveMergeSortService, InPlaceWeaveMergeSortService } from "../service/merge-sort.service";
+import { RecursiveMergeSortService, MultiWayMergeSortService, IterativeMergeSortService, RecursiveInPlaceMergeSortService, IterativeInPlaceMergeSortService, RecursiveWeaveMergeSortService, InPlaceRecursiveWeaveMergeSortService, IterativeWeaveMergeSortService, InPlaceIterativeWeaveMergeSortService, InPlaceStrandSortService } from "../service/merge-sort.service";
 import { IterativeStoogeSortService, RecursiveStoogeSortService } from "../service/stooge-sort.service";
 import { SlowSortService } from "../service/slow-sort.service";
 import { GnomeSortService } from "../service/insertion-sort.service";
@@ -44,7 +44,10 @@ import { SmoothSortService } from "../service/selection-sort.service";
 import { OptimalShearSortService, ShearSortService } from "../service/shear-sort.service";
 import { BlockSortService } from "../service/block-sort.service";
 import { GuessSortService } from "../service/cycle-sort.service";
-import { IntrospectiveSortService } from "../service/intro-sort.service";
+import { IterativeIntrospectiveSortService, RecursiveIntrospectiveSortService } from "../service/intro-sort.service";
+import { IterativeCircleSortService, RecursiveCircleSortService } from "../service/circle-sort.service";
+import { StalinSortService, InPlaceStalinSortService, BinaryStalinSortService } from "../service/stalin-sort.service";
+import { InPlaceLogSortService, LogSortService } from "../service/log-sort.service";
 
 export const SORT_DATA_SECRET_KEY: string = HmacSHA256('SORT_DATA_SECRET_KEY', 'SORT_DATA_SECRET_KEY').toString();
 
@@ -81,35 +84,28 @@ export class SortUtilsService {
 
     constructor(private _service: SortToolsService) {}
     
-    public createDataList(size: number, name: string, unique: boolean): Observable<SortDataModel[]> {
-        const binMaxLength: number = size.toString(2).length;
-        const octMaxLength: number = size.toString(8).length;
-        const decMaxLength: number = size.toString(10).length;
-        const hexMaxLength: number = size.toString(16).length;
-        let value: number;
+    public createDataList(size: number, unique: boolean): Observable<SortDataModel[]> {
+        let index: number = random(0, size - 1, false), value: number;
 
         if (this.source.length > 0) {
             this.source.splice(0);
         }
 
         for(let i = 0; i < size; i++) {
-            value = unique ? i + 1 : (i === size - 1 ? size : random(1, size - 1, false));
-            this.source.push({ 
-                color: CLEAR_COLOR, value, 
-                radix: name.includes('radix-sort') ? { 
-                    bin: value.toString(2).padStart(binMaxLength, '0'),
-                    oct: value.toString(8).padStart(octMaxLength, '0'),
-                    dec: value.toString(10).padStart(decMaxLength, '0'),
-                    hex: value.toString(16).padStart(hexMaxLength, '0')
-                } : undefined
-            });
+            if (unique) {
+                value = i + 1;
+            } else {
+                value = i === index ? size : random(1, size - 1, false);
+            }
+            
+            this.source.push({ color: CLEAR_COLOR, value });
         }
         
         this.subject.next(this.source);
         return this.subject.asObservable().pipe(debounceTime(100));
     }
 
-    public importDataList(file: File | null, name: string): Observable<SortDataModel[]> {
+    public importDataList(file: File | null): Observable<SortDataModel[]> {
         if (file) {
             const reader = new window.FileReader();
             reader.onload = event => {
@@ -123,21 +119,8 @@ export class SortUtilsService {
                     this.source.splice(0);
                 }
 
-                const binMaxLength: number = size.toString(2).length;
-                const octMaxLength: number = size.toString(8).length;
-                const decMaxLength: number = size.toString(10).length;
-                const hexMaxLength: number = size.toString(16).length;
-    
                 for(let i = 0; i < size; i++) {
-                    this.source.push({ 
-                        color: CLEAR_COLOR, value: list[i], 
-                        radix: name.includes('radix-sort') ? { 
-                            bin: (i + 1).toString(2).padStart(binMaxLength, '0'),
-                            oct: (i + 1).toString(8).padStart(octMaxLength, '0'),
-                            dec: (i + 1).toString(10).padStart(decMaxLength, '0'),
-                            hex: (i + 1).toString(16).padStart(hexMaxLength, '0')
-                        } : undefined
-                    });
+                    this.source.push({ color: CLEAR_COLOR, value: list[i] });
                 }
                 
                 this.subject.next(this.source);
@@ -421,17 +404,19 @@ export class SortToolsService {
 export class SortMatchService {
 
     constructor(
+        private _exchange: ExchangeSortService,
         private _bubble: BubbleSortService,
         private _shakerBubble: ShakerBubbleSortService,
-        private _2wBubble: TwoWayBubbleSortService,
+        private _dualBubble: DualBubbleSortService,
         private _mergeBubble: MergeBubbleSortService,
         private _shellBubble: ShellBubbleSortService,
         private _comb: CombSortService,
         private _oddEven: OddEvenSortService,
-        private _exchange: ExchangeSortService,
+        private _shakerOddEvent: ShakerOddEvenSortService,
         private _gnome: GnomeSortService,
         private _insert: InsertionSortService,
-        private _bsInsert: BinarySearchInserionSortService,
+        private _shakerInsert: ShakerInsertionSortService,
+        private _binInsert: BinaryInserionSortService,
         private _library: LibrarySortService,
         private _shell: ShellSortService,
         private _select: SelectionSortService,
@@ -447,9 +432,13 @@ export class SortMatchService {
         private _dpIterQuick: IterativeDualPivotQuickSortService,
         private _averRecuQuick: RecursiveAverageQuickSortService,
         private _averIterQuick: IterativeAverageQuickSortService,
+        private _recuCircle: RecursiveCircleSortService,
+        private _iterCircle: IterativeCircleSortService,
         private _heap: HeapSortService,
         private _knHeap: TernaryHeapSortService,
         private _smooth: SmoothSortService,
+        private _ipRadixLSD: InPlaceRadixLSDSortService,
+        private _ipRadixMSD: InPlaceRadixMSDSortService,
 
         private _bucket: BucketSortService,
         private _block: BlockSortService,
@@ -459,14 +448,18 @@ export class SortMatchService {
         private _radixLSD: RadixLSDSortService,
         private _recuRadixMSD: RecursiveRadixMSDSortService,
         private _iterRadixMSD: IterativeRadixMSDSortService,
-        private _tdMerge: TopDownMergeSortService,
-        private _buMerge: BottomUpMergeSortService,
+        private _tdMerge: RecursiveMergeSortService,
+        private _buMerge: IterativeMergeSortService,
         private _tdIPMerge: RecursiveInPlaceMergeSortService,
         private _buIPMerge: IterativeInPlaceMergeSortService,
-        private _kMerge: MultiWayMergeSortService,
-        private _weaveMerge: WeaveMergeSortService,
-        private _ipWeaveMerge: InPlaceWeaveMergeSortService,
-        private _tim: TimSortService,
+        private _kwMerge: MultiWayMergeSortService,
+        private _recuWeaveMerge: RecursiveWeaveMergeSortService,
+        private _iterWeaveMerge: IterativeWeaveMergeSortService,
+        private _ipRecuWeaveMerge: InPlaceRecursiveWeaveMergeSortService,
+        private _ipIterWeaveMerge: InPlaceIterativeWeaveMergeSortService,
+        private _recuStrand: RecursiveStrandSortService,
+        private _iterStrand: IterativeStrandSortService,
+        private _ipStrand: InPlaceStrandSortService,
 
         private _tdBitonic: TopDownBitonicMergeSortService,
         private _buBitonic: BottomUpBitonicMergeSortService,
@@ -474,6 +467,10 @@ export class SortMatchService {
         private _buOddEven: BottomUpOddEvenMergeSortService,
         private _shear: ShearSortService,
         private _optShear: OptimalShearSortService,
+        
+        private _recuIntro: RecursiveIntrospectiveSortService,
+        private _iterIntro: IterativeIntrospectiveSortService,
+        private _tim: TimSortService,
 
         private _bst: BinarySearchTreeSortService,
         private _bogo: BogoSortService,
@@ -483,23 +480,24 @@ export class SortMatchService {
         private _shakerBubbleBogo: ShakerBubbleBogoSortService,
         private _insertBogo: InsertionBogoSortService,
         private _selectBogo: SelectionBogoSortService,
-        private _shakerSelectBogo: ShakerSelectionBogoSortService,
         private _mergeBogo: MergeBogoSortService,
         private _recuCycle: RecursiveCycleSortService,
         private _iterCycle: IterativeCycleSortService,
         private _gravity: GravitySortService,
         private _guess: GuessSortService,
+        private _log: LogSortService,
+        private _ipLog: InPlaceLogSortService,
         private _pancake: PancakeSortService,
         private _shakerPancake: ShakerPancakeSortService,
         private _patience: PatienceSortService,
-        private _blockSleep: SleepSortService,
+        private _sleep: SleepSortService,
+        private _stalin: StalinSortService,
+        private _binStalin: BinaryStalinSortService,
+        private _ipStalin: InPlaceStalinSortService,
         private _recrStooge: RecursiveStoogeSortService,
         private _iterStooge: IterativeStoogeSortService,
         private _slow: SlowSortService,
-        private _recuStrand: RecursiveStrandSortService,
-        private _iterStrand: IterativeStrandSortService,
-        private _tournament: TournamentSortService,
-        private _intro: IntrospectiveSortService
+        private _tournament: TournamentSortService
     ) {}
 
     public match(name: string, array: SortDataModel[], order: SortOrder, radix: SortRadix, way: number, node: number): Observable<SortStateModel | null> {
@@ -510,6 +508,10 @@ export class SortMatchService {
             }
         }
         
+        if (name === 'exchange-sort') {
+            return this._exchange.sort(array, order);
+        }
+
         if (name === 'bubble-sort') {
             return this._bubble.sort(array, order);
         }
@@ -519,7 +521,7 @@ export class SortMatchService {
         }
 
         if (name === '2w-bubble-sort') {
-            return this._2wBubble.sort(array, order);
+            return this._dualBubble.sort(array, order);
         }
 
         if (name === 'merge-bubble-sort') {
@@ -538,8 +540,8 @@ export class SortMatchService {
             return this._oddEven.sort(array, order);
         }
 
-        if (name === 'exchange-sort') {
-            return this._exchange.sort(array, order);
+        if (name === 'shaker-odd-even-sort') {
+            return this._shakerOddEvent.sort(array, order);
         }
 
         if (name === 'gnome-sort') {
@@ -550,8 +552,12 @@ export class SortMatchService {
             return this._insert.sort(array, order);
         }
 
+        if (name === 'shaker-insertion-sort') {
+            return this._shakerInsert.sort(array, order);
+        }
+
         if (name === 'bs-insertion-sort') {
-            return this._bsInsert.sort(array, order);
+            return this._binInsert.sort(array, order);
         }
 
         if (name === 'shell-sort') {
@@ -610,6 +616,14 @@ export class SortMatchService {
             return this._averIterQuick.sort(array, order);
         }
 
+        if (name === 'recu-circle-sort') {
+            return this._recuCircle.sort(array, order);
+        }
+
+        if (name === 'iter-circle-sort') {
+            return this._iterCircle.sort(array, order);
+        }
+
         if (name === 'heap-sort') {
             return this._heap.sort(array, order);
         }
@@ -620,6 +634,14 @@ export class SortMatchService {
 
         if (name === 'smooth-sort') {
             return this._smooth.sort(array, order);
+        }
+
+        if (name === 'ip-lsd-radix-sort') {
+            return this._ipRadixLSD.sort(array, order, radix);
+        }
+
+        if (name === 'ip-msd-radix-sort') {
+            return this._ipRadixMSD.sort(array, order, radix);
         }
 
 
@@ -654,36 +676,52 @@ export class SortMatchService {
             return this._iterRadixMSD.sort(array, order, radix);
         }
 
-        if (name === 'td-merge-sort') {
+        if (name === 'recu-merge-sort') {
             return this._tdMerge.sort(array, order);
         }
 
-        if (name === 'bu-merge-sort') {
+        if (name === 'iter-merge-sort') {
             return this._buMerge.sort(array, order);
         }
 
-        if (name === 'kw-merge-sort') {
-            return this._kMerge.sort(array, order, way);
-        }
-
-        if (name === 'weave-merge-sort') {
-            return this._weaveMerge.sort(array, order);
-        }
-
-        if (name === 'ip-weave-merge-sort') {
-            return this._ipWeaveMerge.sort(array, order);
-        }
-
-        if (name === 'td-ip-merge-sort') {
+        if (name === 'recu-ip-merge-sort') {
             return this._tdIPMerge.sort(array, order);
         }
 
-        if (name === 'bu-ip-merge-sort') {
+        if (name === 'iter-ip-merge-sort') {
             return this._buIPMerge.sort(array, order);
         }
 
-        if (name === 'tim-sort') {
-            return this._tim.sort(array, order);
+        if (name === 'recu-weave-merge-sort') {
+            return this._recuWeaveMerge.sort(array, order);
+        }
+
+        if (name === 'iter-weave-merge-sort') {
+            return this._iterWeaveMerge.sort(array, order);
+        }
+
+        if (name === 'ip-recu-weave-merge-sort') {
+            return this._ipRecuWeaveMerge.sort(array, order);
+        }
+
+        if (name === 'ip-iter-weave-merge-sort') {
+            return this._ipIterWeaveMerge.sort(array, order);
+        }
+
+        if (name === 'kw-merge-sort') {
+            return this._kwMerge.sort(array, order, way);
+        }
+        
+        if (name === 'recu-strand-sort') {
+            return this._recuStrand.sort(array, order);
+        }
+
+        if (name === 'iter-strand-sort') {
+            return this._iterStrand.sort(array, order);
+        }
+
+        if (name === 'ip-strand-sort') {
+            return this._ipStrand.sort(array, order);
         }
 
 
@@ -713,6 +751,19 @@ export class SortMatchService {
 
         if (name === 'selection-shear-sort') {
             return this._optShear.sort(array, order, 'selection');
+        }
+
+        
+        if (name === 'recu-intro-sort') {
+            return this._recuIntro.sort(array, order);
+        }
+        
+        if (name === 'iter-intro-sort') {
+            return this._iterIntro.sort(array, order);
+        }
+
+        if (name === 'tim-sort') {
+            return this._tim.sort(array, order);
         }
 
 
@@ -748,10 +799,6 @@ export class SortMatchService {
             return this._selectBogo.sort(array, order);
         }
 
-        if (name === 'shaker-selection-bogo-sort') {
-            return this._shakerSelectBogo.sort(array, order);
-        }
-
         if (name === 'merge-bogo-sort') {
             return this._mergeBogo.sort(array, order);
         }
@@ -776,6 +823,14 @@ export class SortMatchService {
             return this._library.sort(array, order);
         }
 
+        if (name === 'log-sort') {
+            return this._log.sort(array, order);
+        }
+
+        if (name === 'ip-log-sort') {
+            return this._ipLog.sort(array, order);
+        }
+
         if (name === 'pancake-sort') {
             return this._pancake.sort(array, order);
         }
@@ -789,11 +844,23 @@ export class SortMatchService {
         }
 
         if (name === 'sleep-sort') {
-            return this._blockSleep.sort(array, order);
+            return this._sleep.sort(array, order);
         }
 
         if (name === 'slow-sort') {
             return this._slow.sort(array, order);
+        }
+
+        if (name === 'stalin-sort') {
+            return this._stalin.sort(array, order);
+        }
+
+        if (name === 'bin-stalin-sort') {
+            return this._binStalin.sort(array, order);
+        }
+
+        if (name === 'ip-stalin-sort') {
+            return this._ipStalin.sort(array, order);
         }
 
         if (name === 'recu-stooge-sort') {
@@ -804,20 +871,8 @@ export class SortMatchService {
             return this._iterStooge.sort(array, order);
         }
 
-        if (name === 'recu-strand-sort') {
-            return this._recuStrand.sort(array, order);
-        }
-
-        if (name === 'iter-strand-sort') {
-            return this._iterStrand.sort(array, order);
-        }
-
         if (name === 'tournament-sort') {
             return this._tournament.sort(array, order);
-        }
-
-        if (name === 'intro-sort') {
-            return this._intro.sort(array, order);
         }
 
         return of(null);
