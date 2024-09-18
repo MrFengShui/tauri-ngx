@@ -12,7 +12,7 @@ import { SortToolsService } from "../ngrx-store/sort.service";
 @Injectable()
 export abstract class AbstractSortService<T = any> {
 
-    protected readonly THRESHOLD: number = 24;
+    protected readonly THRESHOLD: number = 16;
     protected readonly COIN_FLAG = (): boolean => {
         const coin: number = random(0, 1000, false);
         return coin > 450 && coin < 550;
@@ -60,8 +60,8 @@ export abstract class AbstractSortService<T = any> {
                 snd = source[n].value >= source[j].value;
             }
 
-            times = await this.render(source, i, i, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
-            times = await this.render(source, j, j, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+            times = await this.dualSweep(source, i, i, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+            times = await this.dualSweep(source, j, j, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
 
             flag = fst && snd;
 
@@ -81,11 +81,16 @@ export abstract class AbstractSortService<T = any> {
 
         return [times, flag, m, n];
     }
+    
     protected async sweep(source: SortDataModel[], index: number, color: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        return await this.sweepWithDuration(source, index, color, 1, times, callback);
+    }
+
+    protected async sweepWithDuration(source: SortDataModel[], index: number, color: string, duration: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         source[index].color = color;
         callback({ times, datalist: source });
 
-        await delay();
+        await delay(duration);
 
         source[index].color = CLEAR_COLOR;
         callback({ times, datalist: source });
@@ -93,11 +98,11 @@ export abstract class AbstractSortService<T = any> {
         return times;
     }
 
-    protected async render(source: SortDataModel[], i: number, j: number, primaryColor: string, secondaryColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        return this.renderWithDuration(source, i, j, primaryColor, secondaryColor, 1, times, callback);
+    protected async dualSweep(source: SortDataModel[], i: number, j: number, primaryColor: string, secondaryColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        return await this.multiSweep(source, [i, j], [primaryColor, secondaryColor], times, callback);
     }
 
-    protected async renderWithDuration(source: SortDataModel[], i: number, j: number, primaryColor: string, secondaryColor: string, duration: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected async dualSweepWithDuration(source: SortDataModel[], i: number, j: number, primaryColor: string, secondaryColor: string, duration: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         source[i].color = primaryColor;
         source[j].color = secondaryColor;
         callback({ times, datalist: source });
@@ -106,6 +111,30 @@ export abstract class AbstractSortService<T = any> {
 
         source[i].color = CLEAR_COLOR;
         source[j].color = CLEAR_COLOR;
+        callback({ times, datalist: source });
+
+        return times;
+    }
+
+    protected async multiSweep(source: SortDataModel[], places: number[], colors: string[], times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        return await this.multiSweepWithDuration(source, places, colors, 1, times, callback);
+    }
+    
+    protected async multiSweepWithDuration(source: SortDataModel[], places: number[], colors: string[], duration: number, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        if (places.length !== colors.length) throw new Error('错误：索引位置数组长度与渲染颜色数组长度不相等');
+
+        for (let i = 0, length = places.length; i < length; i++) {
+            source[places[i]].color = colors[i];
+        }
+
+        callback({ times, datalist: source });
+
+        await delay(duration);
+
+        for (let i = 0, length = places.length; i < length; i++) {
+            source[places[i]].color = CLEAR_COLOR;
+        }
+        
         callback({ times, datalist: source });
 
         return times;
@@ -233,7 +262,7 @@ export abstract class AbstractMergeSortService<T = number> extends AbstractBinar
 
 }
 
-export type PartitionMetaInfo = { times: number, mid?: number, fst?: number, snd?: number };
+export type PartitionMetaInfo = { times: number, mid?: number, fst?: number, snd?: number, stop?: boolean };
 
 @Injectable()
 export abstract class AbstractQuickSortService<T = number> extends AbstractBinarySortService<T> {
@@ -249,13 +278,13 @@ export abstract class AbstractQuickSortService<T = number> extends AbstractBinar
 @Injectable()
 export abstract class AbstractDistributionSortService<T = any> extends AbstractSortService<T> {
 
-    protected keys: string[] = Array.from([]);
+    protected keys: Array<string | number> = Array.from([]);
     protected cacheOfKeyValue: { [key: string | number]: T } = {};
     protected cacheOfKeyValues: { [key: string | number]: T[] } = {};
 
-    protected abstract save(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number>;
+    protected abstract saveByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number>;
 
-    protected abstract load(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number>;
+    protected abstract loadByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number>;
 
     protected free(): void {
         this.freeKeyValue(this.cacheOfKeyValue);

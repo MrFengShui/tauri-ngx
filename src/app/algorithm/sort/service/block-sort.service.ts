@@ -27,7 +27,7 @@ export class BlockSortService extends AbstractSortService<SortIndexRange> {
                 this.array.push({ start, final });
             }
 
-            times = await this.render(source, i, i, ACCENT_COLOR, ACCENT_COLOR, times, callback);
+            times = await this.dualSweep(source, i, i, ACCENT_COLOR, ACCENT_COLOR, times, callback);
             times += 1;
         }
         
@@ -66,7 +66,7 @@ export class BlockSortService extends AbstractSortService<SortIndexRange> {
                 this.array.push({ start, final });
             }
 
-            times = await this.render(source, i, i, ACCENT_COLOR, ACCENT_COLOR, times, callback);
+            times = await this.dualSweep(source, i, i, ACCENT_COLOR, ACCENT_COLOR, times, callback);
             times += 1;
         }
         
@@ -160,11 +160,11 @@ export class BlockSortService extends AbstractSortService<SortIndexRange> {
                 let mid: number = floor((rhs - lhs) * 0.5 + lhs, 0), fst: number, snd: number;
     
                 if (order === 'ascent') {
-                    times = await this.render(source, ranges[lhs].start, ranges[rhs].start, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
+                    times = await this.dualSweep(source, ranges[lhs].start, ranges[rhs].start, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
                 }
                 
                 if (order === 'descent') {
-                    times = await this.render(source, ranges[lhs].final, ranges[rhs].final, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
+                    times = await this.dualSweep(source, ranges[lhs].final, ranges[rhs].final, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
                 }
     
                 [times, fst] = await this.indexOf(source, ranges, lhs, mid, order, times, callback);

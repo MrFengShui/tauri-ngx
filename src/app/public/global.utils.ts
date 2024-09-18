@@ -21,6 +21,8 @@ export const FINAL_COLOR: string = 'turquoise';
 export const CLEAR_COLOR: string = 'snow';
 export const EMPTY_COLOR: string = 'transparent';
 
+export type CanvasDimension = { width: number, height: number };
+
 export const delay = (duration: number = 1): Promise<void> => 
     new Promise<void>(resolve => {
         const task = setTimeout(() => {

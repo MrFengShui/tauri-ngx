@@ -88,9 +88,7 @@ export class RecursiveQuickSortService extends AbstractQuickSortService {
         for (let i = lhs; i <= rhs - 1; i++) {
             flag = source[i].value < pivot;
 
-            if (flag) {
-                j += 1;
-            }
+            if (flag) j += 1;
 
             source[lhs].color = START_COLOR;
             source[rhs].color = FINAL_COLOR;
@@ -99,7 +97,7 @@ export class RecursiveQuickSortService extends AbstractQuickSortService {
             times = await this.exchange(source, flag, i, flag ? j : i, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
         }
 
-        times = await this.render(source, lhs, rhs, START_COLOR, FINAL_COLOR, times, callback);
+        times = await this.dualSweep(source, lhs, rhs, START_COLOR, FINAL_COLOR, times, callback);
         times = await this.exchange(source, true, j + 1, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
         return { times: times + 1, mid: j + 1 };
     }
@@ -111,9 +109,7 @@ export class RecursiveQuickSortService extends AbstractQuickSortService {
         for (let i = rhs; i >= lhs + 1; i--) {
             flag = source[i].value < pivot;
 
-            if (flag) {
-                j -= 1;
-            }
+            if (flag) j -= 1;
 
             source[lhs].color = FINAL_COLOR;
             source[rhs].color = START_COLOR;
@@ -122,7 +118,7 @@ export class RecursiveQuickSortService extends AbstractQuickSortService {
             times = await this.exchange(source, flag, i, flag ? j : i, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
         }
 
-        times = await this.render(source, lhs, rhs, FINAL_COLOR, START_COLOR, times, callback);
+        times = await this.dualSweep(source, lhs, rhs, FINAL_COLOR, START_COLOR, times, callback);
         times = await this.exchange(source, true, j - 1, lhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
         return { times: times + 1, mid: j - 1 };
     }
@@ -239,13 +235,13 @@ export class RecursiveTwoWayQuickSortService extends RecursiveQuickSortService {
                 callback({ times, datalist: source});
 
                 while (i < j && source[i].value <= pivot) {
-                    times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+                    times = await this.dualSweep(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
 
                     i += 1;
                 }
 
                 while (i < j && source[j].value >= pivot) {
-                    times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+                    times = await this.dualSweep(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
 
                     j -= 1;
                 }
@@ -253,7 +249,7 @@ export class RecursiveTwoWayQuickSortService extends RecursiveQuickSortService {
                 times = await this.exchange(source, true, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
 
-            times = await this.render(source, lhs, rhs, START_COLOR, FINAL_COLOR, times, callback);
+            times = await this.dualSweep(source, lhs, rhs, START_COLOR, FINAL_COLOR, times, callback);
             times = await this.exchange(source, true, i, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             return { times: times + 1, mid: i};
         }
@@ -281,13 +277,13 @@ export class RecursiveTwoWayQuickSortService extends RecursiveQuickSortService {
                 callback({ times, datalist: source});
 
                 while (i > j && source[i].value <= pivot) {
-                    times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+                    times = await this.dualSweep(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
     
                     i -= 1;
                 }
     
                 while (i > j && source[j].value >= pivot) {
-                    times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+                    times = await this.dualSweep(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
                     
                     j += 1;
                 }
@@ -295,7 +291,7 @@ export class RecursiveTwoWayQuickSortService extends RecursiveQuickSortService {
                 times = await this.exchange(source, true, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
     
-            times = await this.render(source, lhs, rhs, FINAL_COLOR, START_COLOR, times, callback);
+            times = await this.dualSweep(source, lhs, rhs, FINAL_COLOR, START_COLOR, times, callback);
             times = await this.exchange(source, true, i, lhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             return { times: times + 1, mid: i};
         }
@@ -460,13 +456,13 @@ export class RecursiveAverageQuickSortService extends RecursiveTwoWayQuickSortSe
                 callback({ times, datalist: source });
 
                 while (i < j && source[i].value <= pivot) {
-                    times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+                    times = await this.dualSweep(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
 
                     i += 1;
                 }
 
                 while (i < j && source[j].value >= pivot) {
-                    times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+                    times = await this.dualSweep(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
                     
                     j -= 1;
                 }
@@ -475,7 +471,7 @@ export class RecursiveAverageQuickSortService extends RecursiveTwoWayQuickSortSe
             }
 
             return { 
-                times: await this.render(source, lhs, rhs, START_COLOR, FINAL_COLOR, times, callback), 
+                times: await this.dualSweep(source, lhs, rhs, START_COLOR, FINAL_COLOR, times, callback), 
                 fst: i - 1, snd: i 
             };
         }
@@ -502,13 +498,13 @@ export class RecursiveAverageQuickSortService extends RecursiveTwoWayQuickSortSe
                 callback({ times, datalist: source });
 
                 while (i > j && source[i].value <= pivot) {
-                    times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+                    times = await this.dualSweep(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
     
                     i -= 1;
                 }
     
                 while (i > j && source[j].value >= pivot) {
-                    times = await this.render(source, j, i, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+                    times = await this.dualSweep(source, j, i, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
                     
                     j += 1;
                 }
@@ -517,7 +513,7 @@ export class RecursiveAverageQuickSortService extends RecursiveTwoWayQuickSortSe
             }
             
             return { 
-                times: await this.render(source, lhs, rhs, FINAL_COLOR, START_COLOR, times, callback), 
+                times: await this.dualSweep(source, lhs, rhs, FINAL_COLOR, START_COLOR, times, callback), 
                 fst: i, snd: i + 1 
             };
         }
@@ -707,28 +703,16 @@ export class ThreeWayRecursiveQuickSortService extends RecursiveTwoWayQuickSortS
                 callback({ times, datalist: source});
 
                 if (source[i].value < pivot) {
-                    await this._service.swapAndRender(source, false, true, i, fst, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                    times = await this.exchange(source, true, i, fst, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
 
                     fst += 1;
-                    times += 1;
                 } else if (source[i].value > pivot) {
-                    await this._service.swapAndRender(source, false, true, i, snd, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                    times = await this.exchange(source, true, i, snd, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
 
                     i -= 1;
                     snd -= 1;
-                    times += 1;
                 } else {
-                    source[fst].color = PRIMARY_COLOR;
-                    source[snd].color = SECONDARY_COLOR;
-                    source[i].color = ACCENT_COLOR;
-                    callback({ times, datalist: source});
-
-                    await delay();
-
-                    source[fst].color = CLEAR_COLOR;
-                    source[snd].color = CLEAR_COLOR;
-                    source[i].color = CLEAR_COLOR;
-                    callback({ times, datalist: source});
+                    times = await this.multiSweep(source, [fst, snd, i], [PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR], times, callback);
 
                     i -= 1;
                 }
@@ -763,28 +747,18 @@ export class ThreeWayRecursiveQuickSortService extends RecursiveTwoWayQuickSortS
                 callback({ times, datalist: source});
 
                 if (source[i].value > pivot) {
-                    await this._service.swapAndRender(source, false, true, i, fst, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                    times = await this.exchange(source, true, i, fst, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
 
                     fst += 1;
                     times += 1;
                 } else if (source[i].value < pivot) {
-                    await this._service.swapAndRender(source, false, true, i, snd, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                    times = await this.exchange(source, true, i, snd, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
 
                     i -= 1;
                     snd -= 1;
                     times += 1;
                 } else {
-                    source[fst].color = SECONDARY_COLOR;
-                    source[snd].color = PRIMARY_COLOR;
-                    source[i].color = ACCENT_COLOR;
-                    callback({ times, datalist: source});
-
-                    await delay();
-
-                    source[fst].color = CLEAR_COLOR;
-                    source[snd].color = CLEAR_COLOR;
-                    source[i].color = CLEAR_COLOR;
-                    callback({ times, datalist: source});
+                    times = await this.multiSweep(source, [fst, snd, i], [PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR], times, callback);
 
                     i += 1;
                 }
@@ -949,7 +923,7 @@ export class RecursiveDualPivotQuickSortService extends RecursiveQuickSortServic
             let fst: number = lhs + 1, snd: number = rhs - 1, idx: number = lhs + 1;
 
             if (source[lhs].value > source[rhs].value) {
-                await this._service.swapAndRender(source, false, true, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                times = await this.exchange(source, true, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
     
             while (idx <= snd) {
@@ -958,37 +932,26 @@ export class RecursiveDualPivotQuickSortService extends RecursiveQuickSortServic
                 callback({ times, datalist: source });
     
                 if (source[idx].value < source[lhs].value) {
-                    await this._service.swapAndRender(source, false, true, idx, fst, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                    times = await this.exchange(source, true, idx, fst, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
     
                     fst += 1;
                     idx += 1;
-                    times += 1;
                 } else if (source[idx].value > source[rhs].value) {
-                    while (idx < snd && source[snd].value > source[rhs].value) {
-                        snd -= 1;
-                    }
+                    while (idx < snd && source[snd].value > source[rhs].value) snd -= 1;
     
-                    await this._service.swapAndRender(source, false, true, idx, snd, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+                    times = await this.exchange(source, true, idx, snd, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
     
                     snd -= 1;
-                    times += 1;
     
                     if (source[idx].value < source[lhs].value) {
-                        await this._service.swapAndRender(source, false, true, idx, fst, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                        times = await this.exchange(source, true, idx, fst, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
     
                         fst += 1;
-                        times += 1;
                     }
 
                     idx += 1;
                 } else {
-                    source[idx].color = ACCENT_COLOR;
-                    callback({ times, datalist: source });
-
-                    await delay();
-
-                    source[idx].color = CLEAR_COLOR;
-                    callback({ times, datalist: source });
+                    times = await this.sweep(source, idx, ACCENT_COLOR, times, callback);
 
                     idx += 1;
                 }
@@ -1001,9 +964,9 @@ export class RecursiveDualPivotQuickSortService extends RecursiveQuickSortServic
             fst -= 1;
             snd += 1;
 
-            await this._service.swapAndRender(source, false, true, lhs, fst, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
-            await this._service.swapAndRender(source, false, true, rhs, snd, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
-            return { times: times + 2, fst, snd };
+            times = await this.exchange(source, true, lhs, fst, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+            times = await this.exchange(source, true, rhs, snd, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+            return { times: times, fst, snd };
         }
         
     }
@@ -1024,7 +987,7 @@ export class RecursiveDualPivotQuickSortService extends RecursiveQuickSortServic
             let fst: number = lhs + 1, snd: number = rhs - 1, idx: number = rhs - 1;
 
             if (source[lhs].value < source[rhs].value) {
-                await this._service.swapAndRender(source, false, true, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                times = await this.exchange(source, true, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
 
             while (idx >= fst) {
@@ -1033,37 +996,26 @@ export class RecursiveDualPivotQuickSortService extends RecursiveQuickSortServic
                 callback({ times, datalist: source });
 
                 if (source[idx].value < source[rhs].value) {
-                    await this._service.swapAndRender(source, false, true, idx, snd, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                    times = await this.exchange(source, true, idx, snd, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
 
                     snd -= 1;
                     idx -= 1;
-                    times += 1;
                 } else if (source[idx].value > source[lhs].value) {
-                    while (idx > fst && source[fst].value > source[lhs].value) {
-                        fst += 1;
-                    }
+                    while (idx > fst && source[fst].value > source[lhs].value) fst += 1;
 
-                    await this._service.swapAndRender(source, false, true, idx, fst, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+                    times = await this.exchange(source, true, idx, fst, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
 
                     fst += 1;
-                    times += 1;
 
                     if (source[idx].value < source[rhs].value) {
-                        await this._service.swapAndRender(source, false, true, idx, snd, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                        times = await this.exchange(source, true, idx, snd, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
 
                         snd -= 1;
-                        times += 1;
                     }
 
                     idx -= 1;
                 } else {
-                    source[idx].color = ACCENT_COLOR;
-                    callback({ times, datalist: source });
-
-                    await delay();
-
-                    source[idx].color = CLEAR_COLOR;
-                    callback({ times, datalist: source });
+                    times = await this.sweep(source, idx, ACCENT_COLOR, times, callback);
                     
                     idx -= 1;
                 }
@@ -1076,9 +1028,9 @@ export class RecursiveDualPivotQuickSortService extends RecursiveQuickSortServic
             fst -= 1;
             snd += 1;
 
-            await this._service.swapAndRender(source, false, true, lhs, fst, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
-            await this._service.swapAndRender(source, false, true, rhs, snd, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
-            return { times: times + 2, fst, snd };
+            times = await this.exchange(source, true, lhs, fst, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+            times = await this.exchange(source, true, rhs, snd, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+            return { times: times, fst, snd };
         }
     }
 

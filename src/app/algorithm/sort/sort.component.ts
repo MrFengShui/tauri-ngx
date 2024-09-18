@@ -12,7 +12,8 @@ import { SortDataModel, SortHeapNode, SortHeapNodeOptionModel, SortMergeWay, Sor
 import { SORT_HEAP_NODE_OPTION_LOAD_ACTION, SORT_MERGE_WAY_OPTION_LOAD_ACTION, SORT_ORDER_OPTION_LOAD_ACTION, SORT_RADIX_OPTION_LOAD_ACTION } from "./ngrx-store/sort.action";
 import { SORT_OPTION_LOAD_SELECTOR } from "./ngrx-store/sourt.selector";
 
-import { SortDataSubject, SortDataObserver, SortDataAsyncSubject, SortDataAsyncObserver } from "./sort.pattern";
+import { SortDataSubject, SortDataObserver, SortDataAsyncSubject, SortDataAsyncObserver, SortCanvasReferenceInfo } from "./sort.pattern";
+import { CanvasDimension } from "../../public/global.utils";
 
 @Component({
     encapsulation: ViewEncapsulation.None,
@@ -75,7 +76,8 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     private subject: SortDataSubject | null = null;
     private observer: SortDataObserver | null = null;
 
-    private size: { width: number, height: number } = { width: -1, height: -1 };
+    private info: SortCanvasReferenceInfo = { total: -1, pivot: -1 };
+    private size: CanvasDimension = { width: -1, height: -1 };
 
     private event$: Subscription | null = null;
     private shuffle$: Subscription | null = null;
@@ -132,7 +134,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
     protected handleRunSortEvent(): void {
         if (this.name.includes('shear-sort') && this.total % 32 !== 0) {
             this.showAlert($localize `:@@sort_component_ts_12_1:sort_component_ts_12_1`);
-        } else if ((this.name.includes('odd-even-merge-sort') || this.name.includes('bitonic-merge-sort')) && (this.total & (this.total - 1)) !== 0) {
+        } else if (this.binaryForbidden(this.name) && (this.total & (this.total - 1)) !== 0) {
             this.showAlert($localize `:@@sort_component_ts_12_2:sort_component_ts_12_2`);
         } else {
             this.locked = true;
@@ -215,6 +217,10 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         return name.includes('radix-sort');
     }
 
+    protected binaryForbidden(name: string): boolean {
+        return name.includes('batcher-merge-sort') || name.includes('bitonic-merge-sort') || name.includes('pairwise-merge-sort');
+    }
+
     protected uniqueForbidden(name: string): boolean {
         return name.includes('sleep-sort') || name.includes('cycle-sort');
     }
@@ -255,8 +261,13 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         
         this.resetParams();
         
-        this.subject?.notify(this.source, this.total, this.size);
+        this.info = { 
+            ...this.info, 
+            total: this.total, 
+            pivot: this.total === 0 ? 0 : Math.max(...this.source.map(item => item.value)) 
+        };
 
+        this.subject?.notify(this.source, this.info, this.size);
         this._cdr.markForCheck();
     }
 
@@ -281,7 +292,9 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
                 this.source = cloneDeep(state?.datalist as SortDataModel[]);
                 this.times = state?.times as number;
                 
-                this.subject?.notify(this.source, this.total, this.size);
+                this.info = { ...this.info, total: Math.max(this.total, this.source.length) };
+
+                this.subject?.notify(this.source, this.info, this.size);
                 this._cdr.markForCheck();
             }),
             error: error => this._ngZone.run(() => {console.error('sort error:', error);
@@ -301,7 +314,9 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
         this.source = cloneDeep(value);
         this.total = this.source.length;
         
-        this.subject?.notify(this.source, this.total, this.size);
+        this.info = { ...this.info, total: this.total, pivot: Math.max(...this.source.map(item => item.value)) };
+
+        this.subject?.notify(this.source, this.info, this.size);
         this._cdr.markForCheck();
     }
 
@@ -332,7 +347,7 @@ export class AlgorithmSortPageComponent implements OnInit, OnDestroy, AfterViewI
             this.route$ = this._route.queryParams
                 .pipe(map(params => params['name']))
                 .subscribe(name => this._ngZone.run(async () => {
-                    this.name = name;
+                    this.name = window.atob(name);
 
                     await this.initialize();
 

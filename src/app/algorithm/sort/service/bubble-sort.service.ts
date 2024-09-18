@@ -149,37 +149,53 @@ export class BubbleSortService extends ExchangeSortService {
 export class ShakerBubbleSortService extends BubbleSortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let stop: boolean, times: number = 0;
-
-        for (let i = lhs; i <= rhs; i++) {
-            [times, stop] = await this.swapByAscent(source, i, rhs - i, true, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
-
-            if (stop) break;
-
-            [times, stop] = await this.swapByAscent(source, i, rhs - i, false, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
-
-            if (stop) break;
-        }
+        let times: number = await this.sortByOrder(source, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'ascent', 0, callback);
 
         await delay();
         await this.complete(source, times, callback);
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let stop: boolean, times: number = 0;
+        let times: number = await this.sortByOrder(source, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'descent', 0, callback);
 
-        for (let i = rhs; i >= lhs; i--) {
-            [times, stop] = await this.swapByDescent(source, rhs - i, i, true, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+        await delay();
+        await this.complete(source, times, callback);
+    }
 
+    public override async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let stop: boolean = false;
+
+        while (lhs < rhs) {
+            if (order === 'ascent') {
+                [times, stop] = await this.swapByAscent(source, lhs, rhs, true, primaryColor, secondaryColor, accentColor, times, callback);
+
+                rhs -= 1;
+            }
+
+            if (order === 'descent') {
+                [times, stop] = await this.swapByDescent(source, lhs, rhs, true, primaryColor, secondaryColor, accentColor, times, callback);
+    
+                lhs += 1;
+            }
+            
             if (stop) break;
 
-            [times, stop] = await this.swapByDescent(source, rhs - i, i, false, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, ACCENT_ONE_COLOR, times, callback);
+            if (order === 'ascent') {
+                [times, stop] = await this.swapByAscent(source, lhs, rhs, false, primaryColor, secondaryColor, accentColor, times, callback);
+
+                lhs += 1;
+            }
+
+            if (order === 'descent') {
+                [times, stop] = await this.swapByDescent(source, lhs, rhs, false, primaryColor, secondaryColor, accentColor, times, callback);
+    
+                rhs -= 1;
+            }
 
             if (stop) break;
         }
 
-        await delay();
-        await this.complete(source, times, callback);
+        return times;
     }
 
 }
@@ -245,100 +261,18 @@ export class DualBubbleSortService extends ShakerBubbleSortService {
 }
 
 /**
- * 归并冒泡排序
- */
-@Injectable()
-export class MergeBubbleSortService extends BubbleSortService {
-
-    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let times: number = await this.sortByOrder(source, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'ascent', 0, callback);
-
-        await delay();
-        await this.complete(source, times, callback);
-    }
-
-    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let times: number = await this.sortByOrder(source, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'descent', 0, callback);
-
-        await delay();
-        await this.complete(source, times, callback);
-    }
-    
-    protected override async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        if (lhs < rhs) {
-            const mid: number = floor((rhs - lhs) * 0.5 + lhs, 0);
-
-            if (order === 'ascent') {
-                times = await this.sortByOrder(source, lhs, mid, primaryColor, secondaryColor, accentColor, order, times, callback);
-                times = await this.sortByOrder(source, mid + 1, rhs, primaryColor, secondaryColor, accentColor, order, times, callback);
-                times = await this.mergeByOrder(source, lhs, mid, rhs, primaryColor, secondaryColor, accentColor, order, times, callback);
-            }
-
-            if (order === 'descent') {
-                times = await this.sortByOrder(source, mid + 1, rhs, primaryColor, secondaryColor, accentColor, order, times, callback);
-                times = await this.sortByOrder(source, lhs, mid, primaryColor, secondaryColor, accentColor, order, times, callback);
-                times = await this.mergeByOrder(source, lhs, mid, rhs, primaryColor, secondaryColor, accentColor, order, times, callback);
-            }
-        }
-        
-        return times;
-    }
-
-    private async mergeByOrder(source: SortDataModel[], lhs: number, mid: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        let idx: number, stop: boolean;
-
-        if (order === 'ascent') {
-            mid = Math.max(mid - 1, lhs);
-
-            while (mid >= lhs) {
-                idx = this._service.indexOfFGTByAscent(source, source[mid].value, mid + 1, rhs);
-                idx = idx === -1 ? rhs : idx;        
-    
-                [times, stop] = await this.swapByAscent(source, mid, idx, true, primaryColor, secondaryColor, accentColor, times, callback);
-    
-                mid -= 1;
-            }
-        }
-        
-        if (order === 'descent') {
-            mid = Math.min(mid + 1, rhs);
-
-            while (mid <= rhs) {
-                idx = this._service.indexOfFGTByDescent(source, source[mid].value, lhs, mid - 1);
-                idx = idx === -1 ? lhs : idx;        
-    
-                [times, stop] = await this.swapByDescent(source, idx, mid, true, primaryColor, secondaryColor, accentColor, times, callback);
-
-                mid += 1;
-            }
-        }
-
-        return times;
-    }
-
-}
-
-/**
  * 梳排序
  */
 @Injectable()
 export class CombSortService extends BubbleSortService {
 
-    private readonly SCALE: number = 1 / 1.3;
+    public readonly SCALE: number = 1 / 1.3;
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let k: number, stop: boolean = false, flag: boolean, times: number = 0;
+        let times: number = 0;
 
-        for (let gap = rhs - lhs + 1; gap > 0 || !stop; gap = floor(gap * this.SCALE, 0)) {
-            stop = true;
-
-            for (let j = lhs; j <= rhs - gap; j++) {
-                k = Math.min(j + gap, rhs);
-                flag = source[k].value < source[j].value;
-                stop &&= !flag;
-
-                times = await this.exchange(source, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-            }
+        for (let gap = rhs - lhs + 1; gap > 0; gap = floor(gap * this.SCALE, 0)) {
+            times = await this.moveByOrder(source, lhs, rhs, gap, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'ascent', times, callback);
         }
 
         times = await this.sortByOrder(source, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'ascent', times, callback);
@@ -348,24 +282,38 @@ export class CombSortService extends BubbleSortService {
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let k: number, stop: boolean = false, flag: boolean, times: number = 0;
+        let times: number = 0;
 
-        for (let gap = rhs - lhs + 1; gap > 0 || !stop; gap = floor(gap * this.SCALE, 0)) {
-            stop = true;
-
-            for (let j = rhs; j >= lhs + gap; j--) {
-                k = Math.max(j - gap, lhs);
-                flag = source[k].value < source[j].value;
-                stop &&= !flag;
-
-                times = await this.exchange(source, flag, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-            }
+        for (let gap = rhs - lhs + 1; gap > 0; gap = floor(gap * this.SCALE, 0)) {
+            times = await this.moveByOrder(source, lhs, rhs, gap, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'descent', times, callback);
         }
 
         times = await this.sortByOrder(source, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'descent', times, callback);
 
         await delay();
         await this.complete(source, times, callback);
+    }
+
+    public async moveByOrder(source: SortDataModel[], lhs: number, rhs: number, gap: number, primaryColor: string, secondaryColor: string, accentColor: string, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        let k: number;
+
+        if (order === 'ascent') {
+            for (let j = lhs; j <= rhs - gap; j++) {
+                k = Math.min(j + gap, rhs);
+                
+                times = await this.exchange(source, source[k].value < source[j].value, j, k, primaryColor, secondaryColor, accentColor, times, callback);
+            }
+        }
+        
+        if (order === 'descent') {
+            for (let j = rhs; j >= lhs + gap; j--) {
+                k = Math.max(j - gap, lhs);
+                
+                times = await this.exchange(source, source[k].value < source[j].value, j, k, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            }
+        }
+
+        return times;
     }
 
 }
@@ -390,7 +338,7 @@ export class ShellBubbleSortService extends CombSortService {
         await this.complete(source, times, callback);
     }
 
-    protected override async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    public override async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let k: number, stop: boolean, flag: boolean;
 
         for (let gap = (rhs - lhs + 1) >> 1; gap > 0; gap = gap === 3 ? gap - 1 : gap >> 1) {

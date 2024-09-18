@@ -5,7 +5,7 @@
     "cli": {
         "analytics": false,
         "cache": {
-            "enabled": true
+            "enabled": false
         },
         "packageManager": "npm"
     },
@@ -30,7 +30,7 @@
             "prefix": "tauri-ngx",
             "architect": {
                 "build": {
-                    "builder": "@angular-devkit/build-angular:browser",
+                    "builder": "ngx-build-plus:browser",
                     "options": {
                         "allowedCommonJsDependencies": [
                             "lodash", "crypto-js"
@@ -129,9 +129,9 @@
                     "defaultConfiguration": "development"
                 },
                 "serve": {
-                    "builder": "@angular-devkit/build-angular:dev-server",
+                    "builder": "ngx-build-plus:dev-server",
                     "options": {
-                        "disableHostCheck": true,
+                        "extraWebpackConfig": "webpack.extra.js",
                         "ssl": true,
                         "verbose": true
                     },
@@ -164,51 +164,8 @@
                         ]
                     }
                 },
-                "test": {
-                    "builder": "@angular-devkit/build-angular:karma",
-                    "options": {
-                        "polyfills": [
-                            "zone.js",
-                            "zone.js/testing"
-                        ],
-                        "tsConfig": "tsconfig.spec.json",
-                        "inlineStyleLanguage": "scss",
-                        "assets": [
-                            "src/assets",
-                            "src/config",
-                            "src/storage",
-                            "src/favicon.ico",
-                            {
-                                "glob": "**/*",
-                                "input": "src/assets/",
-                                "output": "/assets/"
-                            },
-                            {
-                                "glob": "**/*",
-                                "input": "src/config/",
-                                "output": "/config/"
-                            },
-                            {
-                                "glob": "**/*",
-                                "input": "src/storage/",
-                                "output": "/storage/"
-                            },
-                            {
-                                "glob": "favicon.ico",
-                                "input": "src/",
-                                "output": "/"
-                            }
-                        ],
-                        "styles": [
-                            "src/assets/icons/primeicons.css",
-                            "src/assets/styles/primeflex.css",
-                            "src/styles.scss"
-                        ],
-                        "scripts": []
-                    }
-                },
                 "extract-i18n": {
-                    "builder": "@angular-devkit/build-angular:extract-i18n",
+                    "builder": "ngx-build-plus:extract-i18n",
                     "options": {
                         "buildTarget": "tauri-ngx:build",
                         "format": "json",

@@ -18,8 +18,8 @@ export class SleepSortService extends AbstractDistributionSortService<number> {
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = 0;
 
-        times = await this.save(source, lhs, rhs, 'ascent', times, callback);
-        times = await this.load(source, lhs, rhs, 'ascent', times, callback);
+        times = await this.saveByOrder(source, lhs, rhs, 'ascent', times, callback);
+        times = await this.loadByOrder(source, lhs, rhs, 'ascent', times, callback);
 
         await delay();
         await this.complete(source, times, callback);
@@ -28,14 +28,14 @@ export class SleepSortService extends AbstractDistributionSortService<number> {
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let times: number = 0;
 
-        times = await this.save(source, lhs, rhs, 'descent', times, callback);
-        times = await this.load(source, lhs, rhs, 'descent', times, callback);
+        times = await this.saveByOrder(source, lhs, rhs, 'descent', times, callback);
+        times = await this.loadByOrder(source, lhs, rhs, 'descent', times, callback);
 
         await delay();
         await this.complete(source, times, callback);
     }
 
-    protected override async save(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async saveByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = -1;
 
         for (let i = lhs, length = source.length; i <= rhs; i++) {
@@ -64,7 +64,7 @@ export class SleepSortService extends AbstractDistributionSortService<number> {
         return times;
     }
 
-    protected override async load(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async loadByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = -1, value: number, length: number = source.length;
         
         while (this.array.length > 0) {

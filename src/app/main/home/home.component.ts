@@ -65,7 +65,7 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
                 .subscribe(snapshot => 
                     this._ngZone.run(() => {
                         if (Object.keys(snapshot.queryParams).includes('id')) {
-                            this.key = snapshot.queryParams['id'] as string;
+                            this.key = window.atob(snapshot.queryParams['id'] as string);
                             const split = this.key.split('-');
 
                             for (let i = 1; i <= split.length; i++) {
@@ -218,7 +218,7 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
     selector: 'tauri-ngx-navlist',
     template: `
         <ng-container *ngFor="let item of list">
-            <a [routerLink]="item.data?.url" [queryParams]="{ id: item.key, name: item.data?.param }"
+            <a [routerLink]="item.data?.url" [queryParams]="{ id: encryptQueryParam(item.key), name: encryptQueryParam(item.data?.param) }"
                 class="flex align-items-center min-w-full p-2 gap-2" 
                 [class.no-underline]="item?.leaf" [class.cursor-pointer]="item?.leaf" 
                 [class.bg-primary]="item?.key === nodeKey" [class.text-white]="item?.key === nodeKey" [class.text-color]="item?.key !== nodeKey"
@@ -272,6 +272,10 @@ export class NavlistComponent {
             node.expanded = !node.expanded;
             this.selectedChange.emit(node);
         }
+    }
+
+    protected encryptQueryParam(value: string | undefined): string | undefined {
+        return value ? window.btoa(value) : undefined;
     }
 
     private initHostLayout(): void {

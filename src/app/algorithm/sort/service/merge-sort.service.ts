@@ -6,9 +6,10 @@ import { CLEAR_COLOR, ACCENT_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../..
 
 import { SortDataModel, SortStateModel, SortOrder, SortIndexRange } from "../ngrx-store/sort.state";
 
-import { AbstractMergeSortService, AbstractSortService } from "./base-sort.service";
+import { AbstractMergeSortService } from "./base-sort.service";
 import { SortToolsService } from "../ngrx-store/sort.service";
 import { InsertionSortService } from "./insertion-sort.service";
+import { CombSortService, ShakerBubbleSortService } from "./bubble-sort.service";
 
 /**
  * 归并排序（递归）
@@ -32,17 +33,17 @@ export class RecursiveMergeSortService extends AbstractMergeSortService {
 
     protected override async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         if (lhs < rhs) {
-            let mid: number;
+            let mid: number = floor((rhs - lhs) * 0.5, 0);
             
             if (order === 'ascent') {
-                mid = lhs + floor((rhs - lhs) * 0.5, 0);
+                mid = lhs + mid;
                 times = await this.sortByOrder(source, lhs, mid, order, times, callback);
                 times = await this.sortByOrder(source, mid + 1, rhs, order, times, callback);
                 times = await this.mergeByAscent(source, lhs, mid, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
             }
             
             if (order === 'descent') {
-                mid = rhs - floor((rhs - lhs) * 0.5, 0);
+                mid = rhs - mid;
                 times = await this.sortByOrder(source, mid, rhs, order, times, callback);
                 times = await this.sortByOrder(source, lhs, mid - 1, order, times, callback);
                 times = await this.mergeByDescent(source, lhs, mid, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
@@ -56,7 +57,7 @@ export class RecursiveMergeSortService extends AbstractMergeSortService {
         let i: number = lhs, j: number = mid + 1;
         
         while (i <= mid && j <= rhs) {
-            times = await this.render(source, i, j, primaryColor, secondaryColor, times, callback);
+            times = await this.dualSweep(source, i, j, primaryColor, secondaryColor, times, callback);
             times += 1;
 
             if (source[i].value < source[j].value) {
@@ -100,7 +101,7 @@ export class RecursiveMergeSortService extends AbstractMergeSortService {
         let i: number = rhs, j: number = mid - 1;
         
         while (i >= mid && j >= lhs) {
-            times = await this.render(source, i, j, primaryColor, secondaryColor, times, callback);
+            times = await this.dualSweep(source, i, j, primaryColor, secondaryColor, times, callback);
             times += 1;
 
             if (source[i].value < source[j].value) {
@@ -197,7 +198,7 @@ export class RecursiveInPlaceMergeSortService extends RecursiveMergeSortService 
     protected override async mergeByAscent(source: SortDataModel[], lhs: number, mid: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         for (let i = lhs, j = mid + 1; i < j;) {
             if (source[i].value < source[j].value) {
-                times = await this.render(source, i, j, primaryColor, secondaryColor, times, callback);
+                times = await this.dualSweep(source, i, j, primaryColor, secondaryColor, times, callback);
 
                 i += 1;
             } else {
@@ -209,7 +210,7 @@ export class RecursiveInPlaceMergeSortService extends RecursiveMergeSortService 
                     times = await this.exchange(source, true, k, k - 1, primaryColor, secondaryColor, accentColor, times, callback);
                 }
 
-                times = await this.render(source, i, j, primaryColor, secondaryColor, times, callback);
+                times = await this.dualSweep(source, i, j, primaryColor, secondaryColor, times, callback);
 
                 i += 1;
                 j = Math.min(j + 1, rhs);
@@ -222,7 +223,7 @@ export class RecursiveInPlaceMergeSortService extends RecursiveMergeSortService 
     protected override async mergeByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         for (let i = rhs, j = mid - 1; i > j;) {
             if (source[i].value < source[j].value) {
-                times = await this.render(source, i, j, primaryColor, secondaryColor, times, callback);
+                times = await this.dualSweep(source, i, j, primaryColor, secondaryColor, times, callback);
 
                 i -= 1;
             } else {
@@ -234,7 +235,7 @@ export class RecursiveInPlaceMergeSortService extends RecursiveMergeSortService 
                     times = await this.exchange(source, true, k, k + 1, primaryColor, secondaryColor, accentColor, times, callback);
                 }
 
-                times = await this.render(source, i, j, primaryColor, secondaryColor, times, callback);
+                times = await this.dualSweep(source, i, j, primaryColor, secondaryColor, times, callback);
 
                 i -= 1;
                 j = Math.max(j - 1, lhs);
@@ -306,10 +307,36 @@ export class RecursiveWeaveMergeSortService extends RecursiveMergeSortService {
     }
 
     public override async mergeByAscent(source: SortDataModel[], lhs: number, mid: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        times = await this.weaveByAscent(source, lhs, mid, rhs, primaryColor, secondaryColor, times, callback);
+
+        for (let k = lhs; this.array.length > 0; k++) {
+            source[k].value = this.array.shift() as number;
+
+            times = await this.sweep(source, k, accentColor, times, callback);
+            times += 1;
+        }
+
+        return await this._insertSortService.sortByOrder(source, lhs, rhs, 1, 1, primaryColor, secondaryColor, accentColor, 'ascent', times, callback);
+    }
+
+    public override async mergeByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        times = await this.weaveByDescent(source, lhs, mid, rhs, primaryColor, secondaryColor, times, callback);
+
+        for (let k = rhs; this.array.length > 0; k--) {
+            source[k].value = this.array.shift() as number;
+
+            times = await this.sweep(source, k, accentColor, times, callback);
+            times += 1;
+        }
+
+        return await this._insertSortService.sortByOrder(source, lhs, rhs, 1, 1, primaryColor, secondaryColor, accentColor, 'descent', times, callback);
+    }
+
+    protected async weaveByAscent(source: SortDataModel[], lhs: number, mid: number, rhs: number, primaryColor: string, secondaryColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let i: number = lhs, j: number = mid + 1;
 
         while (i <= mid && j <= rhs) {
-            times = await this.render(source, i, j, primaryColor, secondaryColor, times, callback);
+            times = await this.dualSweep(source, i, j, primaryColor, secondaryColor, times, callback);
             times += 1;
 
             if (source[i].value < source[j].value) {
@@ -339,21 +366,14 @@ export class RecursiveWeaveMergeSortService extends RecursiveMergeSortService {
             j += 1;
         }
 
-        for (let k = lhs; this.array.length > 0; k++) {
-            source[k].value = this.array.shift() as number;
-
-            times = await this.sweep(source, k, accentColor, times, callback);
-            times += 1;
-        }
-
-        return await this._insertSortService.sortByOrder(source, lhs, rhs, 1, 1, primaryColor, secondaryColor, accentColor, 'ascent', times, callback);
+        return times;
     }
 
-    public override async mergeByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected async weaveByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, primaryColor: string, secondaryColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let i: number = rhs, j: number = mid - 1;
 
         while (i >= mid && j >= lhs) {
-            times = await this.render(source, i, j, primaryColor, secondaryColor, times, callback);
+            times = await this.dualSweep(source, i, j, primaryColor, secondaryColor, times, callback);
             times += 1;
 
             if (source[i].value < source[j].value) {
@@ -383,14 +403,7 @@ export class RecursiveWeaveMergeSortService extends RecursiveMergeSortService {
             j -= 1;
         }
 
-        for (let k = rhs; this.array.length > 0; k--) {
-            source[k].value = this.array.shift() as number;
-
-            times = await this.sweep(source, k, accentColor, times, callback);
-            times += 1;
-        }
-
-        return await this._insertSortService.sortByOrder(source, lhs, rhs, 1, 1, primaryColor, secondaryColor, accentColor, 'descent', times, callback);
+        return times;
     }
 
 }
@@ -461,7 +474,7 @@ export class InPlaceRecursiveWeaveMergeSortService extends RecursiveWeaveMergeSo
                 times = await this.exchange(source, true, k, k - 1, primaryColor, secondaryColor, accentColor, times, callback);
             }
 
-            times = await this.render(source, i, j, primaryColor, secondaryColor, times, callback);
+            times = await this.dualSweep(source, i, j, primaryColor, secondaryColor, times, callback);
         }
 
         return await this._insertSortService.sortByOrder(source, lhs, rhs, 1, 1, primaryColor, secondaryColor, accentColor, 'ascent', times, callback);
@@ -481,7 +494,7 @@ export class InPlaceRecursiveWeaveMergeSortService extends RecursiveWeaveMergeSo
                 times = await this.exchange(source, true, k, k + 1, primaryColor, secondaryColor, accentColor, times, callback);
             }
 
-            times = await this.render(source, i, j, primaryColor, secondaryColor, times, callback);
+            times = await this.dualSweep(source, i, j, primaryColor, secondaryColor, times, callback);
         }
 
         return await this._insertSortService.sortByOrder(source, lhs, rhs, 1, 1, primaryColor, secondaryColor, accentColor, 'descent', times, callback);
@@ -742,7 +755,7 @@ export class TimSortService extends IterativeMergeSortService {
 
     constructor(
         protected override _service: SortToolsService,
-        private _insertSortService: InsertionSortService
+        protected _insertSortService: InsertionSortService
     ) {
         super(_service);
     }
@@ -797,7 +810,7 @@ export class TimSortService extends IterativeMergeSortService {
         await this.complete(source, times, callback);
     }
 
-    private calcRunLength(length: number): number {
+    protected calcRunLength(length: number): number {
         let runLength: number = length, remainder: number = 0;
 
         while (runLength > this.THRESHOLD) {
@@ -809,6 +822,72 @@ export class TimSortService extends IterativeMergeSortService {
         }
 
         return runLength + remainder;
+    }
+
+}
+
+/**
+ * 蒂姆排序
+ */
+@Injectable()
+export class TimWeaveSortService extends TimSortService {
+
+    constructor(
+        protected override _service: SortToolsService,
+        protected override _insertSortService: InsertionSortService,
+        private _weaveSortService: RecursiveWeaveMergeSortService
+    ) {
+        super(_service, _insertSortService);
+    }
+
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let length = rhs - lhs + 1, runLength: number = this.calcRunLength(length), start: number, final: number, split: number, times: number = 0;
+
+        for (let i = lhs; i <= rhs; i += runLength) {
+            start = i;
+            final = Math.min(rhs, i + runLength - 1);
+            times = await this._insertSortService.sortByOrder(source, start, final, 1, 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'ascent', times, callback);
+        }
+
+        for (let gap = runLength; gap < length; gap = gap + gap) {
+            for (let i = lhs; i <= rhs; i += gap + gap) {
+                start = i;
+                split = i + gap - 1;
+                final = Math.min(split + gap, rhs);
+
+                if (split < final) {
+                    times = await this._weaveSortService.mergeByAscent(source, start, split, final, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                }
+            }
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let length = rhs - lhs + 1, runLength: number = this.calcRunLength(length), start: number, final: number, split: number, times: number = 0;
+
+        for (let i = rhs; i >= lhs; i -= runLength) {
+            final = i;
+            start = Math.max(lhs, i - runLength + 1);
+            times = await this._insertSortService.sortByOrder(source, start, final, 1, 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'descent', times, callback);
+        }
+
+        for (let gap = runLength; gap < length; gap = gap + gap) {
+            for (let i = rhs; i >= lhs; i -= gap + gap) {
+                final = i;
+                split = i - gap + 1;
+                start = Math.max(split - gap, lhs);
+
+                if (split > start) {
+                    times = await this._weaveSortService.mergeByDescent(source, start, split, final, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                }
+            }
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
     }
 
 }
@@ -883,7 +962,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
                     }
                 }
 
-                times = await this.render(source, i, i, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                times = await this.dualSweep(source, i, i, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
                 times += 1;
             }
 
@@ -903,7 +982,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
                     }
                 }
 
-                times = await this.render(source, i, i, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+                times = await this.dualSweep(source, i, i, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
                 times += 1;
             }
         }
@@ -920,7 +999,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
                     value = newSorted.shift() as number;
                     source[i].value = value;
 
-                    times = await this.render(source, i, i, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+                    times = await this.dualSweep(source, i, i, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
                     times += 1;
                 }
             } else {
@@ -938,7 +1017,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
                     value = newSorted.shift() as number;
                     source[i].value = value;
 
-                    times = await this.render(source, i, i, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+                    times = await this.dualSweep(source, i, i, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
                     times += 1;
                 }
             } else {
@@ -961,7 +1040,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
         for (let k = 0; this.array.length > 0; k++) {
             source[k].value = this.array.shift() as number;
 
-            times = await this.render(source, k, k, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+            times = await this.dualSweep(source, k, k, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
             times += 1;
         }
 
@@ -975,7 +1054,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
         i = fst, j = snd;
 
         while (i <= snd - 1 && j <= idx) {
-            times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+            times = await this.dualSweep(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
 
             if (source[i].value < source[j].value) {
                 this.array.push(source[i].value);
@@ -989,7 +1068,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
         }
 
         while (i <= snd - 1) {
-            times = await this.render(source, i, i, PRIMARY_COLOR, PRIMARY_COLOR, times, callback);
+            times = await this.dualSweep(source, i, i, PRIMARY_COLOR, PRIMARY_COLOR, times, callback);
 
             this.array.push(source[i].value);
 
@@ -998,7 +1077,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
         }
 
         while (j <= idx) {
-            times = await this.render(source, j, j, SECONDARY_COLOR, SECONDARY_COLOR, times, callback);
+            times = await this.dualSweep(source, j, j, SECONDARY_COLOR, SECONDARY_COLOR, times, callback);
 
             this.array.push(source[j].value);
 
@@ -1015,7 +1094,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
         for (let k = 0; this.array.length > 0; k++) {
             source[fst + k].value = this.array.shift() as number;
 
-            times = await this.render(source, fst + k, fst + k, ACCENT_COLOR, ACCENT_COLOR, times, callback);
+            times = await this.dualSweep(source, fst + k, fst + k, ACCENT_COLOR, ACCENT_COLOR, times, callback);
             times += 1;
         }
 
@@ -1030,7 +1109,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
         for (let k = source.length - 1; this.array.length > 0; k--) {
             source[k].value = this.array.shift() as number;
 
-            times = await this.render(source, k, k, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+            times = await this.dualSweep(source, k, k, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
             times += 1;
         }
 
@@ -1044,7 +1123,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
         i = fst, j = snd;
 
         while (i >= snd + 1 && j >= idx) {
-            times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+            times = await this.dualSweep(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
 
             if (source[i].value < source[j].value) {
                 this.array.push(source[i].value);
@@ -1058,7 +1137,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
         }
 
         while (i >= snd + 1) {
-            times = await this.render(source, i, i, PRIMARY_COLOR, PRIMARY_COLOR, times, callback);
+            times = await this.dualSweep(source, i, i, PRIMARY_COLOR, PRIMARY_COLOR, times, callback);
 
             this.array.push(source[i].value);
 
@@ -1067,7 +1146,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
         }
 
         while (j >= idx) {
-            times = await this.render(source, j, j, SECONDARY_COLOR, SECONDARY_COLOR, times, callback);
+            times = await this.dualSweep(source, j, j, SECONDARY_COLOR, SECONDARY_COLOR, times, callback);
 
             this.array.push(source[j].value);
 
@@ -1084,7 +1163,7 @@ export class RecursiveStrandSortService extends RecursiveMergeSortService {
         for (let k = 0; this.array.length > 0; k++) {
             source[fst - k].value = this.array.shift() as number;
 
-            times = await this.render(source, fst - k, fst - k, ACCENT_COLOR, ACCENT_COLOR, times, callback);
+            times = await this.dualSweep(source, fst - k, fst - k, ACCENT_COLOR, ACCENT_COLOR, times, callback);
             times += 1;
         }
 
@@ -1143,28 +1222,46 @@ export class IterativeStrandSortService extends RecursiveStrandSortService {
 @Injectable()
 export class InPlaceStrandSortService extends RecursiveInPlaceMergeSortService {
 
+    constructor(
+        protected override _service: SortToolsService,
+        protected _insertSortService: InsertionSortService
+    ) {
+        super(_service);
+    }
+
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let fst: number, snd: number, idx: number, times: number = 0;
+        let fst: number, snd: number, idx: number = rhs, times: number = 0;
 
-        [times, fst, snd] = await this.sliceByOrder(source, lhs, rhs, 'ascent', times, callback);
+        while (true) {
+            if (idx === rhs) {
+                fst = Math.max(idx - this.THRESHOLD + 1, lhs);
 
-        if (fst > lhs) {
-            snd = fst - 1;
-            fst = lhs;
+                times = await this._insertSortService.sortByOrder(source, fst, idx, 1, 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'ascent', times, callback);
 
-            while (true) {
-                [times, fst, idx] = await this.sliceByOrder(source, fst, snd, 'ascent', times, callback);
-                
-                if (idx < lhs) break;
-    
-                snd = this._service.indexOfFGTByAscent(source, source[idx].value, idx + 1, rhs);
-                snd = snd === -1 ? rhs : snd;
-                
-                times = await this.mergeByAscent(source, fst, idx, snd, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-    
-                snd = fst - 1;
-                fst = lhs;
+                idx = Math.max(fst - 1, lhs);
             }
+
+            fst = idx;
+            
+            for (let i = idx; i >= lhs; i--) {
+                fst = Math.max(i - 1, lhs);
+
+                times = await this.sweep(source, i, ACCENT_COLOR, times, callback);
+
+                if (source[fst].value > source[i].value) {
+                    fst = i;
+                    break;
+                }
+            }
+            
+            if (idx < lhs) break;
+
+            snd = this._service.indexOfFGTByAscent(source, source[idx].value, idx + 1, rhs);
+            snd = snd === -1 ? rhs : snd;
+            
+            times = await this.mergeByAscent(source, fst, idx, snd, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+            idx = fst - 1;
         }
         
         await delay();
@@ -1172,26 +1269,159 @@ export class InPlaceStrandSortService extends RecursiveInPlaceMergeSortService {
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let fst: number, snd: number, idx: number, times: number = 0;
+        let fst: number, snd: number, idx: number = lhs, times: number = 0;
 
-        [times, fst, snd] = await this.sliceByOrder(source, lhs, rhs, 'descent', times, callback);
+        while (true) {
+            if (idx === lhs) {
+                snd = Math.min(idx + this.THRESHOLD - 1, rhs);
 
-        if (snd < rhs) {
-            fst = snd + 1;
-            snd = rhs;
+                times = await this._insertSortService.sortByOrder(source, idx, snd, 1, 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'descent', times, callback);
 
-            while (true) {
-                [times, idx, snd] = await this.sliceByOrder(source, fst, snd, 'descent', times, callback);
-                
-                if (idx > rhs) break;
+                idx = Math.min(snd + 1, rhs);
+            }
+
+            snd = idx;
+            
+            for (let i = idx; i <= rhs; i++) {
+                snd = Math.min(i + 1, rhs);
+
+                times = await this.sweep(source, i, ACCENT_COLOR, times, callback);
+
+                if (source[snd].value > source[i].value) {
+                    snd = i;
+                    break;
+                }
+            }
+            
+            if (idx > rhs) break;
+
+            fst = this._service.indexOfFGTByDescent(source, source[idx].value, lhs, idx - 1);
+            fst = fst === -1 ? lhs : fst;
+            
+            times = await this.mergeByDescent(source, fst, idx, snd, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+
+            idx = snd + 1;
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+}
+
+/**
+ * 原地股排序
+ */
+@Injectable()
+export class InPlaceBlockStrandSortService extends InPlaceStrandSortService {
+
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let fst: number, snd: number, idx: number = rhs, times: number = 0;
+
+        while (true) {
+            fst = Math.max(idx - this.THRESHOLD + 1, lhs);
+
+            times = await this._insertSortService.sortByOrder(source, fst, idx, 1, 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'ascent', times, callback);
+
+            if (idx !== rhs) {
+                snd = this._service.indexOfFGTByAscent(source, source[idx].value, idx + 1, rhs);
+                snd = snd === -1 ? rhs : snd;
     
+                times = await this.mergeByAscent(source, fst, idx, snd, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            }
+
+            if (idx === lhs) break;
+            
+            idx = Math.max(fst - 1, lhs);
+        }
+        
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let fst: number, snd: number, idx: number = lhs, times: number = 0;
+
+        while (true) {
+            snd = Math.min(idx + this.THRESHOLD - 1, rhs);
+
+            times = await this._insertSortService.sortByOrder(source, idx, snd, 1, 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, 'descent', times, callback);
+
+            if (idx !== lhs) {
                 fst = this._service.indexOfFGTByDescent(source, source[idx].value, lhs, idx - 1);
                 fst = fst === -1 ? lhs : fst;
-                
-                times = await this.mergeByDescent(source, fst, idx, snd, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
     
-                fst = snd + 1;
-                snd = rhs;
+                times = await this.mergeByDescent(source, fst, idx, snd, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            }
+
+            if (idx === rhs) break;
+            
+            idx = Math.min(snd + 1, rhs);
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+}
+
+/**
+ * 冒泡归并排序
+ */
+@Injectable()
+export class RecursiveBubbleMergeSortService extends RecursiveWeaveMergeSortService {
+
+    constructor(
+        protected override _service: SortToolsService,
+        protected override _insertSortService: InsertionSortService,
+        protected _shakerBubbleSortService: ShakerBubbleSortService
+    ) {
+        super(_service, _insertSortService);
+    }
+
+    public override async mergeByAscent(source: SortDataModel[], lhs: number, mid: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        times = await this.weaveByAscent(source, lhs, mid, rhs, primaryColor, secondaryColor, times, callback);
+
+        for (let k = lhs; this.array.length > 0; k++) {
+            source[k].value = this.array.shift() as number;
+
+            times = await this.sweep(source, k, accentColor, times, callback);
+            times += 1;
+        }
+
+        return await this._shakerBubbleSortService.sortByOrder(source, lhs, rhs, primaryColor, secondaryColor, accentColor, 'ascent', times, callback);
+    }
+
+    public override async mergeByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        times = await this.weaveByDescent(source, lhs, mid, rhs, primaryColor, secondaryColor, times, callback);
+
+        for (let k = rhs; this.array.length > 0; k--) {
+            source[k].value = this.array.shift() as number;
+
+            times = await this.sweep(source, k, accentColor, times, callback);
+            times += 1;
+        }
+
+        return await this._shakerBubbleSortService.sortByOrder(source, lhs, rhs, primaryColor, secondaryColor, accentColor, 'descent', times, callback);
+    }
+
+}
+
+@Injectable()
+export class IterativeBubbleMergeSortService extends RecursiveBubbleMergeSortService {
+
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let start: number, final: number, split: number, times: number = 0;
+
+        for (let gap = 1, length = rhs - lhs + 1; gap < length; gap = gap + gap) {
+            for (let i = lhs; i <= rhs; i += gap + gap) {
+                start = i;
+                final = Math.min(i + gap + gap - 1, rhs);
+                split = Math.max(i + gap - 1, start);
+
+                if (split < final) {
+                    times = await this.mergeByAscent(source, start, split, final, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                }
             }
         }
 
@@ -1199,75 +1429,96 @@ export class InPlaceStrandSortService extends RecursiveInPlaceMergeSortService {
         await this.complete(source, times, callback);
     }
 
-    private async sliceByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<[number, number, number]> {
-        let idx: number = -1;
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let start: number, final: number, split: number, times: number = 0;
 
-        if (order === 'ascent') {
-            for (let i = rhs; i >= lhs; i--) {
-                idx = Math.max(i - 1, lhs);
-    
-                times = await this.sweep(source, i, ACCENT_COLOR, times, callback);
-    
-                if (source[idx].value > source[i].value) {
-                    idx = i;
-                    break;
+        for (let gap = 1, length = rhs - lhs + 1; gap < length; gap = gap + gap) {
+            for (let i = rhs; i >= lhs; i -= gap + gap) {
+                final = i;
+                start = Math.max(i - gap - gap + 1, lhs);
+                split = i - gap + 1;
+                
+                if (split > start) {
+                    times = await this.mergeByDescent(source, start, split, final, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
                 }
             }
-
-            lhs = idx;
         }
-        
-        if (order === 'descent') {
-            for (let i = lhs; i <= rhs; i++) {
-                idx = Math.min(i + 1, rhs);
-    
-                times = await this.sweep(source, i, ACCENT_COLOR, times, callback);
-    
-                if (source[idx].value > source[i].value) {
-                    idx = i;
-                    break;
-                }
-            }
 
-            rhs = idx;
-        }
-        
-        return [times, lhs, rhs];
+        await delay();
+        await this.complete(source, times, callback);
     }
-
-    // private async sliceByAscent(source: SortDataModel[], lhs: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<[number, number, number]> {
-    //     let idx: number = -1;
-
-    //     for (let i = rhs; i >= lhs; i--) {
-    //         idx = Math.max(i - 1, lhs);
-
-    //         times = await this.sweep(source, i, ACCENT_COLOR, times, callback);
-
-    //         if (source[idx].value > source[i].value) {
-    //             idx = i;
-    //             break;
-    //         }
-    //     }
-        
-    //     return [times, idx, rhs];
-    // }
-
-    // private async sliceByDescent(source: SortDataModel[], lhs: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<[number, number, number]> {
-    //     let idx: number = -1;
-
-    //     for (let i = lhs; i <= rhs; i++) {
-    //         idx = Math.min(i + 1, rhs);
-
-    //         times = await this.sweep(source, i, ACCENT_COLOR, times, callback);
-
-    //         if (source[idx].value > source[i].value) {
-    //             idx = i;
-    //             break;
-    //         }
-    //     }
-
-    //     return [times, lhs, idx];
-    // }
 
 }
 
+@Injectable()
+export class RecursiveCombMergeSortService extends RecursiveBubbleMergeSortService {
+
+    constructor(
+        protected override _service: SortToolsService,
+        protected override _insertSortService: InsertionSortService,
+        protected override _shakerBubbleSortService: ShakerBubbleSortService,
+        private _combSortService: CombSortService
+    ) {
+        super(_service, _insertSortService, _shakerBubbleSortService);
+    }
+
+    public override async mergeByAscent(source: SortDataModel[], lhs: number, mid: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        for (let gap = rhs - lhs + 1; gap > 0; gap = floor(gap * this._combSortService.SCALE, 0)) {
+            times = await this._combSortService.moveByOrder(source, lhs, rhs, gap, primaryColor, secondaryColor, accentColor, 'ascent', times, callback);
+        }
+
+        return await this._shakerBubbleSortService.sortByOrder(source, lhs, rhs, primaryColor, secondaryColor, accentColor, 'ascent', times, callback);
+    }
+
+    public override async mergeByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, primaryColor: string, secondaryColor: string, accentColor: string, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+        for (let gap = rhs - lhs + 1; gap > 0; gap = floor(gap * this._combSortService.SCALE, 0)) {
+            times = await this._combSortService.moveByOrder(source, lhs, rhs, gap, primaryColor, secondaryColor, accentColor, 'descent', times, callback);
+        }
+
+        return await this._shakerBubbleSortService.sortByOrder(source, lhs, rhs, primaryColor, secondaryColor, accentColor, 'descent', times, callback);
+    }
+
+}
+
+@Injectable()
+export class IterativeCombMergeSortService extends RecursiveCombMergeSortService {
+
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let start: number, final: number, split: number, times: number = 0;
+
+        for (let gap = 1, length = rhs - lhs + 1; gap < length; gap = gap + gap) {
+            for (let i = lhs; i <= rhs; i += gap + gap) {
+                start = i;
+                final = Math.min(i + gap + gap - 1, rhs);
+                split = Math.max(i + gap - 1, start);
+
+                if (split < final) {
+                    times = await this.mergeByAscent(source, start, split, final, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                }
+            }
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let start: number, final: number, split: number, times: number = 0;
+
+        for (let gap = 1, length = rhs - lhs + 1; gap < length; gap = gap + gap) {
+            for (let i = rhs; i >= lhs; i -= gap + gap) {
+                final = i;
+                start = Math.max(i - gap - gap + 1, lhs);
+                split = i - gap + 1;
+                
+                if (split > start) {
+                    times = await this.mergeByDescent(source, start, split, final, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                }
+            }
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+}

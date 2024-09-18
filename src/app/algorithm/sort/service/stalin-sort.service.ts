@@ -25,8 +25,8 @@ export class StalinSortService extends AbstractDistributionSortService<number> {
         let point: number, times: number = 0;
 
         while (true) {
-            times = await this.save(source, lhs, rhs, 'ascent', times, callback);
-            times = await this.load(source, lhs, rhs, 'ascent', times, callback);
+            times = await this.saveByOrder(source, lhs, rhs, 'ascent', times, callback);
+            times = await this.loadByOrder(source, lhs, rhs, 'ascent', times, callback);
     
             point = -1;
 
@@ -50,8 +50,8 @@ export class StalinSortService extends AbstractDistributionSortService<number> {
         let point: number, times: number = 0;
 
         while (true) {
-            times = await this.save(source, lhs, rhs, 'descent', times, callback);
-            times = await this.load(source, lhs, rhs, 'descent', times, callback);
+            times = await this.saveByOrder(source, lhs, rhs, 'descent', times, callback);
+            times = await this.loadByOrder(source, lhs, rhs, 'descent', times, callback);
     
             point = -1;
 
@@ -71,7 +71,7 @@ export class StalinSortService extends AbstractDistributionSortService<number> {
         await this.complete(source, times, callback);
     }
 
-    protected override async save(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async saveByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         if (order === 'ascent') {
             for (let i = lhs; i <= rhs; i++) {
                 times = await this.sweep(source, i, ACCENT_ONE_COLOR, times, callback);
@@ -93,7 +93,7 @@ export class StalinSortService extends AbstractDistributionSortService<number> {
         return times;
     }
 
-    protected override async load(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async loadByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         for (let i = 0; i < this.array.length - 1; ) {
             if (this.array[i + 1] < this.array[i]) {
                 this.stack.push(...this.array.splice(i + 1, 1));
@@ -148,7 +148,7 @@ export class StalinSortService extends AbstractDistributionSortService<number> {
         let i: number = lhs, j: number = idx + 1;
 
         while (i <= idx && j <= rhs) {
-            times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+            times = await this.dualSweep(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
             times += 1;
 
             if (source[i].value < source[j].value) {
@@ -191,7 +191,7 @@ export class StalinSortService extends AbstractDistributionSortService<number> {
         let i: number = rhs, j: number = idx - 1;
 
         while (i >= idx && j >= lhs) {
-            times = await this.render(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+            times = await this.dualSweep(source, i, j, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
             times += 1;
 
             if (source[i].value < source[j].value) {
@@ -239,8 +239,8 @@ export class BinaryStalinSortService extends StalinSortService {
         let point: number, times: number = 0;
 
         while (true) {
-            times = await this.save(source, lhs, rhs, 'ascent', times, callback);
-            times = await this.load(source, lhs, rhs, 'ascent', times, callback);
+            times = await this.saveByOrder(source, lhs, rhs, 'ascent', times, callback);
+            times = await this.loadByOrder(source, lhs, rhs, 'ascent', times, callback);
     
             point = -1;
 
@@ -264,8 +264,8 @@ export class BinaryStalinSortService extends StalinSortService {
         let point: number, times: number = 0;
 
         while (true) {
-            times = await this.save(source, lhs, rhs, 'descent', times, callback);
-            times = await this.load(source, lhs, rhs, 'descent', times, callback);
+            times = await this.saveByOrder(source, lhs, rhs, 'descent', times, callback);
+            times = await this.loadByOrder(source, lhs, rhs, 'descent', times, callback);
     
             point = -1;
 
@@ -352,7 +352,7 @@ export class InPlaceStalinSortService extends AbstractComparisonSortService {
                     }
 
                     times = await this.sweep(source, index, ACCENT_COLOR, times, callback);
-                    times = await this.render(source, start, final, START_COLOR, FINAL_COLOR, times, callback);
+                    times = await this.dualSweep(source, start, final, START_COLOR, FINAL_COLOR, times, callback);
 
                     index -= 1;
                 } else {
@@ -405,7 +405,7 @@ export class InPlaceStalinSortService extends AbstractComparisonSortService {
                     }
 
                     times = await this.sweep(source, index, ACCENT_COLOR, times, callback);
-                    times = await this.render(source, start, final, START_COLOR, FINAL_COLOR, times, callback);
+                    times = await this.dualSweep(source, start, final, START_COLOR, FINAL_COLOR, times, callback);
 
                     index += 1;
                 } else {

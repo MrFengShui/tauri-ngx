@@ -6,7 +6,7 @@
         "distDir": "../docs/web"
     },
     "package": {
-        "productName": "tauri-app",
+        "productName": "tauri-ngx",
         "version": "0.0.0"
     },
     "tauri": {

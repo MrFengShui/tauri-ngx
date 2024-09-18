@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 
-import { SortDataModel, SortStateModel, SortOrder, SortDataRadixModel, SortRadix } from "../ngrx-store/sort.state";
+import { SortDataModel, SortStateModel, SortOrder, SortDataRadixModel, SortRadix, SortIndexRange } from "../ngrx-store/sort.state";
 
 import { ACCENT_COLOR, delay, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
 import { ACCENT_TWO_COLOR, ACCENT_ONE_COLOR, PRIMARY_TWO_COLOR, SECONDARY_TWO_COLOR, PRIMARY_ONE_COLOR, SECONDARY_ONE_COLOR } from "../../../public/global.utils";
@@ -34,8 +34,8 @@ export class RadixLSDSortService extends AbstractDistributionSortService<SortDat
         for (let digit = digits - 1; digit >= 0; digit--) {
             this.digit = digit;
 
-            times = await this.save(source, lhs, rhs, 'ascent', times, callback);
-            times = await this.load(source, lhs, rhs, 'ascent', times, callback);
+            times = await this.saveByOrder(source, lhs, rhs, 'ascent', times, callback);
+            times = await this.loadByOrder(source, lhs, rhs, 'ascent', times, callback);
         }
 
         await delay();
@@ -54,15 +54,15 @@ export class RadixLSDSortService extends AbstractDistributionSortService<SortDat
         for (let digit = digits - 1; digit >= 0; digit--) {
             this.digit = digit;
             
-            times = await this.save(source, lhs, rhs, 'descent', times, callback);
-            times = await this.load(source, lhs, rhs, 'descent', times, callback);
+            times = await this.saveByOrder(source, lhs, rhs, 'descent', times, callback);
+            times = await this.loadByOrder(source, lhs, rhs, 'descent', times, callback);
         }
         
         await delay();
         await this.complete(source, 0, callback);
     }
 
-    protected override async save(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async saveByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         return this.saveByDigit(source, lhs, rhs, this.digit, order, times, callback);
     }
 
@@ -98,7 +98,7 @@ export class RadixLSDSortService extends AbstractDistributionSortService<SortDat
         return times;
     }
 
-    protected override async load(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async loadByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = -1, key: string | number;
         
         this.keys = Object.keys(this.cacheOfKeyValues);        
@@ -141,9 +141,6 @@ export class RadixLSDSortService extends AbstractDistributionSortService<SortDat
 @Injectable()
 export class RecursiveRadixMSDSortService extends RadixLSDSortService {
 
-    protected ranges: MSDRadixMeta[] = Array.from([]);
-    protected range: MSDRadixMeta | undefined = undefined;
-
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let maxValue: number = Math.max(...source.map(item => item.value)), radix: SortRadix = option as number;
         let digits: number = maxValue.toString(radix).length, times: number = 0;
@@ -177,59 +174,57 @@ export class RecursiveRadixMSDSortService extends RadixLSDSortService {
     private async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, digit: number, digits: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         if (digit < digits) {
             times = await this.saveByDigit(source, lhs, rhs, digit, order, times, callback);
-            times = await this.load(source, lhs, rhs, order, times, callback);
-            times = await this.splitByOrder(source, lhs, rhs, digit, order, times, callback);
+            times = await this.loadByOrder(source, lhs, rhs, order, times, callback);
 
-            while (this.ranges.length > 0) {
-                this.range = this.ranges.pop();
-
-                if (this.range) {
-                    times = await this.sortByOrder(source, this.range.start, this.range.final, this.range.digit, digits, order, times, callback);
-                }
+            let ranges: MSDRadixMeta[] | null = this.splitByOrder(source, lhs, rhs, digit, order), range: MSDRadixMeta;
+            
+            while (ranges.length > 0) {
+                range = ranges.shift() as MSDRadixMeta;
+                times = await this.sortByOrder(source, range.start, range.final, range.digit, digits, order, times, callback);
             }
+
+            ranges = null;
         }
 
         return times;
     }
 
-    protected async splitByOrder(source: SortDataModel[], lhs: number, rhs: number, digit: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        let j: number, start: number = lhs, final: number = rhs, fstRadix: string, sndRadix: string;
+    protected splitByOrder(source: SortDataModel[], lhs: number, rhs: number, digit: number, order: SortOrder): MSDRadixMeta[] {
+        let j: number, index: number, fstRadix: string, sndRadix: string, ranges: MSDRadixMeta[] = Array.from([]);
 
         if (order === 'ascent') {
+            index = lhs;
+
             for (let i = lhs; i <= rhs; i++) {
                 j = Math.min(i + 1, rhs);
                 fstRadix = source[i]?.radix as string;
                 sndRadix = source[j]?.radix as string;
     
                 if (fstRadix[digit] !== sndRadix[digit] || i === j) {
-                    final = i;
-                    this.ranges.push({ start, final, digit: digit + 1 });
+                    ranges.push({ start: index, final: i, digit: digit + 1 });
     
-                    start = i + 1;
+                    index = j;
                 }
-    
-                times = await this.sweep(source, i, ACCENT_COLOR, times, callback);
-            }
+            }            
         }
         
         if (order === 'descent') {
+            index = rhs;
+
             for (let i = rhs; i >= lhs; i--) {
                 j = Math.max(i - 1, lhs);
                 fstRadix = source[i]?.radix as string;
                 sndRadix = source[j]?.radix as string;
     
                 if (fstRadix[digit] !== sndRadix[digit] || i === j) {
-                    start = i;
-                    this.ranges.push({ start, final, digit: digit + 1 });
+                    ranges.push({ start: i, final: index, digit: digit + 1 });
     
-                    final = i - 1;
+                    index = j;
                 }
-    
-                times = await this.sweep(source, i, ACCENT_COLOR, times, callback);
             }
         }
         
-        return times;
+        return ranges;
     }
 
 }
@@ -239,6 +234,9 @@ export class RecursiveRadixMSDSortService extends RadixLSDSortService {
  */
 @Injectable()
 export class IterativeRadixMSDSortService extends RecursiveRadixMSDSortService {
+
+    private ranges: MSDRadixMeta[] = Array.from([]);
+    private range: MSDRadixMeta | null = null;
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
         let maxValue: number = Math.max(...source.map(item => item.value)), radix: SortRadix = option as number;
@@ -260,17 +258,15 @@ export class IterativeRadixMSDSortService extends RecursiveRadixMSDSortService {
             
             if (digit < digits) {
                 times = await this.saveByDigit(source, lhs, rhs, digit, 'ascent', times, callback);
-                times = await this.load(source, lhs, rhs, 'ascent', times, callback);
-                times = await this.splitByOrder(source, lhs, rhs, digit, 'ascent', times, callback);
+                times = await this.loadByOrder(source, lhs, rhs, 'ascent', times, callback);
+
+                this.ranges = this.splitByOrder(source, lhs, rhs, digit, 'ascent');
     
                 while (this.ranges.length > 0) {
-                    this.range = this.ranges.pop();
-    
-                    if (this.range) {
-                        this.stack.push(this.range.digit);
-                        this.stack.push(this.range.final);
-                        this.stack.push(this.range.start);
-                    }
+                    this.range = this.ranges.pop() as MSDRadixMeta;
+                    this.stack.push(this.range.digit);
+                    this.stack.push(this.range.final);
+                    this.stack.push(this.range.start);
                 }
             }
         }
@@ -299,17 +295,15 @@ export class IterativeRadixMSDSortService extends RecursiveRadixMSDSortService {
             
             if (digit < digits) {
                 times = await this.saveByDigit(source, lhs, rhs, digit, 'descent', times, callback);
-                times = await this.load(source, lhs, rhs, 'descent', times, callback);
-                times = await this.splitByOrder(source, lhs, rhs, digit, 'descent', times, callback);
+                times = await this.loadByOrder(source, lhs, rhs, 'descent', times, callback);
+
+                this.ranges = this.splitByOrder(source, lhs, rhs, digit, 'descent');
     
                 while (this.ranges.length > 0) {
-                    this.range = this.ranges.pop();
-    
-                    if (this.range) {
-                        this.stack.push(this.range.digit);
-                        this.stack.push(this.range.start);
-                        this.stack.push(this.range.final);
-                    }
+                    this.range = this.ranges.pop() as MSDRadixMeta;
+                    this.stack.push(this.range.digit);
+                    this.stack.push(this.range.start);
+                    this.stack.push(this.range.final);
                 }
             }
         }

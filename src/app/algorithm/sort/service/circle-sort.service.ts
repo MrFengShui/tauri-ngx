@@ -3,7 +3,7 @@ import { floor } from "lodash";
 
 import { SortDataModel, SortOrder, SortStateModel } from "../ngrx-store/sort.state";
 
-import { ACCENT_COLOR, CLEAR_COLOR, delay, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
+import { ACCENT_COLOR, delay, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
 
 import { AbstractComparisonSortService } from "./base-sort.service";
 
@@ -12,12 +12,14 @@ import { AbstractComparisonSortService } from "./base-sort.service";
  */
 @Injectable()
 export class RecursiveCircleSortService extends AbstractComparisonSortService {
-
+    
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let stop: boolean = false, times: number = 0;
+        let count: number = -1, times: number = 0;
 
-        while (!stop) {
-            [times, stop] = await this.sortByOrder(source, lhs, rhs, 'ascent', 0, callback);
+        while (count !== 0) {
+            [times, count] = rhs - lhs + 1 > 384 
+                ? await this.tailSortByOrder(source, lhs, rhs, 0, 'ascent', times, callback)
+                : await this.sortByOrder(source, lhs, rhs, 0, 'ascent', 0, callback);
         }
 
         await delay();
@@ -25,76 +27,113 @@ export class RecursiveCircleSortService extends AbstractComparisonSortService {
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let stop: boolean = false, times: number = 0;
+        let count: number = -1, times: number = 0;
         
-        while (!stop) {
-            [times, stop] = await this.sortByOrder(source, lhs, rhs, 'descent', 0, callback);
+        while (count !== 0) {
+            [times, count] = rhs - lhs + 1 > 384 
+                ? await this.tailSortByOrder(source, lhs, rhs, 0, 'descent', times, callback)
+                : await this.sortByOrder(source, lhs, rhs, 0, 'descent', 0, callback);
         }
 
         await delay();
         await this.complete(source, times, callback);
     }
 
-    protected async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<[number, boolean]> {
-        let stop: boolean = true, fstFlag: boolean = true, sndFlag: boolean = true;
+    protected async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, count: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
+        let mid: number;
 
         if (lhs < rhs) {
-            let mid: number = floor((rhs - lhs) * 0.5 + lhs, 0);
-
             if (order === 'ascent') {
-                [times, stop] = await this.rotateByOrder(source, lhs, rhs, order, times, callback);
-                [times, fstFlag] = await this.sortByOrder(source, lhs, mid, order, times, callback);
-                [times, sndFlag] = await this.sortByOrder(source, mid + 1, rhs, order, times, callback);
+                mid = lhs + floor((rhs - lhs) * 0.5);
+
+                [times, count] = await this.rotateByOrder(source, lhs, rhs, count, order, times, callback);
+                [times, count] = await this.sortByOrder(source, lhs, mid, count, order, times, callback);
+                [times, count]= await this.sortByOrder(source, mid + 1, rhs, count, order, times, callback);
             }
             
             if (order === 'descent') {
-                [times, stop] = await this.rotateByOrder(source, lhs, rhs, order, times, callback);
-                [times, fstFlag] = await this.sortByOrder(source, mid + 1, rhs, order, times, callback);
-                [times, sndFlag] = await this.sortByOrder(source, lhs, mid, order, times, callback);
-            }
+                mid = rhs - floor((rhs - lhs) * 0.5);
 
-            stop = stop && fstFlag && sndFlag;
-        }   
-        
-        return [times, stop];
+                [times, count] = await this.rotateByOrder(source, lhs, rhs, count, order, times, callback);
+                [times, count] = await this.sortByOrder(source, mid, rhs, count, order, times, callback);
+                [times, count] = await this.sortByOrder(source, lhs, mid - 1, count, order, times, callback);
+            }
+        } 
+
+        return [times, count];
     }
 
-    protected async rotateByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<[number, boolean]> {
-        let stop: boolean = true, flag: boolean;
+    protected async tailSortByOrder(source: SortDataModel[], lhs: number, rhs: number, count: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
+        let mid: number;
 
-        if (order === 'ascent') {
-            for (let i = lhs, j = rhs; i <= j; i++, j--) {
-                if (i === j) {
-                    flag = source[i].value > source[j + 1].value;
-                    stop &&= !flag;
+        while (lhs < rhs) {
+            if (order === 'ascent') {
+                mid = lhs + floor((rhs - lhs) * 0.5);
 
-                    times = await this.exchange(source, flag, i, j + 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-                } else {
-                    flag = source[i].value > source[j].value;
-                    stop &&= !flag;
+                [times, count] = await this.rotateByOrder(source, lhs, rhs, count, order, times, callback);
+                [times, count] = await this.tailSortByOrder(source, lhs, mid, count, order, times, callback);
 
-                    times = await this.exchange(source, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+                lhs = mid + 1;
+            }
+            
+            if (order === 'descent') {
+                mid = rhs - floor((rhs - lhs) * 0.5);
+
+                [times, count] = await this.rotateByOrder(source, lhs, rhs, count, order, times, callback);
+                [times, count] = await this.tailSortByOrder(source, mid, rhs, count, order, times, callback);
+
+                rhs = mid - 1;
+            }
+        } 
+        
+        return [times, count];
+    }
+
+    protected async rotateByOrder(source: SortDataModel[], lhs: number, rhs: number, count: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
+        let start: number = lhs, final: number = rhs;
+
+        while (start < final) {
+            if (order === 'ascent' && source[start].value > source[final].value) {
+                count += 1;
+
+                times = await this.exchange(source, true, start, final, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            }
+
+            if (order === 'descent' && source[start].value < source[final].value) {
+                count += 1;
+
+                times = await this.exchange(source, true, start, final, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            }
+
+            times = await this.dualSweep(source, start, final, PRIMARY_COLOR, SECONDARY_COLOR, times, callback);
+
+            start += 1;
+            final -= 1;
+        }
+        
+        if (start === final) {
+            if (order === 'ascent') {
+                final = Math.min(final + 1, rhs);
+
+                if (source[start].value > source[final].value) {
+                    count += 1;
+
+                    times = await this.exchange(source, true, start, final, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
                 }
             }
-        }
 
-        if (order === 'descent') {
-            for (let i = rhs, j = lhs; i >= j; i--, j++) {
-                if (i === j) {
-                    flag = source[i + 1].value > source[j].value;
-                    stop &&= !flag;
-    
-                    times = await this.exchange(source, flag, i + 1, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
-                } else {
-                    flag = source[i].value > source[j].value;
-                    stop &&= !flag;
-    
-                    times = await this.exchange(source, flag, i, j, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
+            if (order === 'descent') {
+                start = Math.max(start - 1, lhs);
+
+                if (source[start].value < source[final].value) {
+                    count += 1;
+
+                    times = await this.exchange(source, true, start, final, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
                 }
             }
         }
         
-        return [times, stop];
+        return [times, count];
     }
     
 }
@@ -106,10 +145,10 @@ export class RecursiveCircleSortService extends AbstractComparisonSortService {
 export class IterativeCircleSortService extends RecursiveCircleSortService {
 
     protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let start: number, final: number, split: number, stop: boolean = false, flag: boolean, times: number = 0;
+        let start: number, final: number, split: number, count: number = -1, times: number = 0;
 
-        while (!stop) {
-            stop = true;
+        while (count !== 0) {
+            count = 0;
 
             this.stack.push(rhs);
             this.stack.push(lhs);
@@ -118,10 +157,10 @@ export class IterativeCircleSortService extends RecursiveCircleSortService {
                 start = this.stack.pop() as number;
                 final = this.stack.pop() as number;
                 
-                [times, flag] = await this.rotateByOrder(source, start, final, 'ascent', times, callback);
+                [times, count] = await this.rotateByOrder(source, start, final, count, 'ascent', times, callback);
                 
                 if (start < final) {
-                    split = floor((final - start) * 0.5 + start, 0);
+                    split = start + floor((final - start) * 0.5, 0);
     
                     if (split + 1 < final) {
                         this.stack.push(final);
@@ -133,8 +172,6 @@ export class IterativeCircleSortService extends RecursiveCircleSortService {
                         this.stack.push(start);
                     }
                 }
-                
-                stop &&= flag;
             }
         }
 
@@ -143,10 +180,10 @@ export class IterativeCircleSortService extends RecursiveCircleSortService {
     }
 
     protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
-        let start: number, final: number, split: number, stop: boolean = false, flag: boolean, times: number = 0;
+        let start: number, final: number, split: number, count: number = -1, flag: boolean, times: number = 0;
 
-        while (!stop) {
-            stop = true;
+        while (count !== 0) {
+            count = 0;
 
             this.stack.push(lhs);
             this.stack.push(rhs);
@@ -155,23 +192,21 @@ export class IterativeCircleSortService extends RecursiveCircleSortService {
                 final = this.stack.pop() as number;
                 start = this.stack.pop() as number;
                 
-                [times, flag] = await this.rotateByOrder(source, start, final, 'descent', times, callback);
+                [times, count] = await this.rotateByOrder(source, start, final, count, 'descent', times, callback);
                 
                 if (start < final) {
-                    split = floor((final - start) * 0.5 + start, 0);
+                    split = final - floor((final - start) * 0.5, 0);
     
                     if (start < split) {
                         this.stack.push(start);
-                        this.stack.push(split);
+                        this.stack.push(split - 1);
                     }
 
-                    if (split + 1 < final) {
-                        this.stack.push(split + 1);
+                    if (split < final) {
+                        this.stack.push(split);
                         this.stack.push(final);
                     }
                 }
-                
-                stop &&= flag;
             }
         }
 

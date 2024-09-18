@@ -1,70 +1,32 @@
 import { Injectable } from "@angular/core";
-import { floor, random } from "lodash";
+import { ceil, floor, random } from "lodash";
 
-import { SortDataModel, SortOrder, SortStateModel } from "../ngrx-store/sort.state";
+import { SortDataModel, SortStateModel } from "../ngrx-store/sort.state";
 
-import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
+import { ACCENT_COLOR, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, delay, PRIMARY_COLOR, SECONDARY_COLOR } from "../../../public/global.utils";
 
 import { RecursiveQuickSortService } from "./quick-sort.service";
+import { PartitionMetaInfo } from "./base-sort.service";
 
 /**
  * 圆木排序
  */
 @Injectable()
-export class LogSortService extends RecursiveQuickSortService {
+export class RecursiveLogSortService extends RecursiveQuickSortService {
     
-    protected override async sortByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        let size: number = rhs - lhs + 1,  mid: number = random(floor(size * 0.25 + lhs, 0), floor(size * 0.75 + lhs, 0), false);
-
-        if (lhs < rhs) {
-            if (order === 'ascent') {
-                [times, mid] = await this.newPartitionByAscent(source, lhs, mid, rhs, times, callback);
-                times = await this.sortByOrder(source, lhs, mid - 1, order, times, callback);
-                times = await this.sortByOrder(source, mid + 1, rhs, order, times, callback);
-            }
-
-            if (order === 'descent') {
-                [times, mid] = await this.newPartitionByDescent(source, lhs, mid, rhs, times, callback);
-                times = await this.sortByOrder(source, mid + 1, rhs, order, times, callback);
-                times = await this.sortByOrder(source, lhs, mid - 1, order, times, callback);
-            }
-        }
-
-        return times;
-    }
-    
-    protected override async tailSortByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
-        let size: number = rhs - lhs + 1,  mid: number = random(floor(size * 0.25 + lhs, 0), floor(size * 0.75 + lhs, 0), false);
-
-        while (lhs < rhs) {
-            if (order === 'ascent') {
-                [times, mid] = await this.newPartitionByAscent(source, lhs, mid, rhs, times, callback);
-                times = await this.tailSortByOrder(source, lhs, mid - 1, order, times, callback);
-                lhs = mid + 1;
-            }
-
-            if (order === 'descent') {
-                [times, mid] = await this.newPartitionByDescent(source, lhs, mid, rhs, times, callback);
-                times = await this.tailSortByOrder(source, mid + 1, rhs, order, times, callback);
-                rhs = mid - 1;
-            }
-        }
-
-        return times;
-    }
-
-    protected async newPartitionByAscent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
-        let fstArray: number[] | null = Array.from([]), sndArray: number[] | null = Array.from([]), pivot: number = source[mid].value;
+    protected override async partitionByAscent(source: SortDataModel[], lhs: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<PartitionMetaInfo> {
+        let index: number = random(floor((rhs - lhs) * 0.25 + lhs, 0), ceil((rhs - lhs) * 0.75 + lhs, 0), false);
+        let pivot: number = source[index].value, fstArray: number[] | null = Array.from([]), sndArray: number[] | null = Array.from([]);
 
         for (let i = lhs; i <= rhs; i++) {
-            if (i === mid) continue;
+            if (i === index) continue;
 
             if (source[i].value < pivot) {
                 fstArray.push(source[i].value);
             } else if (source[i].value > pivot) {
                 sndArray.push(source[i].value);
             } else {
-                if (i < mid) {
+                if (i < index) {
                     fstArray.push(source[i].value);
                 } else {
                     sndArray.push(source[i].value);
@@ -74,7 +36,7 @@ export class LogSortService extends RecursiveQuickSortService {
             times = await this.sweep(source, i, ACCENT_ONE_COLOR, times, callback);
         }
         
-        mid = lhs + fstArray.length;
+        index = lhs + fstArray.length;
 
         this.array = this.array.concat(...fstArray, pivot, ...sndArray);
         fstArray.splice(0);
@@ -89,21 +51,22 @@ export class LogSortService extends RecursiveQuickSortService {
             times += 1;
         }
 
-        return [times, mid];
+        return { times, mid: index };
     }
 
-    protected async newPartitionByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
-        let fstArray: number[] | null = Array.from([]), sndArray: number[] | null = Array.from([]), pivot: number = source[mid].value;
+    protected override async partitionByDescent(source: SortDataModel[], lhs: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<PartitionMetaInfo> {
+        let index: number = random(floor((rhs - lhs) * 0.25 + lhs, 0), ceil((rhs - lhs) * 0.75 + lhs, 0), false);
+        let pivot: number = source[index].value, fstArray: number[] | null = Array.from([]), sndArray: number[] | null = Array.from([]);
 
         for (let i = rhs; i >= lhs; i--) {
-            if (i === mid) continue;
+            if (i === index) continue;
 
             if (source[i].value < pivot) {
                 fstArray.push(source[i].value);
             } else if (source[i].value > pivot) {
                 sndArray.push(source[i].value);
             } else {
-                if (i > mid) {
+                if (i > index) {
                     fstArray.push(source[i].value);
                 } else {
                     sndArray.push(source[i].value);
@@ -113,7 +76,7 @@ export class LogSortService extends RecursiveQuickSortService {
             times = await this.sweep(source, i, ACCENT_ONE_COLOR, times, callback);
         }
         
-        mid = rhs - fstArray.length;
+        index = rhs - fstArray.length;
 
         this.array = this.array.concat(...fstArray, pivot, ...sndArray);
         fstArray.splice(0);
@@ -128,57 +91,121 @@ export class LogSortService extends RecursiveQuickSortService {
             times += 1;
         }
 
-        return [times, mid];
+        return { times, mid: index };
     }
 
 }
 
 @Injectable()
-export class InPlaceLogSortService extends LogSortService {
+export class IterativeLogSortService extends RecursiveLogSortService {
 
-    protected override async newPartitionByAscent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
-        let pivot: number = source[mid].value, idx: number;
+    protected override async sortByAscent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let partition: PartitionMetaInfo, mid: number, times: number = 0;
+
+        this.stack.push(rhs);
+        this.stack.push(lhs);
+
+        while (this.stack.length > 0) {
+            lhs = this.stack.pop() as number;
+            rhs = this.stack.pop() as number;
+
+            partition = await this.partitionByAscent(source, lhs, rhs, times, callback);
+            times = partition.times;
+            mid = partition?.mid as number;
+
+            if (mid + 1 < rhs) {
+                this.stack.push(rhs);
+                this.stack.push(mid + 1);
+            }
+
+            if (lhs < mid - 1) {
+                this.stack.push(mid - 1);
+                this.stack.push(lhs);
+            }
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+    protected override async sortByDescent(source: SortDataModel[], lhs: number, rhs: number, option: string | number | undefined, callback: (param: SortStateModel) => void): Promise<void> {
+        let partition: PartitionMetaInfo, mid: number, times: number = 0;
+
+        this.stack.push(lhs);
+        this.stack.push(rhs);
+
+        while (this.stack.length > 0) {
+            rhs = this.stack.pop() as number;
+            lhs = this.stack.pop() as number;
+
+            partition = await this.partitionByDescent(source, lhs, rhs, times, callback);
+            times = partition.times;
+            mid = partition?.mid as number;
+
+            if (lhs < mid - 1) {
+                this.stack.push(lhs);
+                this.stack.push(mid - 1);
+            }
+
+            if (mid + 1 < rhs) {
+                this.stack.push(mid + 1);
+                this.stack.push(rhs);
+            }
+        }
+
+        await delay();
+        await this.complete(source, times, callback);
+    }
+
+}
+
+@Injectable()
+export class InPlaceLogSortService extends IterativeLogSortService {
+
+    protected override async partitionByAscent(source: SortDataModel[], lhs: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<PartitionMetaInfo> {
+        let index: number = random(floor((rhs - lhs) * 0.25 + lhs, 0), ceil((rhs - lhs) * 0.75 + lhs, 0), false);
+        let pivot: number = source[index].value, idx: number;
         
         if (lhs + 1 === rhs) {
             times = await this.exchange(source, source[lhs].value > source[rhs].value, lhs, rhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
         } else {
             for (let i = lhs; i <= rhs; ) {
-                if (i < mid) {
+                if (i < index) {
                     if (source[i].value < pivot) {
-                        times = await this.render(source, i, mid, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
+                        times = await this.dualSweep(source, i, index, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
     
                         i += 1;
                     } else {
                         for (let j = i; j < rhs; j++) {
                             source[i].color = ACCENT_ONE_COLOR;
-                            source[mid].color = ACCENT_TWO_COLOR;
+                            source[index].color = ACCENT_TWO_COLOR;
                             callback({ times, datalist: source });
     
                             times = await this.exchange(source, true, j, j + 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
                         }
     
-                        times = await this.render(source, i, mid, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
+                        times = await this.dualSweep(source, i, index, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
     
-                        mid -= 1;
+                        index -= 1;
                     }
-                } else if (i > mid) {
+                } else if (i > index) {
                     if (source[i].value < pivot) {
-                        idx = Math.max(mid - 1, lhs);
+                        idx = Math.max(index - 1, lhs);
 
                         for (let j = i; j > idx; j--) {
                             source[i].color = ACCENT_ONE_COLOR;
-                            source[mid].color = ACCENT_TWO_COLOR;
+                            source[index].color = ACCENT_TWO_COLOR;
                             callback({ times, datalist: source });
     
                             times = await this.exchange(source, true, j, j - 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
                         }
     
-                        times = await this.render(source, i, mid, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
+                        times = await this.dualSweep(source, i, index, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
     
                         i += 1;
-                        mid += 1;
+                        index += 1;
                     } else {
-                        times = await this.render(source, i, mid, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
+                        times = await this.dualSweep(source, i, index, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
     
                         i += 1;
                     }
@@ -189,52 +216,53 @@ export class InPlaceLogSortService extends LogSortService {
             }
         }
         
-        return [times, mid];
+        return { times, mid: index };
     }
 
-    protected override async newPartitionByDescent(source: SortDataModel[], lhs: number, mid: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<[number, number]> {
-        let pivot: number = source[mid].value, idx: number;
+    protected override async partitionByDescent(source: SortDataModel[], lhs: number, rhs: number, times: number, callback: (param: SortStateModel) => void): Promise<PartitionMetaInfo> {
+        let index: number = random(floor((rhs - lhs) * 0.25 + lhs, 0), ceil((rhs - lhs) * 0.75 + lhs, 0), false);
+        let pivot: number = source[index].value, idx: number;
 
         if (rhs - 1 === lhs) {
             times = await this.exchange(source, source[rhs].value > source[lhs].value, rhs, lhs, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
         } else {
             for (let i = rhs; i >= lhs; ) {
-                if (i > mid) {
+                if (i > index) {
                     if (source[i].value < pivot) {
-                        times = await this.render(source, i, mid, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
+                        times = await this.dualSweep(source, i, index, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
     
                         i -= 1;
                     } else {
                         for (let j = i; j > lhs; j--) {
                             source[i].color = ACCENT_ONE_COLOR;
-                            source[mid].color = ACCENT_TWO_COLOR;
+                            source[index].color = ACCENT_TWO_COLOR;
                             callback({ times, datalist: source });
     
                             times = await this.exchange(source, true, j, j - 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
                         }
 
-                        times = await this.render(source, i, mid, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
+                        times = await this.dualSweep(source, i, index, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
     
-                        mid += 1;
+                        index += 1;
                     }
-                } else if (i < mid) {
+                } else if (i < index) {
                     if (source[i].value < pivot) {
-                        idx = Math.min(mid + 1, rhs);
+                        idx = Math.min(index + 1, rhs);
 
                         for (let j = i; j < idx; j++) {
                             source[i].color = ACCENT_ONE_COLOR;
-                            source[mid].color = ACCENT_TWO_COLOR;
+                            source[index].color = ACCENT_TWO_COLOR;
                             callback({ times, datalist: source });
     
                             times = await this.exchange(source, true, j, j + 1, PRIMARY_COLOR, SECONDARY_COLOR, ACCENT_COLOR, times, callback);
                         }
 
-                        times = await this.render(source, i, mid, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
+                        times = await this.dualSweep(source, i, index, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
     
                         i -= 1;
-                        mid -= 1;
+                        index -= 1;
                     } else {
-                        times = await this.render(source, i, mid, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
+                        times = await this.dualSweep(source, i, index, ACCENT_ONE_COLOR, ACCENT_TWO_COLOR, times, callback);
     
                         i -= 1;
                     }
@@ -245,7 +273,7 @@ export class InPlaceLogSortService extends LogSortService {
             }
         }
 
-        return [times, mid];
+        return { times, mid: index };
     }
 
 }

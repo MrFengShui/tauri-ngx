@@ -14,8 +14,8 @@ export class PatienceSortService extends AbstractDistributionSortService<number>
         let times: number = 0, flag: [number, boolean, number, number] = [0, false, -1, -1];
         
         while (!flag[1]) {
-            times = await this.save(source, lhs, rhs, 'ascent', times, callback);
-            times = await this.load(source, lhs, rhs, 'ascent', times, callback);
+            times = await this.saveByOrder(source, lhs, rhs, 'ascent', times, callback);
+            times = await this.loadByOrder(source, lhs, rhs, 'ascent', times, callback);
             flag = await this.check(source, lhs, rhs, 'ascent', times, callback);
         }
         
@@ -29,8 +29,8 @@ export class PatienceSortService extends AbstractDistributionSortService<number>
         let times: number = 0, flag: [number, boolean, number, number] = [0, false, -1, -1];
 
         while (!flag[1]) {
-            times = await this.save(source, lhs, rhs, 'descent', times, callback);
-            times = await this.load(source, lhs, rhs, 'descent', times, callback);
+            times = await this.saveByOrder(source, lhs, rhs, 'descent', times, callback);
+            times = await this.loadByOrder(source, lhs, rhs, 'descent', times, callback);
             flag = await this.check(source, lhs, rhs, 'descent', times, callback);
         }
         
@@ -40,7 +40,7 @@ export class PatienceSortService extends AbstractDistributionSortService<number>
         await this.complete(source, times, callback);
     }
 
-    protected override async save(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async saveByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = -1, value: number, key: string | number = 0, flag: boolean;
 
         for (let i = 0, length = source.length; i < length; i++) {
@@ -54,7 +54,7 @@ export class PatienceSortService extends AbstractDistributionSortService<number>
 
             value = source[index].value;
 
-            times = await this.render(source, index, index, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
+            times = await this.dualSweep(source, index, index, ACCENT_ONE_COLOR, ACCENT_ONE_COLOR, times, callback);
             times += 1;
 
             this.keys = Object.keys(this.cacheOfKeyValues);
@@ -84,7 +84,7 @@ export class PatienceSortService extends AbstractDistributionSortService<number>
         return times;
     }
 
-    protected override async load(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
+    protected override async loadByOrder(source: SortDataModel[], lhs: number, rhs: number, order: SortOrder, times: number, callback: (param: SortStateModel) => void): Promise<number> {
         let index: number = -1;
 
         if (order === 'ascent') {
@@ -103,7 +103,7 @@ export class PatienceSortService extends AbstractDistributionSortService<number>
             while (this.stack.length > 0) {
                 source[index].value = this.stack.pop() as number;
 
-                times = await this.render(source, index, index, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
+                times = await this.dualSweep(source, index, index, ACCENT_TWO_COLOR, ACCENT_TWO_COLOR, times, callback);
                 times += 1;
 
                 if (order === 'ascent') {

@@ -1,16 +1,19 @@
+import { CanvasDimension } from "../../public/global.utils";
 import { SortDataModel } from "./ngrx-store/sort.state";
+
+export type SortCanvasReferenceInfo = { total: number, pivot: number };
 
 export interface SortDataSubject {
 
     addObserver(observer: SortDataObserver): void;
     removeObserver(observer: SortDataObserver): void;
-    notify(source: SortDataModel[], total: number, size: { width: number, height: number }): void;
+    notify(source: SortDataModel[], info: SortCanvasReferenceInfo, size: CanvasDimension): void;
 
 }
 
 export interface SortDataObserver {
 
-    update(source: SortDataModel[], total: number, size: { width: number, height: number }): void;
+    update(source: SortDataModel[], info: SortCanvasReferenceInfo, size: CanvasDimension): void;
 
 }
 
@@ -40,8 +43,8 @@ export class SortDataAsyncSubject implements SortDataSubject {
         }
     }
 
-    public notify(source: SortDataModel[], total: number, size: { width: number, height: number }): void {
-        this.observers?.forEach(observer => observer.update(source, total, size));
+    public notify(source: SortDataModel[], info: SortCanvasReferenceInfo, size: CanvasDimension): void {
+        this.observers?.forEach(observer => observer.update(source, info, size));
     }
 
 }
@@ -55,14 +58,14 @@ export class SortDataAsyncObserver implements SortDataObserver {
         this._subject.addObserver(this);
     }
 
-    public update(source: SortDataModel[], total: number, size: { width: number, height: number }): void {
+    public update(source: SortDataModel[], info: SortCanvasReferenceInfo, size: CanvasDimension): void {
         if (this._context) {
-            const delta: number = size.width / total, scale: number = size.height / total;
+            const delta: number = size.width / info.total, scale: number = size.height / info.pivot;
             let model: SortDataModel, x: number = 0, y: number = 0, width: number = 0, height: number = 0;
             
             this.erase(size.width, size.height);
             
-            for(let i = 0; i < total; i++) {
+            for(let i = 0; i < info.total; i++) {
                 model = source[i];
                 
                 width = delta;

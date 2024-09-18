@@ -46,7 +46,7 @@ export class RecursiveCycleSortService extends AbstractBinarySortService {
                 source[idx].color = SECONDARY_COLOR;
                 callback({ times, datalist: source });
     
-                times = await this.render(source, i, i, ACCENT_COLOR, ACCENT_COLOR, times, callback);
+                times = await this.dualSweep(source, i, i, ACCENT_COLOR, ACCENT_COLOR, times, callback);
                 times += 1;
             }
 
@@ -64,7 +64,7 @@ export class RecursiveCycleSortService extends AbstractBinarySortService {
                 source[idx].color = SECONDARY_COLOR;
                 callback({ times, datalist: source });
     
-                times = await this.render(source, i, i, ACCENT_COLOR, ACCENT_COLOR, times, callback);
+                times = await this.dualSweep(source, i, i, ACCENT_COLOR, ACCENT_COLOR, times, callback);
                 times += 1;
             }
 
@@ -99,7 +99,7 @@ export class IterativeCycleSortService extends RecursiveCycleSortService {
                     source[index].color = SECONDARY_COLOR;
                     callback({ times, datalist: source });
         
-                    times = await this.render(source, j, j, ACCENT_COLOR, ACCENT_COLOR, times, callback);
+                    times = await this.dualSweep(source, j, j, ACCENT_COLOR, ACCENT_COLOR, times, callback);
                     times += 1;
                 }
     
@@ -127,7 +127,7 @@ export class IterativeCycleSortService extends RecursiveCycleSortService {
                     source[index].color = SECONDARY_COLOR;
                     callback({ times, datalist: source });
         
-                    times = await this.render(source, j, j, ACCENT_COLOR, ACCENT_COLOR, times, callback);
+                    times = await this.dualSweep(source, j, j, ACCENT_COLOR, ACCENT_COLOR, times, callback);
                     times += 1;
                 }
 

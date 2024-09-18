@@ -217,7 +217,7 @@ export class BogoInversePairSortService extends BogoSortService {
                     this.pairs.push(`${i},${j}`);
                 }
                 
-                times = await this.render(source, i, j, PRIMARY_COLOR, ACCENT_COLOR, times, callback);
+                times = await this.dualSweep(source, i, j, PRIMARY_COLOR, ACCENT_COLOR, times, callback);
             }
 
             if (this.pairs.length === 0) {
@@ -253,7 +253,7 @@ export class BogoInversePairSortService extends BogoSortService {
                     this.pairs.push(`${i},${j}`);
                 }
                 
-                times = await this.render(source, i, j, PRIMARY_COLOR, ACCENT_COLOR, times, callback);
+                times = await this.dualSweep(source, i, j, PRIMARY_COLOR, ACCENT_COLOR, times, callback);
             }
 
             if (this.pairs.length === 0) {
