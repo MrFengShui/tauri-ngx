@@ -3,11 +3,11 @@
 </div>
 <div class="flex align-items-center border-solid surface-border border-round-sm border-1 p-3 gap-4 h-5rem">
     <span class="font-bold text-xl text-primary white-space-nowrap">{{ TRANSLATION_MESSAGES[1] }}</span>
-    <p-slider [disabled]="locked" [animate]="true" [min]="0" [max]="threshold" [step]="step" [(ngModel)]="total" class="w-full" (onSlideEnd)="handleCountSelectChange()"/>
-    <p-inputNumber [disabled]="locked" [min]="0" [max]="threshold" [step]="step" [showButtons]="true" [(ngModel)]="total" inputStyleClass="w-4rem" (onBlur)="handleCountBlurChange()" (onKeyDown)="handleCountInputChange($event)"/> 
-    <p-checkbox [disabled]="locked || uniqueForbidden(name)" variant="filled" [binary]="true" [label]="TRANSLATION_MESSAGES[11]" [(ngModel)]="unique" labelStyleClass="font-bold text-xl text-primary white-space-nowrap"/>
-    <p-button [disabled]="locked || total === 0" [raised]="true" icon="pi pi-sync" [label]="TRANSLATION_MESSAGES[7]" class="white-space-nowrap" (onClick)="handleShuffleSourceEvent()"/>
-    <p-button [disabled]="locked || total === 0" [raised]="true" icon="pi pi-play" [label]="TRANSLATION_MESSAGES[8]" class="white-space-nowrap" (onClick)="handleRunSortEvent()"/>
+    <p-slider [disabled]="locked" [animate]="true" [min]="0" [max]="threshold" [step]="step" [(ngModel)]="total" class="w-full" (onSlideEnd)="listenCountSelectChange()"/>
+    <p-inputNumber [disabled]="locked" [min]="0" [max]="threshold" [step]="step" [showButtons]="true" [(ngModel)]="total" inputStyleClass="w-4rem" (onBlur)="listenCountBlurChange()" (onKeyDown)="listenCountInputChange($event)"/> 
+    <p-checkbox pTooltip [tooltipOptions]="TOOLTIP_OTPIONS_UNIQUE" [disabled]="locked || uniqueForbidden(name)" variant="filled" [binary]="true" [label]="TRANSLATION_MESSAGES[11]" [(ngModel)]="unique" labelStyleClass="font-bold text-xl text-primary white-space-nowrap" (onChange)="listenCountSelectChange()"/>
+    <p-button pTooltip [tooltipOptions]="TOOLTIP_OTPIONS_SHUFFLE" [disabled]="locked || total === 0" [raised]="true" icon="pi pi-sync" [label]="TRANSLATION_MESSAGES[7]" class="white-space-nowrap" (onClick)="handleShuffleEvent()"/>
+    <p-button pTooltip [tooltipOptions]="TOOLTIP_OTPIONS_RUN" [disabled]="locked || total === 0" [raised]="true" icon="pi pi-play" [label]="TRANSLATION_MESSAGES[8]" class="white-space-nowrap" (onClick)="handleRunSortEvent()"/>
 </div>
 <div class="flex align-items-center surface-border border-round-sm border-1 p-3 gap-4 h-5rem">
     <div class="flex align-items-center gap-4">
@@ -17,11 +17,11 @@
             <span class="font-bold text-xl text-primary white-space-nowrap" >{{ TRANSLATION_MESSAGES[31] }}</span>
             <p-selectButton [disabled]="locked" [options]="radixOptions" optionLabel="label" optionValue="value" [(ngModel)]="radix"/>
         </ng-container>
-        <ng-container *ngIf="name === 'kw-merge-sort'">
+        <ng-container *ngIf="name === 'mult-merge-sort'">
             <span class="font-bold text-xl text-primary white-space-nowrap" >{{ TRANSLATION_MESSAGES[32] }}</span>
             <p-selectButton [disabled]="locked || total === 0" [options]="mergeWayOptions" optionLabel="label" optionValue="value" [(ngModel)]="mergeWay"/>
         </ng-container>
-        <ng-container *ngIf="name === 'kn-heap-sort'">
+        <ng-container *ngIf="name === 'mult-heap-sort'">
             <span class="font-bold text-xl text-primary white-space-nowrap" >{{ TRANSLATION_MESSAGES[33] }}</span>
             <p-selectButton [disabled]="locked || total === 0" [options]="heapNodeOptions" optionLabel="label" optionValue="value" [(ngModel)]="heapNode"/>
         </ng-container>
@@ -36,8 +36,8 @@
         </span>
     </div>
     <div class="flex align-items-center gap-4">
-        <p-button [disabled]="locked" [raised]="true" icon="pi pi-file-import" severity="success" [label]="TRANSLATION_MESSAGES[9]" class="white-space-nowrap" (onClick)="handleImportDataListEvent(input)"/>
-        <p-button [disabled]="locked || total === 0" [raised]="true" icon="pi pi-file-export" severity="danger" [label]="TRANSLATION_MESSAGES[10]" class="white-space-nowrap" (onClick)="handleExportDataListEvent(anchor)"/>
+        <p-button pTooltip [tooltipOptions]="TOOLTIP_OTPIONS_IMPORT" [disabled]="locked" [raised]="true" icon="pi pi-file-import" severity="success" [label]="TRANSLATION_MESSAGES[9]" class="white-space-nowrap" (onClick)="handleImportDataListEvent()"/>
+        <p-button pTooltip [tooltipOptions]="TOOLTIP_OTPIONS_EXPORT" [disabled]="locked || total === 0" [raised]="true" icon="pi pi-file-export" severity="danger" [label]="TRANSLATION_MESSAGES[10]" class="white-space-nowrap" (onClick)="handleExportDataListEvent()"/>
     </div>
 </div>
 <a href="javascript:void(0)" download="sort.data.json" class="hidden" #anchor></a>

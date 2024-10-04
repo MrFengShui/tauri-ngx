@@ -218,7 +218,7 @@ export class HomePageComponent implements OnInit, OnDestroy, AfterViewInit {
     selector: 'tauri-ngx-navlist',
     template: `
         <ng-container *ngFor="let item of list">
-            <a [routerLink]="item.data?.url" [queryParams]="{ id: encryptQueryParam(item.key), name: encryptQueryParam(item.data?.param) }"
+            <a [routerLink]="item.data?.url" [queryParams]="buildQueryParams(item)"
                 class="flex align-items-center min-w-full p-2 gap-2" 
                 [class.no-underline]="item?.leaf" [class.cursor-pointer]="item?.leaf" 
                 [class.bg-primary]="item?.key === nodeKey" [class.text-white]="item?.key === nodeKey" [class.text-color]="item?.key !== nodeKey"
@@ -274,8 +274,22 @@ export class NavlistComponent {
         }
     }
 
-    protected encryptQueryParam(value: string | undefined): string | undefined {
-        return value ? window.btoa(value) : undefined;
+    protected buildQueryParams(node: TreeNode<RouteUrlParam>): any {
+        let param: any = {};
+
+        if (node.key) {
+            param['id'] = window.btoa(node.key);
+        }
+
+        if (node.data?.param) {
+            param['name'] = window.btoa(node.data.param);
+        }
+
+        if (node.data?.type) {
+            param['type'] = window.btoa(node.data.type.toString());
+        }
+
+        return param;
     }
 
     private initHostLayout(): void {

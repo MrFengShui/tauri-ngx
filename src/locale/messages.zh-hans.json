@@ -29,6 +29,7 @@
         "sort_component_ts_11": "数据是否唯一",
         "sort_component_ts_12_1": "数组长度必须是32的倍数",
         "sort_component_ts_12_2": "数组长度必须是2的乘方（N > 0）",
+        "sort_component_ts_12_3": "数组长度必须是某两个整数的乘积，其中一个整数必须大于等于4",
 
         "login_component_ts_1": "使用者登入",
         "login_component_ts_2": "管理者登入",

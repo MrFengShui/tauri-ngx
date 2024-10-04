@@ -30,7 +30,7 @@
             "prefix": "tauri-ngx",
             "architect": {
                 "build": {
-                    "builder": "@angular-devkit/build-angular:browser",
+                    "builder": "@angular-devkit/build-angular:browser-esbuild",
                     "options": {
                         "allowedCommonJsDependencies": [
                             "lodash", "crypto-js"
@@ -78,7 +78,6 @@
                         ],
                         "optimization": true,
                         "outputHashing": "all",
-                        "sourceMap": true,
                         "progress": true,
                         "verbose": true
                     },
@@ -101,9 +100,24 @@
                                     "maximumError": "128kb"
                                 }
                             ],
+                            "fileReplacements": [
+                                {
+                                    "replace": "src/environments/environment.ts",
+                                    "with": "src/environments/environment.production.ts"
+                                }
+                            ],
+                            "optimization": true,
+                            "extractLicenses": true,
+                            "sourceMap": false,
                             "outputHashing": "all"
                         },
                         "development": {
+                            "fileReplacements": [
+                                {
+                                    "replace": "src/environments/environment.ts",
+                                    "with": "src/environments/environment.development.ts"
+                                }
+                            ],
                             "optimization": true,
                             "extractLicenses": true,
                             "sourceMap": true,
@@ -131,7 +145,7 @@
                 "serve": {
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "options": {
-                        "disableHostCheck": true,
+                        "disableHostCheck": false,
                         "ssl": true,
                         "verbose": true
                     },
@@ -153,7 +167,7 @@
                             "port": 5300
                         }
                     },
-                    "defaultConfiguration": "development"
+                    "defaultConfiguration": "production"
                 },
                 "lint": {
                     "builder": "@angular-eslint/builder:lint",

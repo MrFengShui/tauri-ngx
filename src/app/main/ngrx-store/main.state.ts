@@ -1,8 +1,9 @@
+import { SortName, SortType } from "../../algorithm/sort/ngrx-store/sort.state";
 import { ColorType } from "../../ngrx-store/app.state";
 
 export type LocaleFlagType = 'usa' | 'china';
 export type LocaleIDType = 'en-US' | 'zh-Hans' | 'zh-Hant';
-export type RouteUrlParam = { url?: string[]; param?: string; mark?: boolean; i18n?: string; };
+export type RouteUrlParam = { url?: string[], param?: SortName, mark?: boolean, i18n?: string, type?: SortType };
 
 export interface StyleNameOptionModel {
 

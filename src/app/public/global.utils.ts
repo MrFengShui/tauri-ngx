@@ -1,3 +1,4 @@
+import { floor } from "lodash";
 
 export const PRIMARY_COLOR: string = 'darkorchid';
 export const SECONDARY_COLOR: string = 'darkorange';
@@ -53,4 +54,18 @@ export const calcLCM = (fst: number, snd: number): number => {
     }
     
     return Math.floor(mult / gcd);
+}
+
+export const calcGridRowCol = (size: number): [number, number] => {
+    let row: number = floor(Math.sqrt(size), 0), col: number;
+
+    while (row > 0) {
+        col = size / row;
+
+        if (Number.isInteger(col) && col >= 4 && col <= 24) return [row, col];
+
+        row += 1;
+    }
+
+    return [-1, -1];
 }

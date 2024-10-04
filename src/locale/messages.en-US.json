@@ -28,7 +28,8 @@
         "sort_component_ts_10": "Export",
         "sort_component_ts_11": "Unique or Not",
         "sort_component_ts_12_1": "The length of list must be divided with no remainder by 32.",
-        "sort_component_ts_12_2": "The length of list must be the power of 2 (N > 0).",
+        "sort_component_ts_12_2": "The length of list must be power of two (N > 0).",
+        "sort_component_ts_12_3": "The length of list must be product of two integer numbers, which one of them must be greater than or equal to four.",
 
         "login_component_ts_1": "User Login",
         "login_component_ts_2": "Adminstrator Login",
